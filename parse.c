@@ -31,6 +31,10 @@ static Object *read_expr(FILE* stream)
 {
     int c = getc(stream);
 
+    while (isspace(c)) {
+        c = getc(stream);
+    }
+
     switch (c) {
     case '(':
         return read_list(stream);
@@ -45,19 +49,17 @@ static Object *read_expr(FILE* stream)
         read_comment(stream);
         return read_expr(stream);
     default:
-        if (isspace(c))
-        {
-            do {
-                c = getc(stream);
-            } while (isspace(peek(stream)));
-        }
         return read_symbol(stream, c);
     }
 }
 
-static Object *read_term(FILE* stream)
+static Object *read_list(FILE* stream)
 {
-    return NULL;
+    Object *head = read_expr(stream);
+
+    while (peek(stream) != ')') {
+        //
+    }
 }
 
 Object *St_Read(FILE* stream)
