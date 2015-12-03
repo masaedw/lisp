@@ -27,13 +27,18 @@ static int peek(FILE *stream)
     return c;
 }
 
+static int skip_space(FILE *stream)
+{
+    while (isspace(peek(stream))) {
+        getc(stream);
+    }
+}
+
 static Object *read_expr(FILE* stream)
 {
-    int c = getc(stream);
+    skip_space(stream);
 
-    while (isspace(c)) {
-        c = getc(stream);
-    }
+    int c = getc(stream);
 
     switch (c) {
     case '(':
