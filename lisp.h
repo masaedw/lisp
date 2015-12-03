@@ -61,4 +61,8 @@ Object *St_Reverse(Object *list);
 
 Object *St_Read(FILE *stream);
 
+// Printer
+
+void St_Print(Object *obj);
+
 #endif
