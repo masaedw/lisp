@@ -1,3 +1,7 @@
+# Entry point
+
+lisp
+
 # Object files
 *.o
 *.ko
