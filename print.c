@@ -16,18 +16,22 @@ static void print(FILE *stream, Object *obj)
         break;
 
     case TCELL:
-        // TODO: print like list
         fprintf(stream, "(");
 
         print(stream, obj->car);
 
-        fprintf(stream, " . ");
+        while (ST_PAIRP(obj->cdr))
+        {
+            obj = obj->cdr;
+            fprintf(stream, " ");
+            print(stream, obj->car);
+        }
 
-        print(stream, obj->cdr);
-
-        // (a b c) -> (a . (b . (c . ()))
-        // (a b . c) -> (a . (b . c))
-        // (a . b) -> (a . b)
+        if (!ST_NULLP(obj->cdr))
+        {
+            fprintf(stream, " . ");
+            print(stream, obj->cdr);
+        }
 
         fprintf(stream, ")");
 

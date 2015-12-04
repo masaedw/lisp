@@ -38,5 +38,10 @@ int main(int argc, char** argv)
     St_Print(St_Cons(sym1, sym2));
     printf("\n");
 
+
+    St_Print(St_Cons(St_Cons(one, St_Cons(two, Nil)),
+                     St_Cons(sym1, St_Cons(sym2, St_Cons(Nil, sym1)))));
+    printf("\n");
+
     return 0;
 }
