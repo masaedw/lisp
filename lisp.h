@@ -33,9 +33,9 @@ struct Object
     };
 };
 
-extern static Object *Nil;
-extern static Object *True;
-extern static Object *False;
+extern Object *Nil;
+extern Object *True;
+extern Object *False;
 
 #define St_Error(message)                       \
     do {                                        \

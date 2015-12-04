@@ -1,8 +1,8 @@
 #include "lisp.h"
 
-static Object *Nil = &(Object) { TNIL };
-static Object *True = &(Object) { TTRUE };
-static Object *False = &(Object) { TFALSE };
+Object *Nil = &(Object) { TNIL };
+Object *True = &(Object) { TTRUE };
+Object *False = &(Object) { TFALSE };
 
 Object *St_Alloc(int type)
 {
