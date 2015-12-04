@@ -98,6 +98,49 @@ static Object *read_list(FILE* stream)
     }
 }
 
+static Object *read_quote(FILE *stream)
+{
+    return Nil;
+}
+
+static Object *read_integer(FILE *stream, int first_digit)
+{
+    return Nil;
+}
+
+static Object *read_hash(FILE *stream)
+{
+    skip_space(stream);
+
+    int c = getc(stream);
+
+    if (c == 't')
+    {
+        return True;
+    }
+
+    if (c == 'f')
+    {
+        return False;
+    }
+
+    St_Error("read: unexpected hash literal");
+}
+
+static void read_comment(FILE *stream)
+{
+    int c;
+
+    do {
+        c = getc(stream);
+    } while (c != '\n');
+}
+
+static Object *read_symbol(FILE *stream, char first_char)
+{
+    return Nil;
+}
+
 Object *St_Read(FILE* stream)
 {
     return read_expr(stream);
