@@ -3,18 +3,10 @@
 
 #include "lisp.h"
 
-// 構文
-// <expr>    ::= <term> | <list>
-// <term>    ::= <integer> | <symbol> | '\'' <expr> | #t | #f
-// <list>    ::= '(' <listsub>
-// <listsub> ::= ')' | <expr> + ['.' <expr>] ')'
-// <integer> ::= <数字> +
-// <symbol>  ::= <見える文字> +
-
-Object *read_term(FILE *stream);
 Object *read_list(FILE *stream);
-Object *read_listsub(FILE *stream);
+Object *read_quote(FILE *stream);
 Object *read_integer(FILE *stream, int first_digit);
+Object *read_hash(FILE *stream, char first_char);
 Object *read_symbol(FILE *stream, char first_char);
 
 #define INT_LENGTH 9
@@ -42,6 +34,11 @@ static Object *read_expr(FILE* stream)
 
     switch (c) {
     case '(':
+        if (peek(stream) == ')')
+        {
+            getc(stream);
+            return Nil;
+        }
         return read_list(stream);
     case '\'':
         return read_quote(stream);
@@ -60,10 +57,43 @@ static Object *read_expr(FILE* stream)
 
 static Object *read_list(FILE* stream)
 {
-    Object *head = read_expr(stream);
+    Object *head = Nil;
+    Object *last = Nil;
 
-    while (peek(stream) != ')') {
-        //
+    skip_space(stream);
+
+    while (true) {
+        int c = peek(stream);
+
+        if (c == EOF)
+        {
+            getc(stream);
+            St_Error("read: EOF in list");
+        }
+
+        // TODO: dotted pair
+
+        if (c == ')')
+        {
+            getc(stream);
+            return head;
+        }
+
+        Object *i = read_expr(stream);
+
+        if (i == NULL)
+        {
+            St_Error("read: unexpected in list")
+        }
+
+        if (ST_NULLP(head))
+        {
+            head = last = St_Cons(i, Nil);
+        }
+        else
+        {
+            last->cdr = St_Cons(i, last);
+        }
     }
 }
 
