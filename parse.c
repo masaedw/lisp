@@ -3,11 +3,12 @@
 
 #include "lisp.h"
 
-Object *read_list(FILE *stream);
-Object *read_quote(FILE *stream);
-Object *read_integer(FILE *stream, int first_digit);
-Object *read_hash(FILE *stream, char first_char);
-Object *read_symbol(FILE *stream, char first_char);
+static Object *read_list(FILE *stream);
+static Object *read_quote(FILE *stream);
+static Object *read_integer(FILE *stream, int first_digit);
+static Object *read_hash(FILE *stream);
+static void read_comment(FILE *stream);
+static Object *read_symbol(FILE *stream, char first_char);
 
 #define INT_LENGTH 9
 #define SYMBOL_LENGTH 50
@@ -19,7 +20,7 @@ static int peek(FILE *stream)
     return c;
 }
 
-static int skip_space(FILE *stream)
+static void skip_space(FILE *stream)
 {
     while (isspace(peek(stream))) {
         getc(stream);
@@ -83,7 +84,7 @@ static Object *read_list(FILE* stream)
 
         if (i == NULL)
         {
-            St_Error("read: unexpected in list")
+            St_Error("read: unexpected in list");
         }
 
         if (ST_NULLP(head))
