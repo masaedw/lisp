@@ -6,7 +6,7 @@ Object *False = &(Object) { TFALSE };
 
 Object *St_Alloc(int type)
 {
-    Object *obj = (Object *)St_Malloc(siseof(Object));
+    Object *obj = (Object *)St_Malloc(sizeof(Object));
 
     obj->type = type;
 
@@ -15,7 +15,7 @@ Object *St_Alloc(int type)
 
 Object *St_Cons(Object *car, Object *cdr)
 {
-    Object *cell = alloc(TCELL);
+    Object *cell = St_Alloc(TCELL);
 
     cell->car = car;
     cell->cdr = cdr;
