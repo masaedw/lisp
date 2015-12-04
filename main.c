@@ -1,10 +1,7 @@
 #include "lisp.h"
 
-int main(int argc, char** argv)
+void test_print()
 {
-    //Object *expr = St_Read(stdin);
-    //St_Print(expr);
-
     St_Print(Nil);
     printf("\n");
 
@@ -42,6 +39,12 @@ int main(int argc, char** argv)
     St_Print(St_Cons(St_Cons(one, St_Cons(two, Nil)),
                      St_Cons(sym1, St_Cons(sym2, St_Cons(Nil, sym1)))));
     printf("\n");
+}
+
+int main(int argc, char** argv)
+{
+    Object *expr = St_Read(stdin);
+    St_Print(expr);
 
     return 0;
 }

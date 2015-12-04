@@ -10,7 +10,6 @@ static Object *read_hash(FILE *stream);
 static void read_comment(FILE *stream);
 static Object *read_symbol(FILE *stream, char first_char);
 
-#define INT_LENGTH 9
 #define SYMBOL_LENGTH 50
 
 static int peek(FILE *stream)
@@ -34,6 +33,8 @@ static Object *read_expr(FILE* stream)
     int c = getc(stream);
 
     switch (c) {
+    case EOF:
+        return NULL;
     case '(':
         if (peek(stream) == ')')
         {
@@ -93,19 +94,37 @@ static Object *read_list(FILE* stream)
         }
         else
         {
-            last->cdr = St_Cons(i, last);
+            last->cdr = St_Cons(i, Nil);
+            last = last->cdr;
         }
     }
 }
 
 static Object *read_quote(FILE *stream)
 {
-    return Nil;
+    Object *expr = read_expr(stream);
+
+    if (!expr)
+    {
+        St_Error("read: unexpected quote expr");
+    }
+
+    return St_Cons(St_Intern("quote"), expr);
 }
 
 static Object *read_integer(FILE *stream, int first_digit)
 {
-    return Nil;
+    int value = first_digit;
+
+    while (isdigit(peek(stream))) {
+        int c = getc(stream);
+        value = value * 10 + c - '0';
+    }
+
+    Object *i = St_Alloc(TINT);
+    i->int_value = value;
+
+    return i;
 }
 
 static Object *read_hash(FILE *stream)
@@ -136,13 +155,39 @@ static void read_comment(FILE *stream)
     } while (c != '\n');
 }
 
+static bool word_char(int c)
+{
+    if (c == EOF)
+    {
+        return false;
+    }
+    if (isspace(c) || iscntrl(c))
+    {
+        return false;
+    }
+    if (c == '(' || c == ')' || c == '\'' || c == '#' || c == ';')
+    {
+        return false;
+    }
+
+    return true; // TODO: more strict
+}
+
 static Object *read_symbol(FILE *stream, char first_char)
 {
-    return Nil;
+    char buf[SYMBOL_LENGTH + 1] = { first_char };
+    int p = 1;
+
+    while (word_char(peek(stream))) {
+        buf[p++] = (char)getc(stream);
+    }
+
+    buf[p] = 0;
+
+    return St_Intern(buf);
 }
 
 Object *St_Read(FILE* stream)
 {
     return read_expr(stream);
 }
-
