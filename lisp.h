@@ -52,10 +52,13 @@ Object *St_Alloc(int type);
 #define ST_FALSEP(obj) ((obj) == False)
 #define ST_PAIRP(obj) ((obj)->type == TCELL)
 #define ST_INTP(obj) ((obj)->type == TINT)
-#define ST_SYBOLP(obj) ((obj)->type == TSYMBOL)
+#define ST_SYMBOLP(obj) ((obj)->type == TSYMBOL)
 
 Object *St_Cons(Object *car, Object *cdr);
 Object *St_Reverse(Object *list);
+
+extern Object *Symbols;
+Object *St_Intern(const char *symbol_string);
 
 // Parser
 
