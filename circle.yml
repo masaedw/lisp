@@ -1,0 +1,5 @@
+dependencies:
+  pre:
+    - cmake .
+  override:
+    - make
