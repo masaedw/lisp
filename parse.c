@@ -178,6 +178,7 @@ static Object *read_symbol(FILE *stream, char first_char)
     char buf[SYMBOL_LENGTH + 1] = { first_char };
     int p = 1;
 
+    // TODO: buffer overflow
     while (word_char(peek(stream))) {
         buf[p++] = (char)getc(stream);
     }
