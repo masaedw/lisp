@@ -109,7 +109,7 @@ static Object *read_quote(FILE *stream)
         St_Error("read: unexpected quote expr");
     }
 
-    return St_Cons(St_Intern("quote"), expr);
+    return St_Cons(St_Intern("quote"), St_Cons(expr, Nil));
 }
 
 static Object *read_integer(FILE *stream, int first_digit)
