@@ -94,8 +94,6 @@ Object *St_PushEnv(Object *env, Object *keys, Object *values)
 
 Object *St_LookupVariable(Object *env, Object *key)
 {
-    Object *p = env->cdr;
-
     if (ST_NULLP(env))
     {
         return Nil;
