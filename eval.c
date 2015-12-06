@@ -23,7 +23,6 @@ static Object *eval(Object *env, Object *obj)
         
     case TCELL: { // function application or syntax
         Object *fst = eval(env, obj->car);
-        //printf(": %s %d\n", obj->car, fst->type);
         if (ST_SYNTAXP(fst))
         {
             return fst->syntax(env, obj);
