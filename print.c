@@ -52,6 +52,14 @@ static void print(FILE *stream, Object *obj)
     case TSYMBOL:
         fprintf(stream, "%s", obj->symbol_value);
         break;
+
+    case TSYNTAX:
+        fprintf(stream, "#<syntax %s>", obj->syntax_name);
+        break;
+
+    case TSUBR:
+        fprintf(stream, "#<subr %s>", obj->subr_name);
+        break;
     }
 }
 

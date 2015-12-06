@@ -75,6 +75,7 @@ void St_AddSyntax(Object *env, const char *key, SyntaxFunction *syntax)
 {
     Object *s = St_Alloc(TSYNTAX);
     s->syntax = syntax;
+    s->syntax_name = key;
 
     St_AddVariable(env, St_Intern(key), s);
 }
@@ -83,6 +84,7 @@ void St_AddSubr(Object *env, const char *key, SubrFunction *subr)
 {
     Object *s = St_Alloc(TSUBR);
     s->subr = subr;
+    s->subr_name = key;
 
     St_AddVariable(env, St_Intern(key), s);
 }

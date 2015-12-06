@@ -39,11 +39,13 @@ struct Object
         // syntax
         struct {
             SyntaxFunction *syntax;
+            const char *syntax_name;
         };
 
         // subr
         struct {
             SubrFunction *subr;
+            const char *subr_name;
         };
     };
 };
