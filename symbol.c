@@ -10,16 +10,16 @@ Object *St_Intern(const char *symbol_value)
 
     if (!p)
     {
-        p = Nil;
+        p = Symbols = Nil;
     }
 
-    while (!ST_NULLP(p) && !strcmp(symbol_value, p->car->symbol_value)) {
+    while (!ST_NULLP(p) && strcmp(symbol_value, p->car->symbol_value) != 0) {
         p = p->cdr;
     }
 
-    if (ST_SYMBOLP(p))
+    if (ST_PAIRP(p))
     {
-        return p;
+        return p->car;
     }
 
     Object *symbol = St_Alloc(TSYMBOL);
