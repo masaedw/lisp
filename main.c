@@ -43,8 +43,21 @@ void test_print()
 
 int main(int argc, char** argv)
 {
-    Object *expr = St_Read(stdin);
-    St_Print(expr);
+    Object *env = St_InitEnv();
+    St_InitPrimitives(env);
+
+    Object *expr;
+
+    while (true) {
+        expr = St_Read(stdin);
+        if (!expr)
+        {
+            return 0;
+        }
+
+        St_Print(St_Eval(env, expr));
+    };
+
 
     return 0;
 }
