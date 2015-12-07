@@ -4,7 +4,24 @@ static Object *eval(Object *env, Object *obj);
 
 static Object *map_eval(Object *env, Object *args)
 {
-    return args; // TODO
+    Object *head = Nil;
+    Object *tail = Nil;
+
+    for (Object *p = args; !ST_NULLP(p); p = p->cdr) {
+        Object *val = St_Eval(env, p->car);
+
+        if (ST_NULLP(head))
+        {
+            head = tail = St_Cons(val, Nil);
+        }
+        else
+        {
+            tail->cdr = St_Cons(val, Nil);
+            tail = tail->cdr;
+        }
+    }
+
+    return head;
 }
 
 static Object *eval(Object *env, Object *obj)
