@@ -22,6 +22,30 @@ static Object *syntax_if(Object *env, Object *form)
     }
 }
 
+static Object *syntax_define(Object *env, Object *form)
+{
+    int len = St_Length(form->cdr);
+
+    if (len != 2)
+    {
+        St_Error("define: malformed define");
+    }
+
+    Object *sym = form->cdr->car;
+    Object *body = form->cdr->cdr->car;
+
+    if (!ST_SYMBOLP(sym))
+    {
+        St_Error("define: symbol required");
+    }
+
+    Object *value = St_Eval(env, body);
+
+    St_AddVariable(env, sym, value);
+
+    return Nil;
+}
+
 static Object *syntax_quote(Object *env, Object *form)
 {
     int len = St_Length(form->cdr);
@@ -135,6 +159,7 @@ static Object *subr_newline(Object *env, Object *args)
 void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
+    St_AddSyntax(env, "define", syntax_define);
     St_AddSyntax(env, "quote", syntax_quote);
     St_AddSyntax(env, "set!", syntax_set);
     St_AddSyntax(env, "lambda", syntax_lambda);
