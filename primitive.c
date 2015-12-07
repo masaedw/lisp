@@ -22,6 +22,26 @@ static Object *syntax_if(Object *env, Object *form)
     }
 }
 
+static Object *syntax_quote(Object *env, Object *form)
+{
+    return Nil; // TODO
+}
+
+static Object *syntax_set(Object *env, Object *form)
+{
+    return Nil; // TODO
+}
+
+static Object *syntax_lambda(Object *env, Object *form)
+{
+    return Nil; // TODO
+}
+
+static Object *syntax_call_cc(Object *env, Object *form)
+{
+    return Nil; // TODO
+}
+
 static Object *subr_plus(Object *env, Object *args)
 {
     int len = St_Length(args);
@@ -108,6 +128,10 @@ static Object *subr_newline(Object *env, Object *args)
 void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
+    St_AddSyntax(env, "quote", syntax_quote);
+    St_AddSyntax(env, "set!", syntax_set);
+    St_AddSyntax(env, "lambda", syntax_lambda);
+    St_AddSyntax(env, "call/cc", syntax_call_cc);
     St_AddSubr(env, "+", subr_plus);
     St_AddSubr(env, "-", subr_minus);
     St_AddSubr(env, "*", subr_mul);
