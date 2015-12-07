@@ -50,6 +50,46 @@ static Object *subr_plus(Object *env, Object *args)
     return o;
 }
 
+static Object *subr_minus(Object *env, Object *args)
+{
+    return Nil; // TODO
+}
+
+static Object *subr_mul(Object *env, Object *args)
+{
+    return Nil; // TODO
+}
+
+static Object *subr_div(Object *env, Object *args)
+{
+    return Nil; // TODO
+}
+
+static Object *subr_lt(Object *env, Object *args)
+{
+    return Nil; // TODO
+}
+
+static Object *subr_le(Object *env, Object *args)
+{
+    return Nil; // TODO
+}
+
+static Object *subr_gt(Object *env, Object *args)
+{
+    return Nil; // TODO
+}
+
+static Object *subr_ge(Object *env, Object *args)
+{
+    return Nil; // TODO
+}
+
+static Object *subr_numeric_eq(Object *env, Object *args)
+{
+    return Nil; // TOO
+}
+
 static Object *subr_print(Object *env, Object *args)
 {
     for (Object *p = args; !ST_NULLP(p); p = p->cdr) {
@@ -69,6 +109,14 @@ void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
     St_AddSubr(env, "+", subr_plus);
+    St_AddSubr(env, "-", subr_minus);
+    St_AddSubr(env, "*", subr_mul);
+    St_AddSubr(env, "/", subr_div);
+    St_AddSubr(env, "<", subr_lt);
+    St_AddSubr(env, "<=", subr_le);
+    St_AddSubr(env, ">", subr_gt);
+    St_AddSubr(env, ">=", subr_ge);
+    St_AddSubr(env, "=", subr_numeric_eq);
     St_AddSubr(env, "print", subr_print);
     St_AddSubr(env, "newline", subr_newline);
 }
