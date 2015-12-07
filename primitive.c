@@ -50,8 +50,25 @@ static Object *subr_plus(Object *env, Object *args)
     return o;
 }
 
+static Object *subr_print(Object *env, Object *args)
+{
+    for (Object *p = args; !ST_NULLP(p); p = p->cdr) {
+        St_Print(p->car);
+    }
+
+    return Nil;
+}
+
+static Object *subr_newline(Object *env, Object *args)
+{
+    fprintf(stdout, "\n");
+    return Nil;
+}
+
 void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
     St_AddSubr(env, "+", subr_plus);
+    St_AddSubr(env, "print", subr_print);
+    St_AddSubr(env, "newline", subr_newline);
 }
