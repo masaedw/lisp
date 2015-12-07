@@ -10,15 +10,7 @@ static Object *map_eval(Object *env, Object *args)
     for (Object *p = args; !ST_NULLP(p); p = p->cdr) {
         Object *val = St_Eval(env, p->car);
 
-        if (ST_NULLP(head))
-        {
-            head = tail = St_Cons(val, Nil);
-        }
-        else
-        {
-            tail->cdr = St_Cons(val, Nil);
-            tail = tail->cdr;
-        }
+        ST_APPEND1(head, tail, val);
     }
 
     return head;

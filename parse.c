@@ -60,7 +60,7 @@ static Object *read_expr(FILE* stream)
 static Object *read_list(FILE* stream)
 {
     Object *head = Nil;
-    Object *last = Nil;
+    Object *tail = Nil;
 
     skip_space(stream);
 
@@ -88,15 +88,7 @@ static Object *read_list(FILE* stream)
             St_Error("read: unexpected in list");
         }
 
-        if (ST_NULLP(head))
-        {
-            head = last = St_Cons(i, Nil);
-        }
-        else
-        {
-            last->cdr = St_Cons(i, Nil);
-            last = last->cdr;
-        }
+        ST_APPEND1(head, tail, i);
     }
 }
 
