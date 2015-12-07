@@ -24,7 +24,14 @@ static Object *syntax_if(Object *env, Object *form)
 
 static Object *syntax_quote(Object *env, Object *form)
 {
-    return Nil; // TODO
+    int len = St_Length(form->cdr);
+
+    if (len != 1)
+    {
+        St_Error("quote: malformed quote");
+    }
+
+    return form->cdr->car;
 }
 
 static Object *syntax_set(Object *env, Object *form)
