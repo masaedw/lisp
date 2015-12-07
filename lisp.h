@@ -78,6 +78,21 @@ Object *St_Acons(Object *key, Object *val, Object *cdr);
 Object *St_Reverse(Object *list);
 int St_Length(Object *list);
 
+
+#define ST_APPEND1(head, tail, value)           \
+    do {                                        \
+        if (ST_NULLP(head))                     \
+        {                                       \
+            (head) = (tail) = St_Cons((value), Nil);    \
+        }                                               \
+        else                                            \
+        {                                               \
+            tail->cdr = St_Cons((value), Nil);          \
+            tail = tail->cdr;                           \
+        }                                               \
+    } while (0)
+
+
 extern Object *Symbols;
 Object *St_Intern(const char *symbol_string);
 Object *St_Find(Object *env, Object *symbol);
