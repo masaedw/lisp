@@ -15,6 +15,7 @@ enum {
     TSYMBOL,
     TSYNTAX,
     TSUBR,
+    TLAMBDA,
 };
 
 typedef struct Object Object;
@@ -47,6 +48,13 @@ struct Object
             SubrFunction *subr;
             const char *subr_name;
         };
+
+	// lambda
+	struct {
+	   Object *params;
+	   Object *body;
+	   Object *env;
+	};
     };
 };
 
