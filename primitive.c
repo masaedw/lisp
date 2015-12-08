@@ -43,7 +43,7 @@ static Object *syntax_define(Object *env, Object *form)
 
     St_AddVariable(env, sym, value);
 
-    return Nil;
+    return sym;
 }
 
 static Object *syntax_quote(Object *env, Object *form)
