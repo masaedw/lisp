@@ -80,6 +80,7 @@ Object *St_Alloc(int type);
 #define ST_SYMBOLP(obj) ((obj)->type == TSYMBOL)
 #define ST_SYNTAXP(obj) ((obj)->type == TSYNTAX)
 #define ST_SUBRP(obj) ((obj)->type == TSUBR)
+#define ST_LAMBDAP(obj) ((obj)->type == TLAMBDA)
 
 Object *St_Cons(Object *car, Object *cdr);
 Object *St_Acons(Object *key, Object *val, Object *cdr);
