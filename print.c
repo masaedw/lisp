@@ -60,6 +60,13 @@ static void print(FILE *stream, Object *obj)
     case TSUBR:
         fprintf(stream, "#<subr %s>", obj->subr_name);
         break;
+
+    case TLAMBDA:
+        fprintf(stream, "#<lambda>");
+        break;
+
+    default:
+        St_Error("unknown type");
     }
 }
 
