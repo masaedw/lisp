@@ -89,9 +89,25 @@ void St_AddSubr(Object *env, const char *key, SubrFunction *subr)
     St_AddVariable(env, St_Intern(key), s);
 }
 
+static Object *zip(Object *a, Object *b)
+{
+    Object *head = Nil;
+    Object *tail = Nil;
+
+    while (!ST_NULLP(a) && !ST_NULLP(b)) {
+        ST_APPEND1(head, tail, St_Cons(a, b));
+    }
+
+    return head;
+}
+
 Object *St_PushEnv(Object *env, Object *keys, Object *values)
 {
-    return Nil; // TODO
+    Object *new_env = St_Alloc(TCELL);
+    new_env->car = env;
+    new_env->cdr = zip(keys, values);
+
+    return new_env;
 }
 
 Object *St_LookupVariable(Object *env, Object *key)
