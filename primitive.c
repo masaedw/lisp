@@ -63,9 +63,54 @@ static Object *syntax_set(Object *env, Object *form)
     return Nil; // TODO
 }
 
+static bool nil_or_symbol_list(Object *obj)
+{
+    if (ST_NULLP(obj))
+    {
+        return true;
+    }
+
+    if (ST_PAIRP(obj))
+    {
+        bool r = true;
+        for (Object *p = obj; r && !ST_NULLP(p); p = p->cdr) {
+            r = r && ST_SYMBOLP(p);
+        }
+        return r;
+    }
+
+    return false;
+}
+
 static Object *syntax_lambda(Object *env, Object *form)
 {
-    return Nil; // TODO
+    // (lambda <params> <body>)
+    // <params> ::= (<symbol> *)
+    // <body> ::<define> * <expr> +
+
+    int len = St_Length(form->cdr);
+
+    if (len < 2)
+    {
+        St_Error("lambda: malformed lambda");
+    }
+
+    Object *params = form->cdr->car;
+    Object *body = form->cdr->cdr;
+
+    if (!nil_or_symbol_list(params))
+    {
+        St_Error("lambda: params needs to be () or a list of symbols");
+    }
+
+    // TODO: validate body
+
+    Object *lambda = St_Alloc(TLAMBDA);
+    lambda->params = params;
+    lambda->env = env;
+    lambda->body = body;
+
+    return lambda;
 }
 
 static Object *syntax_call_cc(Object *env, Object *form)
