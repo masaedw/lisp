@@ -94,8 +94,8 @@ static Object *zip(Object *a, Object *b)
     Object *head = Nil;
     Object *tail = Nil;
 
-    while (!ST_NULLP(a) && !ST_NULLP(b)) {
-        ST_APPEND1(head, tail, St_Cons(a, b));
+    for (Object *p = a, *q = b; !ST_NULLP(p) && !ST_NULLP(q); p = p->cdr, q = q->cdr) {
+        ST_APPEND1(head, tail, St_Cons(p->car, q->car));
     }
 
     return head;
