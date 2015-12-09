@@ -201,6 +201,83 @@ static Object *subr_newline(Object *env, Object *args)
     return Nil;
 }
 
+static Object *subr_eqp(Object *env, Object *args)
+{
+    int len = St_Length(args);
+
+    if (len != 2)
+    {
+        St_Error("eq?: wrong number of arguments");
+    }
+
+    Object *lhs = args->car;
+    Object *rhs = args->cdr->car;
+
+    return lhs == rhs ? True : False;
+}
+
+static Object *subr_eqvp(Object *env, Object *args)
+{
+    int len = St_Length(args);
+
+    if (len != 2)
+    {
+        St_Error("eqv?: wrong number of arguments");
+    }
+
+    Object *lhs = args->car;
+    Object *rhs = args->cdr->car;
+
+    if (ST_INTP(lhs) && ST_INTP(rhs))
+    {
+        return lhs->int_value == rhs->int_value ? True : False;
+    }
+
+    return lhs == rhs ? True : False;
+}
+
+static Object *subr_nullp(Object *env, Object *args)
+{
+    int len = St_Length(args);
+
+    if (len != 1)
+    {
+        St_Error("null?: wrong number of arguments");
+    }
+
+    Object *o = args->car;
+
+    return ST_NULLP(o) ? True : False;
+}
+
+static Object *subr_pairp(Object *env, Object *args)
+{
+    int len = St_Length(args);
+
+    if (len != 1)
+    {
+        St_Error("pair?: wrong number of arguments");
+    }
+
+    Object *o = args->car;
+
+    return ST_PAIRP(o) ? True : False;
+}
+
+static Object *subr_symbolp(Object *env, Object *args)
+{
+    int len = St_Length(args);
+
+    if (len != 1)
+    {
+        St_Error("symbol?: wrong number of arguments");
+    }
+
+    Object *o = args->car;
+
+    return ST_SYMBOLP(o) ? True : False;
+}
+
 void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
@@ -220,4 +297,10 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "=", subr_numeric_eq);
     St_AddSubr(env, "print", subr_print);
     St_AddSubr(env, "newline", subr_newline);
+    St_AddSubr(env, "eq?", subr_eqp);
+    St_AddSubr(env, "eqv?", subr_eqvp);
+    //St_AddSubr(env, "equal?", subr_equalp);
+    St_AddSubr(env, "null?", subr_nullp);
+    St_AddSubr(env, "pair?", subr_pairp);
+    St_AddSubr(env, "symbol?", subr_symbolp);
 }
