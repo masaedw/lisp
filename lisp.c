@@ -114,7 +114,7 @@ Object *St_LookupVariable(Object *env, Object *key)
 {
     if (ST_NULLP(env))
     {
-        return Nil;
+        St_Error("unbound variable");
     }
 
     for (Object *p = env->cdr; !ST_NULLP(p); p = p->cdr) {
