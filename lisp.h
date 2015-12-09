@@ -88,10 +88,10 @@ Object *St_Reverse(Object *list);
 int St_Length(Object *list);
 
 
-#define ST_APPEND1(head, tail, value)           \
-    do {                                        \
-        if (ST_NULLP(head))                     \
-        {                                       \
+#define ST_APPEND1(head, tail, value)                   \
+    do {                                                \
+        if (ST_NULLP(head))                             \
+        {                                               \
             (head) = (tail) = St_Cons((value), Nil);    \
         }                                               \
         else                                            \
