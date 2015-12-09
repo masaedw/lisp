@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "lisp.h"
 
 void test_print()
@@ -48,6 +50,13 @@ int main(int argc, char** argv)
 
     Object *expr;
 
+    bool interactive_mode = false;
+
+    if (argc >= 2 && strcmp(argv[1], "-i") == 0)
+    {
+        interactive_mode = true;
+    }
+
     while (true) {
         expr = St_Read(stdin);
         if (!expr)
@@ -55,7 +64,12 @@ int main(int argc, char** argv)
             return 0;
         }
 
-        St_Print(St_Eval(env, expr));
+        Object *value = St_Eval(env, expr);
+
+        if (interactive_mode)
+        {
+            St_Print(value);
+        }
     };
 
 
