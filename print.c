@@ -68,6 +68,8 @@ static void print(FILE *stream, Object *obj)
     default:
         St_Error("unknown type");
     }
+
+    fflush(stream);
 }
 
 
