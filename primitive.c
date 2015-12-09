@@ -74,7 +74,7 @@ static bool nil_or_symbol_list(Object *obj)
     {
         bool r = true;
         for (Object *p = obj; r && !ST_NULLP(p); p = p->cdr) {
-            r = r && ST_SYMBOLP(p);
+            r = r && ST_SYMBOLP(p->car);
         }
         return r;
     }
