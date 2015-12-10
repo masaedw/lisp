@@ -62,9 +62,9 @@ static Object *read_list(FILE* stream)
     Object *head = Nil;
     Object *tail = Nil;
 
-    skip_space(stream);
-
     while (true) {
+        skip_space(stream);
+
         int c = peek(stream);
 
         if (c == EOF)
