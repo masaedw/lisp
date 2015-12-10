@@ -8,7 +8,12 @@ static Object *syntax_if(Object *env, Object *form)
 
     Object *cond = form->cdr->car;
     Object *then_block = form->cdr->cdr->car;
-    Object *else_block = form->cdr->cdr->cdr->car;
+    Object *else_block = Nil;
+
+    if (ST_PAIRP(form->cdr->cdr->cdr))
+    {
+        else_block = form->cdr->cdr->cdr->car;
+    }
 
     Object *result = St_Eval(env, cond);
 
