@@ -140,11 +140,6 @@ static Object *subr_plus(Object *env, Object *args)
         St_Error("+: invalid type");
     }
 
-    if (!ST_INTP(lhs))
-    {
-        St_Error("+: invalid argument");
-    }
-
     Object *o = St_Alloc(TINT);
     o->int_value = lhs->int_value + rhs->int_value;
 
