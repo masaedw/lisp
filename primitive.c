@@ -148,7 +148,41 @@ static Object *subr_plus(Object *env, Object *args)
 
 static Object *subr_minus(Object *env, Object *args)
 {
-    return Nil; // TODO
+    int len = St_Length(args);
+
+    if (len > 2)
+    {
+        St_Error("-: wrong number of arguments");
+    }
+
+    if (len == 1)
+    {
+        Object *operand = args->car;
+        if (!ST_INTP(operand))
+        {
+            St_Error("-: invalid type");
+        }
+
+        Object *o = St_Alloc(TINT);
+        o->int_value = -operand->int_value;
+
+        return o;
+    }
+
+    // len == 2
+
+    Object *lhs = args->car;
+    Object *rhs = args->cdr->car;
+
+    if (!ST_INTP(lhs) || !ST_INTP(rhs))
+    {
+        St_Error("-: invalid type");
+    }
+
+    Object *o = St_Alloc(TINT);
+    o->int_value = lhs->int_value - rhs->int_value;
+
+    return o;
 }
 
 static Object *subr_mul(Object *env, Object *args)
