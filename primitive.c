@@ -293,6 +293,59 @@ static Object *subr_symbolp(Object *env, Object *args)
     return ST_SYMBOLP(o) ? True : False;
 }
 
+static Object *subr_cons(Object *env, Object *args)
+{
+    int len = St_Length(args);
+
+    if (len != 2)
+    {
+        St_Error("cons: wrong number of arguments");
+    }
+
+    Object *car = args->car;
+    Object *cdr = args->cdr->car;
+
+    return St_Cons(car, cdr);
+}
+
+static Object *subr_car(Object *env, Object *args)
+{
+    int len = St_Length(args);
+
+    if (len != 1)
+    {
+        St_Error("car: wrong number of arguments");
+    }
+
+    Object *cell = args->car;
+
+    if (!ST_PAIRP(cell))
+    {
+        St_Error("car: pair required");
+    }
+
+    return cell->car;
+}
+
+static Object *subr_cdr(Object *env, Object *args)
+{
+    int len = St_Length(args);
+
+    if (len != 1)
+    {
+        St_Error("cdr: wrong number of arguments");
+    }
+
+    Object *cell = args->car;
+
+    if (!ST_PAIRP(cell))
+    {
+        St_Error("cdr: pair required");
+    }
+
+    return cell->cdr;
+}
+
 void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
@@ -318,4 +371,7 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "null?", subr_nullp);
     St_AddSubr(env, "pair?", subr_pairp);
     St_AddSubr(env, "symbol?", subr_symbolp);
+    St_AddSubr(env, "cons", subr_cons);
+    St_AddSubr(env, "car", subr_car);
+    St_AddSubr(env, "cdr", subr_cdr);
 }
