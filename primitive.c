@@ -150,7 +150,7 @@ static Object *subr_minus(Object *env, Object *args)
 {
     int len = St_Length(args);
 
-    if (len > 2)
+    if (len < 1 || 2 < len)
     {
         St_Error("-: wrong number of arguments");
     }
