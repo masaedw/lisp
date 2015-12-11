@@ -218,7 +218,17 @@ static Object *subr_eqp(Object *env, Object *args)
     Object *lhs = args->car;
     Object *rhs = args->cdr->car;
 
-    return lhs == rhs ? True : False;
+    if (lhs == rhs)
+    {
+        return True;
+    }
+
+    if (ST_INTP(lhs) && ST_INTP(rhs))
+    {
+        return lhs->int_value == rhs->int_value ? True : False;
+    }
+
+    return False;
 }
 
 static Object *subr_eqvp(Object *env, Object *args)
