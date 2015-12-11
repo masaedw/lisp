@@ -392,6 +392,13 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, ">", subr_gt);
     St_AddSubr(env, ">=", subr_ge);
     St_AddSubr(env, "=", subr_numeric_eq);
+    //St_AddSubr(env, "number?", subr_numberp);
+    //St_AddSubr(env, "integer?", subr_integerp);
+    //St_AddSubr(env, "zero?", subr_zerop);
+    //St_AddSubr(env, "positive?", subr_positivep);
+    //St_AddSubr(env, "negative?", subr_negativep);
+    //St_AddSubr(env, "odd?", subr_oddp);
+    //St_AddSubr(env, "even?", subr_evenp);
     St_AddSubr(env, "print", subr_print);
     St_AddSubr(env, "newline", subr_newline);
     St_AddSubr(env, "eq?", subr_eqp);
