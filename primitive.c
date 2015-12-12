@@ -270,17 +270,7 @@ static Object *subr_eqp(Object *env, Object *args)
 {
     ST_ARGS2("eq?", args, lhs, rhs);
 
-    if (lhs == rhs)
-    {
-        return True;
-    }
-
-    if (ST_INTP(lhs) && ST_INTP(rhs))
-    {
-        return ST_BOOLEAN(lhs->int_value == rhs->int_value);
-    }
-
-    return False;
+    return ST_BOOLEAN(lhs == rhs);
 }
 
 static Object *subr_eqvp(Object *env, Object *args)
