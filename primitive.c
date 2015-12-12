@@ -275,22 +275,14 @@ static Object *subr_eqp(Object *env, Object *args)
 
 static Object *subr_eqvp(Object *env, Object *args)
 {
-    int len = St_Length(args);
-
-    if (len != 2)
-    {
-        St_Error("eqv?: wrong number of arguments");
-    }
-
-    Object *lhs = args->car;
-    Object *rhs = args->cdr->car;
+    ST_ARGS2("eqv?", args, lhs, rhs);
 
     if (ST_INTP(lhs) && ST_INTP(rhs))
     {
-        return lhs->int_value == rhs->int_value ? True : False;
+        return ST_BOOLEAN(lhs->int_value == rhs->int_value);
     }
 
-    return lhs == rhs ? True : False;
+    return ST_BOOLEAN(lhs == rhs);
 }
 
 static Object *subr_nullp(Object *env, Object *args)
