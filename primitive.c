@@ -268,15 +268,7 @@ static Object *subr_newline(Object *env, Object *args)
 
 static Object *subr_eqp(Object *env, Object *args)
 {
-    int len = St_Length(args);
-
-    if (len != 2)
-    {
-        St_Error("eq?: wrong number of arguments");
-    }
-
-    Object *lhs = args->car;
-    Object *rhs = args->cdr->car;
+    ST_ARGS2("eq?", args, lhs, rhs);
 
     if (lhs == rhs)
     {
@@ -285,7 +277,7 @@ static Object *subr_eqp(Object *env, Object *args)
 
     if (ST_INTP(lhs) && ST_INTP(rhs))
     {
-        return lhs->int_value == rhs->int_value ? True : False;
+        return ST_BOOLEAN(lhs->int_value == rhs->int_value);
     }
 
     return False;
