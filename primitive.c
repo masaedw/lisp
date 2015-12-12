@@ -287,71 +287,35 @@ static Object *subr_eqvp(Object *env, Object *args)
 
 static Object *subr_nullp(Object *env, Object *args)
 {
-    int len = St_Length(args);
+    ST_ARGS1("null?", args, o);
 
-    if (len != 1)
-    {
-        St_Error("null?: wrong number of arguments");
-    }
-
-    Object *o = args->car;
-
-    return ST_NULLP(o) ? True : False;
+    return ST_BOOLEAN(ST_NULLP(o));
 }
 
 static Object *subr_pairp(Object *env, Object *args)
 {
-    int len = St_Length(args);
+    ST_ARGS1("pair?", args, o);
 
-    if (len != 1)
-    {
-        St_Error("pair?: wrong number of arguments");
-    }
-
-    Object *o = args->car;
-
-    return ST_PAIRP(o) ? True : False;
+    return ST_BOOLEAN(ST_PAIRP(o));
 }
 
 static Object *subr_symbolp(Object *env, Object *args)
 {
-    int len = St_Length(args);
+    ST_ARGS1("symbol?", args, o);
 
-    if (len != 1)
-    {
-        St_Error("symbol?: wrong number of arguments");
-    }
-
-    Object *o = args->car;
-
-    return ST_SYMBOLP(o) ? True : False;
+    return ST_BOOLEAN(ST_SYMBOLP(o));
 }
 
 static Object *subr_cons(Object *env, Object *args)
 {
-    int len = St_Length(args);
-
-    if (len != 2)
-    {
-        St_Error("cons: wrong number of arguments");
-    }
-
-    Object *car = args->car;
-    Object *cdr = args->cdr->car;
+    ST_ARGS2("cons", args, car, cdr);
 
     return St_Cons(car, cdr);
 }
 
 static Object *subr_car(Object *env, Object *args)
 {
-    int len = St_Length(args);
-
-    if (len != 1)
-    {
-        St_Error("car: wrong number of arguments");
-    }
-
-    Object *cell = args->car;
+    ST_ARGS1("car", args, cell);
 
     if (!ST_PAIRP(cell))
     {
@@ -363,14 +327,7 @@ static Object *subr_car(Object *env, Object *args)
 
 static Object *subr_cdr(Object *env, Object *args)
 {
-    int len = St_Length(args);
-
-    if (len != 1)
-    {
-        St_Error("cdr: wrong number of arguments");
-    }
-
-    Object *cell = args->car;
+    ST_ARGS1("cdr", args, cell);
 
     if (!ST_PAIRP(cell))
     {
