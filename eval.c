@@ -16,6 +16,18 @@ static Object *map_eval(Object *env, Object *args)
     return head;
 }
 
+static Object *apply(Object *env, Object *proc, Object *args)
+{
+    Object *internal_env = St_PushEnv(proc->env, proc->params, args);
+    Object *value = Nil;
+
+    for (Object *p = proc->body; !ST_NULLP(p); p = p->cdr) {
+        value = eval(internal_env, p->car);
+    }
+
+    return value;
+}
+
 static Object *eval(Object *env, Object *obj)
 {
     switch (obj->type) {
