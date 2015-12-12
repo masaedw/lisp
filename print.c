@@ -11,10 +11,6 @@ static void print(FILE *stream, Object *obj)
 
     switch (obj->type)
     {
-    case TINT:
-        fprintf(stream, "%d", obj->int_value);
-        break;
-
     case TCELL:
         fprintf(stream, "(");
 
@@ -37,37 +33,21 @@ static void print(FILE *stream, Object *obj)
 
         break;
 
-    case TNIL:
-        fprintf(stream, "()");
-        break;
+#define CASE(type, ...)                         \
+        case type:                              \
+            fprintf(stream, __VA_ARGS__);       \
+            break
 
-    case TTRUE:
-        fprintf(stream, "#t");
-        break;
-
-    case TFALSE:
-        fprintf(stream, "#f");
-        break;
-
-    case TSYMBOL:
-        fprintf(stream, "%s", obj->symbol_value);
-        break;
-
-    case TSYNTAX:
-        fprintf(stream, "#<syntax %s>", obj->syntax_name);
-        break;
-
-    case TSUBR:
-        fprintf(stream, "#<subr %s>", obj->subr_name);
-        break;
-
-    case TLAMBDA:
-        fprintf(stream, "#<lambda>");
-        break;
-
-    case TMACRO:
-        fprintf(stream, "#<macro>");
-        break;
+        CASE(TINT, "%d", obj->int_value);
+        CASE(TNIL, "()");
+        CASE(TTRUE, "#t");
+        CASE(TFALSE, "#f");
+        CASE(TSYMBOL, "%s", obj->symbol_value);
+        CASE(TSYNTAX, "#<syntax %s>", obj->syntax_name);
+        CASE(TSUBR, "#<subr %s>", obj->subr_name);
+        CASE(TLAMBDA, "#<lambda>");
+        CASE(TMACRO, "#<macro>");
+#undef CASE
 
     default:
         St_Error("unknown type");
