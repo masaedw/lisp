@@ -95,6 +95,11 @@ Object *St_Acons(Object *key, Object *val, Object *cdr);
 Object *St_Reverse(Object *list);
 int St_Length(Object *list);
 
+#define ST_CAR(pair) (pair)->car
+#define ST_CDR(pair) (pair)->cdr
+#define ST_CADR(list) ST_CAR(ST_CDR(list))
+#define ST_CADDR(list) ST_CAR(ST_CDR(ST_CDR(list)))
+#define ST_CADDDR(list) ST_CAR(ST_CDR(ST_CDR(ST_CDR(list))))
 
 #define ST_APPEND1(head, tail, value)                   \
     do {                                                \
@@ -113,6 +118,42 @@ int St_Length(Object *list);
 extern Object *Symbols;
 Object *St_Intern(const char *symbol_string);
 Object *St_Find(Object *env, Object *symbol);
+
+// Primitive utilities
+
+#define ST_CHECK_ARG_LEN(name, args, len)                       \
+    do {                                                        \
+        int _len = St_Length(args);                             \
+                                                                \
+        if (_len != (len))                                      \
+        {                                                       \
+            St_Error(name ": wrong number of arguments");       \
+        }                                                       \
+    } while (0)
+
+#define ST_ARGS1(name, args, a1)                        \
+    ST_CHECK_ARG_LEN(name, args, 1);                    \
+    Object *(a1) = ST_CAR(args)
+
+#define ST_ARGS2(name, args, a1, a2)                    \
+    ST_CHECK_ARG_LEN(name, args, 2);                    \
+    Object *(a1) = ST_CAR(args);                        \
+    Object *(a2) = ST_CADR(args)
+
+#define ST_ARGS3(name, args, a1, a2, a3)                \
+    ST_CHECK_ARG_LEN(name, args, 3);                    \
+    Object *(a1) = ST_CAR(args);                        \
+    Object *(a2) = ST_CADR(args);                       \
+    Object *(a3) = ST_CADDR(args)
+
+#define ST_ARGS4(name, args, a1, a2, a3, a4)            \
+    ST_CHECK_ARG_LEN(name, args, 4);                    \
+    Object *(a1) = ST_CAR(args);                        \
+    Object *(a2) = ST_CADR(args);                       \
+    Object *(a3) = ST_CADDR(args);                      \
+    Object *(a4) = ST_CADDDR(args)
+
+#define ST_BOOLEAN(b) ((b) ? True : False)
 
 // Environment
 
