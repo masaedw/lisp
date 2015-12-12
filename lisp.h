@@ -16,6 +16,7 @@ enum {
     TSYNTAX,
     TSUBR,
     TLAMBDA,
+    TMACRO,
 };
 
 typedef struct Object Object;
@@ -49,7 +50,7 @@ struct Object
             const char *subr_name;
         };
 
-	// lambda
+	// lambda, macro
 	struct {
 	   Object *params;
 	   Object *body;
@@ -81,6 +82,7 @@ Object *St_Alloc(int type);
 #define ST_SYNTAXP(obj) ((obj)->type == TSYNTAX)
 #define ST_SUBRP(obj) ((obj)->type == TSUBR)
 #define ST_LAMBDAP(obj) ((obj)->type == TLAMBDA)
+#define ST_MACROP(obj) ((obj)->type == TMACRO)
 
 Object *St_Cons(Object *car, Object *cdr);
 Object *St_Acons(Object *key, Object *val, Object *cdr);

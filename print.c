@@ -65,6 +65,10 @@ static void print(FILE *stream, Object *obj)
         fprintf(stream, "#<lambda>");
         break;
 
+    case TMACRO:
+        fprintf(stream, "#<macro>");
+        break;
+
     default:
         St_Error("unknown type");
     }
