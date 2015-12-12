@@ -50,12 +50,18 @@ struct Object
             const char *subr_name;
         };
 
-	// lambda, macro
-	struct {
-	   Object *params;
-	   Object *body;
-	   Object *env;
-	};
+        // lambda
+        struct {
+            Object *params;
+            Object *body;
+            Object *env;
+        };
+
+        // macro
+        struct {
+            Object *proc;
+            Object *macro_symbol;
+        };
     };
 };
 
