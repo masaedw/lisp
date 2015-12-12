@@ -66,6 +66,17 @@ static Object *eval(Object *env, Object *obj)
 
             return value;
         }
+        if (ST_MACROP(fst))
+        {
+            Object *proc = fst->proc;
+
+            if (St_Length(proc->params) != 1)
+            {
+                St_Error("macro proc must have just one parameter.");
+            }
+
+            return St_Eval(env, apply(env, proc, obj));
+        }
     }
     default:
         return Nil; // not reached
