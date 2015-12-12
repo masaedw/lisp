@@ -123,6 +123,37 @@ static Object *syntax_call_cc(Object *env, Object *form)
     return Nil; // TODO
 }
 
+static Object *syntax_define_macro(Object *env, Object *form)
+{
+    int len = St_Length(form->cdr);
+
+    if (len != 2)
+    {
+        St_Error("define-macro: malformed define-macro");
+    }
+
+    Object *sym = form->cdr->car;
+    Object *proc = St_Eval(env, form->cdr->cdr->car);
+
+    if (!ST_SYMBOLP(sym))
+    {
+        St_Error("define-macro: needs a symbol");
+    }
+
+    if (!ST_LAMBDAP(proc))
+    {
+        St_Error("define-macro: needs a lambda");
+    }
+
+    Object *macro = St_Alloc(TMACRO);
+    macro->proc = proc;
+    macro->macro_symbol = sym;
+
+    St_AddVariable(env, sym, macro);
+
+    return sym;
+}
+
 static Object *subr_plus(Object *env, Object *args)
 {
     int len = St_Length(args);
@@ -383,6 +414,7 @@ void St_InitPrimitives(Object *env)
     St_AddSyntax(env, "set!", syntax_set);
     St_AddSyntax(env, "lambda", syntax_lambda);
     St_AddSyntax(env, "call/cc", syntax_call_cc);
+    St_AddSyntax(env, "define-macro", syntax_define_macro);
     St_AddSubr(env, "+", subr_plus);
     St_AddSubr(env, "-", subr_minus);
     St_AddSubr(env, "*", subr_mul);
