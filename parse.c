@@ -61,6 +61,8 @@ static Object *read_list(FILE* stream)
 {
     Object *head = Nil;
     Object *tail = Nil;
+    bool is_next_last = false;
+    bool is_next_end = false;
 
     while (true) {
         skip_space(stream);
@@ -73,12 +75,19 @@ static Object *read_list(FILE* stream)
             St_Error("read: EOF in list");
         }
 
-        // TODO: dotted pair
-
         if (c == ')')
         {
+            if (is_next_last)
+            {
+                St_Error("read: dot must lead an expression");
+            }
             getc(stream);
             return head;
+        }
+
+        if (is_next_end)
+        {
+            St_Error("read: elapsed expression after dot");
         }
 
         Object *i = read_expr(stream);
@@ -88,7 +97,31 @@ static Object *read_list(FILE* stream)
             St_Error("read: unexpected in list");
         }
 
-        ST_APPEND1(head, tail, i);
+        if (i == St_Intern("."))
+        {
+            if (head == Nil)
+            {
+                St_Error("read: dot must have car part in front of it");
+            }
+
+            if (is_next_last)
+            {
+                St_Error("read: elapsed dot");
+            }
+            is_next_last = true;
+            continue;
+        }
+
+        if (is_next_last)
+        {
+            tail->cdr = i;
+            is_next_last = false;
+            is_next_end = true;
+        }
+        else
+        {
+            ST_APPEND1(head, tail, i);
+        }
     }
 }
 
