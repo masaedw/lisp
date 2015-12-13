@@ -58,6 +58,23 @@ Object *St_Reverse(Object *list)
     return r;
 }
 
+bool St_Listp(Object *maybe_list)
+{
+    if (!ST_PAIRP(maybe_list))
+    {
+        return false;
+    }
+
+    Object *p = maybe_list;
+
+    while (ST_PAIRP(ST_CDR(p)))
+    {
+        p = p->cdr;
+    }
+
+    return ST_NULLP(ST_CDR(p));
+}
+
 // Environment structure
 // (<upper level env> . <variable alist>)
 

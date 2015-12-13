@@ -342,6 +342,13 @@ static Object *subr_list(Object *env, Object *args)
     return args;
 }
 
+static Object *subr_listp(Object *env, Object *args)
+{
+    ST_ARGS1("list?", args, o);
+
+    return ST_BOOLEAN(St_Listp(o));
+}
+
 void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
@@ -379,4 +386,5 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "car", subr_car);
     St_AddSubr(env, "cdr", subr_cdr);
     St_AddSubr(env, "list", subr_list);
+    St_AddSubr(env, "list?", subr_listp);
 }
