@@ -57,14 +57,7 @@ static Object *eval(Object *env, Object *obj)
         if (ST_LAMBDAP(fst))
         {
             Object *args = map_eval(env, obj->cdr);
-            Object *internal_env = St_PushEnv(fst->env, fst->params, args);
-            Object *value = Nil;
-
-            for (Object *p = fst->body; !ST_NULLP(p); p = p->cdr) {
-                value = eval(internal_env, p->car);
-            }
-
-            return value;
+            return apply(env, fst, args);
         }
         if (ST_MACROP(fst))
         {
