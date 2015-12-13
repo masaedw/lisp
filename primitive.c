@@ -337,6 +337,11 @@ static Object *subr_cdr(Object *env, Object *args)
     return cell->cdr;
 }
 
+static Object *subr_list(Object *env, Object *args)
+{
+    return args;
+}
+
 void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
@@ -373,4 +378,5 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "cons", subr_cons);
     St_AddSubr(env, "car", subr_car);
     St_AddSubr(env, "cdr", subr_cdr);
+    St_AddSubr(env, "list", subr_list);
 }

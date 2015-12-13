@@ -12,10 +12,10 @@
 
 (define-macro my-if
   (lambda (condc thenc elsec)
-    (cons 'if
-          (cons condc
-                (cons thenc
-                      (cons elsec ()))))))
+    (list 'if
+          condc
+          thenc
+          elsec)))
 
 (p (if (eq? (m) 'macro)
      'success_define-macro
