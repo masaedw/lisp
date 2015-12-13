@@ -10,6 +10,18 @@
   (lambda (f)
     ''macro))
 
+(define-macro my-if
+  (lambda (condc thenc elsec)
+    (cons 'if
+          (cons condc
+                (cons thenc
+                      (cons elsec ()))))))
+
 (p (if (eq? (m) 'macro)
      'success_define-macro
      'failed_define-macro))
+
+(my-if #t
+       (print 'success_my-if)
+       (print 'failed_my-if))
+(newline)
