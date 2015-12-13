@@ -38,3 +38,27 @@
 (assert #f (list? 'a) 'list_3)
 (assert #f (list? '(a . b)) 'list_4)
 (assert #f (list? 1) 'list_5)
+
+
+(define x
+  (lambda (a . args)
+    (if (list? args)
+      (length args)
+      (if (null? args)
+        'nil
+        'error))))
+
+(define y
+  (lambda args
+    (if (list? args)
+      (length args)
+      (if (null? args)
+        'nil
+        'error))))
+
+
+(assert 2 (x 'a 'b 'c) 'rest_aprams_0)
+(assert 'nil (x 'a) 'rest_params_1)
+
+(assert 3 (y 'a 'b 'c) 'rest_aprams_2)
+(assert 'nil (y) 'rest_params_3)

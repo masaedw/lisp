@@ -68,23 +68,31 @@ static Object *syntax_set(Object *env, Object *form)
     return Nil; // TODO
 }
 
-static bool nil_or_symbol_list(Object *obj)
+static bool nil_or_dotted_list_of_sybol(Object *obj)
 {
-    if (ST_NULLP(obj))
-    {
-        return true;
-    }
-
-    if (ST_PAIRP(obj))
-    {
-        bool r = true;
-        for (Object *p = obj; r && !ST_NULLP(p); p = p->cdr) {
-            r = r && ST_SYMBOLP(p->car);
+    while (true) {
+        if (ST_NULLP(obj))
+        {
+            return true;
         }
-        return r;
-    }
 
-    return false;
+        if (ST_SYMBOLP(obj))
+        {
+            return true;
+        }
+
+        if (ST_PAIRP(obj))
+        {
+            if (!ST_SYMBOLP(ST_CAR(obj)))
+            {
+                return false;
+            }
+            obj = obj->cdr;
+            continue;
+        }
+
+        return false;
+    }
 }
 
 static Object *syntax_lambda(Object *env, Object *form)
@@ -103,7 +111,7 @@ static Object *syntax_lambda(Object *env, Object *form)
     Object *params = form->cdr->car;
     Object *body = form->cdr->cdr;
 
-    if (!nil_or_symbol_list(params))
+    if (!nil_or_dotted_list_of_sybol(params))
     {
         St_Error("lambda: params needs to be () or a list of symbols");
     }

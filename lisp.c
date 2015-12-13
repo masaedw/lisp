@@ -106,23 +106,34 @@ void St_AddSubr(Object *env, const char *key, SubrFunction *subr)
     St_AddVariable(env, St_Intern(key), s);
 }
 
-static Object *zip(Object *a, Object *b)
-{
-    Object *head = Nil;
-    Object *tail = Nil;
-
-    for (Object *p = a, *q = b; !ST_NULLP(p) && !ST_NULLP(q); p = p->cdr, q = q->cdr) {
-        ST_APPEND1(head, tail, St_Cons(p->car, q->car));
-    }
-
-    return head;
-}
-
 Object *St_PushEnv(Object *env, Object *keys, Object *values)
 {
     Object *new_env = St_Alloc(TCELL);
     new_env->car = env;
-    new_env->cdr = zip(keys, values);
+
+    Object *p = keys;
+    Object *v = values;
+    Object *vars = Nil;
+    Object *tail = Nil;
+
+    if (ST_SYMBOLP(p))
+    {
+        new_env->cdr = St_Acons(p, values, Nil);
+        return new_env;
+    }
+
+    for (; !ST_NULLP(p) && !ST_NULLP(v); p = p->cdr, v = v->cdr)
+    {
+        ST_APPEND1(vars, tail, St_Cons(p->car, v->car));
+
+        if (!ST_PAIRP(p->cdr) && !ST_NULLP(p->cdr))
+        {
+            ST_APPEND1(vars, tail, St_Cons(p->cdr, v->cdr));
+            break;
+        }
+    }
+
+    new_env->cdr = vars;
 
     return new_env;
 }

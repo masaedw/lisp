@@ -44,6 +44,11 @@ static Object *eval(Object *env, Object *obj)
         return St_LookupVariable(env, obj);
         
     case TCELL: { // function application or syntax
+        if (!St_Listp(obj))
+        {
+            St_Error("eval: invalid application");
+        }
+
         Object *fst = eval(env, obj->car);
         if (ST_SYNTAXP(fst))
         {
