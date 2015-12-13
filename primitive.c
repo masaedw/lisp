@@ -342,6 +342,20 @@ static Object *subr_list(Object *env, Object *args)
     return args;
 }
 
+static Object *subr_length(Object *env, Object *args)
+{
+    ST_ARGS1("length", args, list);
+
+    if (!St_Listp(list))
+    {
+        St_Error("length: must a list");
+    }
+
+    Object *o = St_Alloc(TINT);
+    o->int_value = St_Length(list);
+    return o;
+}
+
 static Object *subr_listp(Object *env, Object *args)
 {
     ST_ARGS1("list?", args, o);
@@ -386,5 +400,6 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "car", subr_car);
     St_AddSubr(env, "cdr", subr_cdr);
     St_AddSubr(env, "list", subr_list);
+    St_AddSubr(env, "length", subr_length);
     St_AddSubr(env, "list?", subr_listp);
 }
