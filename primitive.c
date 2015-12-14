@@ -225,7 +225,21 @@ static Object *subr_minus(Object *env, Object *args)
 
 static Object *subr_mul(Object *env, Object *args)
 {
-    return Nil; // TODO
+    int value = 1;
+
+    for (Object *p = args; !ST_NULLP(p); p = ST_CDR(p)) {
+        if (!ST_INTP(ST_CAR(p)))
+        {
+            St_Error("*: invalid type");
+        }
+
+        value *= ST_CAR(p)->int_value;
+    }
+
+    Object *o = St_Alloc(TINT);
+    o->int_value = value;
+
+    return o;
 }
 
 static Object *subr_div(Object *env, Object *args)
