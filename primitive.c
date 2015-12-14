@@ -204,7 +204,7 @@ static Object *subr_minus(Object *env, Object *args)
         return o;
     }
 
-    // len == 2
+    // 2 <= len
     int value = ST_CAR(args)->int_value;
 
     for (Object *p = ST_CDR(args); !ST_NULLP(p); p = ST_CDR(p))
