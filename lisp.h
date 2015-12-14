@@ -98,7 +98,10 @@ bool St_Listp(Object *maybe_list);
 
 #define ST_CAR(pair) (pair)->car
 #define ST_CDR(pair) (pair)->cdr
+#define ST_CDDR(list) ST_CDR(ST_CDR(list))
+#define ST_CDAR(list) ST_CDR(ST_CAR(list))
 #define ST_CADR(list) ST_CAR(ST_CDR(list))
+#define ST_CAAR(list) ST_CAR(ST_CAR(list))
 #define ST_CADDR(list) ST_CAR(ST_CDR(ST_CDR(list)))
 #define ST_CADDDR(list) ST_CAR(ST_CDR(ST_CDR(ST_CDR(list))))
 
