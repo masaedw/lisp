@@ -164,23 +164,19 @@ static Object *syntax_define_macro(Object *env, Object *form)
 
 static Object *subr_plus(Object *env, Object *args)
 {
-    int len = St_Length(args);
+    int value = 0;
 
-    if (len != 2)
-    {
-        St_Error("+: wrong number of arguments");
-    }
+    for (Object *p = args; !ST_NULLP(p); p = ST_CDR(p)) {
+        if (!ST_INTP(ST_CAR(p)))
+        {
+            St_Error("+: invalid type");
+        }
 
-    Object *lhs = args->car;
-    Object *rhs = args->cdr->car;
-
-    if (!ST_INTP(lhs) || !ST_INTP(rhs))
-    {
-        St_Error("+: invalid type");
+        value += ST_CAR(p)->int_value;
     }
 
     Object *o = St_Alloc(TINT);
-    o->int_value = lhs->int_value + rhs->int_value;
+    o->int_value = value;
 
     return o;
 }
@@ -189,14 +185,14 @@ static Object *subr_minus(Object *env, Object *args)
 {
     int len = St_Length(args);
 
-    if (len < 1 || 2 < len)
+    if (len < 1)
     {
         St_Error("-: wrong number of arguments");
     }
 
     if (len == 1)
     {
-        Object *operand = args->car;
+        Object *operand = ST_CAR(args);
         if (!ST_INTP(operand))
         {
             St_Error("-: invalid type");
@@ -209,17 +205,20 @@ static Object *subr_minus(Object *env, Object *args)
     }
 
     // len == 2
+    int value = ST_CAR(args)->int_value;
 
-    Object *lhs = args->car;
-    Object *rhs = args->cdr->car;
-
-    if (!ST_INTP(lhs) || !ST_INTP(rhs))
+    for (Object *p = ST_CDR(args); !ST_NULLP(p); p = ST_CDR(p))
     {
-        St_Error("-: invalid type");
+        if (!ST_INTP(ST_CAR(p)))
+        {
+            St_Error("-: invalid type");
+        }
+
+        value -= ST_CAR(p)->int_value;
     }
 
     Object *o = St_Alloc(TINT);
-    o->int_value = lhs->int_value - rhs->int_value;
+    o->int_value = value;
 
     return o;
 }

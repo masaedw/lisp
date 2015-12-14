@@ -62,3 +62,12 @@
 
 (assert 3 (y 'a 'b 'c) 'rest_aprams_2)
 (assert 'nil (y) 'rest_params_3)
+
+(assert 0 (+) 'plus_0)
+(assert 1 (+ 1) 'plus_1)
+(assert 2 (+ 1 1) 'plus_2)
+(assert 3 (+ 1 1 1) 'plus_3)
+
+(assert (- 0 5) (- 5) 'minus_0)
+(assert 0 (- 5 5) 'minus_1)
+(assert 3 (- 5 1 1) 'minus_2)
