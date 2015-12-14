@@ -4,8 +4,8 @@
 
 (define assert
   (lambda (expected actual msg)
-    (print (if (eqv? expected actual) 'success_ 'failed_))
-    (p msg)))
+    (print (if (eqv? expected actual) 'success_ 'failed_) msg)
+    (newline)))
 
 (p (if (eqv? 1 1)
      'success_eqv_1_1
