@@ -249,7 +249,33 @@ static Object *subr_div(Object *env, Object *args)
 
 static Object *subr_lt(Object *env, Object *args)
 {
-    return Nil; // TODO
+    if (St_Length(args) < 2)
+    {
+        St_Error("<: wrong number of arguments");
+    }
+
+    Object *fst = ST_CAR(args);
+    Object *snd = ST_CADR(args);
+
+    if (!ST_INTP(fst) || !ST_INTP(snd))
+    {
+        St_Error("<: invalid type");
+    }
+
+    bool r = fst->int_value < snd->int_value;
+    int last;
+    Object *p;
+
+    for (p = ST_CDDR(args), last = snd->int_value; r && !ST_NULLP(p); last = ST_CAR(p)->int_value, p = ST_CDR(p)) {
+        if (!ST_INTP(ST_CAR(p)))
+        {
+            St_Error("*: invalid type");
+        }
+
+        r = last < ST_CAR(p)->int_value;
+    }
+
+    return ST_BOOLEAN(r);
 }
 
 static Object *subr_le(Object *env, Object *args)
