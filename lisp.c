@@ -75,6 +75,27 @@ bool St_ListP(Object *maybe_list)
     return ST_NULLP(ST_CDR(p));
 }
 
+bool St_EqvP(Object *lhs, Object *rhs)
+{
+    if (ST_INTP(lhs) && ST_INTP(rhs))
+    {
+        return lhs->int_value == rhs->int_value;
+    }
+
+    return lhs == rhs;
+}
+
+bool St_EqualP(Object *lhs, Object *rhs)
+{
+    if (ST_PAIRP(lhs) && ST_PAIRP(rhs))
+    {
+        return St_EqualP(ST_CAR(lhs), ST_CAR(rhs)) &&
+            St_EqualP(ST_CDR(lhs), ST_CDR(rhs));
+    }
+
+    return St_EqvP(lhs, rhs);
+}
+
 // Environment structure
 // (<upper level env> . <variable alist>)
 

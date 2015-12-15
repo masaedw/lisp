@@ -159,6 +159,12 @@ Object *St_Find(Object *env, Object *symbol);
 
 #define ST_BOOLEAN(b) ((b) ? True : False)
 
+// Basic functions
+
+bool St_EqvP(Object *lhs, Object *rhs);
+bool St_EqualP(Object *lhs, Object *rhs);
+
+
 // Environment
 
 Object *St_InitEnv();
