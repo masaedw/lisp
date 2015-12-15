@@ -247,56 +247,43 @@ static Object *subr_div(Object *env, Object *args)
     return Nil; // TODO
 }
 
-static Object *subr_lt(Object *env, Object *args)
-{
-    if (St_Length(args) < 2)
-    {
-        St_Error("<: wrong number of arguments");
+#define DEFINE_NUMERIC_COMPARISON(fname, op, sym)                       \
+    static Object *subr_##fname(Object *env, Object *args)              \
+    {                                                                   \
+        if (St_Length(args) < 2)                                        \
+        {                                                               \
+            St_Error(#sym ": wrong number of arguments");               \
+        }                                                               \
+                                                                        \
+        Object *fst = ST_CAR(args);                                     \
+        Object *snd = ST_CADR(args);                                    \
+                                                                        \
+        if (!ST_INTP(fst) || !ST_INTP(snd))                             \
+        {                                                               \
+            St_Error(#sym ": invalid type");                            \
+        }                                                               \
+                                                                        \
+        bool r = fst->int_value op snd->int_value;                      \
+        int last;                                                       \
+        Object *p;                                                      \
+                                                                        \
+        for (p = ST_CDDR(args), last = snd->int_value; r && !ST_NULLP(p); last = ST_CAR(p)->int_value, p = ST_CDR(p)) { \
+            if (!ST_INTP(ST_CAR(p)))                                    \
+            {                                                           \
+                St_Error(#sym ": invalid type");                        \
+            }                                                           \
+                                                                        \
+            r = last op ST_CAR(p)->int_value;                           \
+        }                                                               \
+                                                                        \
+        return ST_BOOLEAN(r);                                           \
     }
 
-    Object *fst = ST_CAR(args);
-    Object *snd = ST_CADR(args);
-
-    if (!ST_INTP(fst) || !ST_INTP(snd))
-    {
-        St_Error("<: invalid type");
-    }
-
-    bool r = fst->int_value < snd->int_value;
-    int last;
-    Object *p;
-
-    for (p = ST_CDDR(args), last = snd->int_value; r && !ST_NULLP(p); last = ST_CAR(p)->int_value, p = ST_CDR(p)) {
-        if (!ST_INTP(ST_CAR(p)))
-        {
-            St_Error("*: invalid type");
-        }
-
-        r = last < ST_CAR(p)->int_value;
-    }
-
-    return ST_BOOLEAN(r);
-}
-
-static Object *subr_le(Object *env, Object *args)
-{
-    return Nil; // TODO
-}
-
-static Object *subr_gt(Object *env, Object *args)
-{
-    return Nil; // TODO
-}
-
-static Object *subr_ge(Object *env, Object *args)
-{
-    return Nil; // TODO
-}
-
-static Object *subr_numeric_eq(Object *env, Object *args)
-{
-    return Nil; // TOO
-}
+DEFINE_NUMERIC_COMPARISON(lt, <, <)
+DEFINE_NUMERIC_COMPARISON(le, <=, <=)
+DEFINE_NUMERIC_COMPARISON(gt, >, >)
+DEFINE_NUMERIC_COMPARISON(ge, >=, >=)
+DEFINE_NUMERIC_COMPARISON(numeric_eq, ==, =)
 
 static Object *subr_print(Object *env, Object *args)
 {
