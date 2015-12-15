@@ -385,12 +385,14 @@ static Object *subr_eqvp(Object *env, Object *args)
 {
     ST_ARGS2("eqv?", args, lhs, rhs);
 
-    if (ST_INTP(lhs) && ST_INTP(rhs))
-    {
-        return ST_BOOLEAN(lhs->int_value == rhs->int_value);
-    }
+    return ST_BOOLEAN(St_EqvP(lhs, rhs));
+}
 
-    return ST_BOOLEAN(lhs == rhs);
+static Object *subr_equalp(Object *env, Object *args)
+{
+    ST_ARGS2("equal?", args, lhs, rhs);
+
+    return ST_BOOLEAN(St_EqualP(lhs, rhs));
 }
 
 static Object *subr_nullp(Object *env, Object *args)
@@ -500,7 +502,7 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "newline", subr_newline);
     St_AddSubr(env, "eq?", subr_eqp);
     St_AddSubr(env, "eqv?", subr_eqvp);
-    //St_AddSubr(env, "equal?", subr_equalp);
+    St_AddSubr(env, "equal?", subr_equalp);
     St_AddSubr(env, "null?", subr_nullp);
     St_AddSubr(env, "pair?", subr_pairp);
     St_AddSubr(env, "symbol?", subr_symbolp);

@@ -91,3 +91,9 @@
 (assert #f (even? (- 1)) 'even?_0)
 (assert #t (even? 0) 'even?_1)
 (assert #f (even? 1) 'even?_2)
+
+(assert #t (equal? '(1 2 3) '(1 2 3)) 'equal?_0)
+(assert #t (equal? '((1 2) (3 4)) '((1 2) (3 4))) 'equal?_1)
+(assert #f (equal? '(1 2 3) 'a) 'equal?_2)
+(assert #t (equal? 'a 'a) 'equal?_3)
+(assert #t (equal? 1 1) 'equal?_4)
