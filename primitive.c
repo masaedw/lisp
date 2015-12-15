@@ -473,6 +473,35 @@ static Object *subr_listp(Object *env, Object *args)
     return ST_BOOLEAN(St_ListP(o));
 }
 
+static Object *append_argument(Object *args)
+{
+    if (ST_NULLP(ST_CDR(args)))
+    {
+        if (!St_ListP(ST_CAR(args)))
+        {
+            St_Error("apply: proper list required.");
+        }
+        return ST_CAR(args);
+    }
+
+    return St_Cons(ST_CAR(args), append_argument(ST_CDR(args)));
+}
+
+static Object *subr_apply(Object *env, Object *args)
+{
+    int len = St_Length(args);
+
+    if (len < 2)
+    {
+        St_Error("apply: wrong number of arguments");
+    }
+
+    Object *proc = ST_CAR(args);
+    Object *real_args = append_argument(ST_CDR(args));
+
+    return St_Apply(env, proc, real_args);
+}
+
 void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
@@ -512,4 +541,5 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "list", subr_list);
     St_AddSubr(env, "length", subr_length);
     St_AddSubr(env, "list?", subr_listp);
+    St_AddSubr(env, "apply", subr_apply);
 }

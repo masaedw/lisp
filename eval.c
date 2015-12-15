@@ -28,6 +28,20 @@ static Object *apply(Object *env, Object *proc, Object *args)
     return value;
 }
 
+Object *St_Apply(Object *env, Object *proc, Object *args)
+{
+    if (ST_LAMBDAP(proc))
+    {
+        return apply(env, proc, args);
+    }
+    if (ST_SUBRP(proc))
+    {
+        return proc->subr(env, args);
+    }
+
+    St_Error("apply: lambda or subr requried");
+}
+
 static Object *eval(Object *env, Object *obj)
 {
     switch (obj->type) {
