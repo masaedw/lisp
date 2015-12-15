@@ -58,7 +58,7 @@ Object *St_Reverse(Object *list)
     return r;
 }
 
-bool St_Listp(Object *maybe_list)
+bool St_ListP(Object *maybe_list)
 {
     if (!ST_PAIRP(maybe_list))
     {

@@ -94,7 +94,7 @@ Object *St_Cons(Object *car, Object *cdr);
 Object *St_Acons(Object *key, Object *val, Object *cdr);
 Object *St_Reverse(Object *list);
 int St_Length(Object *list);
-bool St_Listp(Object *maybe_list);
+bool St_ListP(Object *maybe_list);
 
 #define ST_CAR(pair) (pair)->car
 #define ST_CDR(pair) (pair)->cdr

@@ -454,7 +454,7 @@ static Object *subr_length(Object *env, Object *args)
 {
     ST_ARGS1("length", args, list);
 
-    if (!St_Listp(list))
+    if (!St_ListP(list))
     {
         St_Error("length: must a list");
     }
@@ -468,7 +468,7 @@ static Object *subr_listp(Object *env, Object *args)
 {
     ST_ARGS1("list?", args, o);
 
-    return ST_BOOLEAN(St_Listp(o));
+    return ST_BOOLEAN(St_ListP(o));
 }
 
 void St_InitPrimitives(Object *env)
