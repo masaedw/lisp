@@ -285,6 +285,80 @@ DEFINE_NUMERIC_COMPARISON(gt, >, >)
 DEFINE_NUMERIC_COMPARISON(ge, >=, >=)
 DEFINE_NUMERIC_COMPARISON(numeric_eq, ==, =)
 
+static Object *subr_numberp(Object *env, Object *args)
+{
+    ST_ARGS1("number?", args, o);
+
+    return ST_BOOLEAN(ST_INTP(o));
+}
+
+static Object *subr_integerp(Object *env, Object *args)
+{
+    ST_ARGS1("integer?", args, o);
+
+    return ST_BOOLEAN(ST_INTP(o));
+}
+
+static Object *subr_zerop(Object *env, Object *args)
+{
+    ST_ARGS1("zero?", args, o);
+
+    if (!ST_INTP(o))
+    {
+        St_Error("zero?: invalid type");
+    }
+
+    return ST_BOOLEAN(o->int_value == 0);
+}
+
+static Object *subr_positivep(Object *env, Object *args)
+{
+    ST_ARGS1("positive?", args, o);
+
+    if (!ST_INTP(o))
+    {
+        St_Error("positive?: invalid type");
+    }
+
+    return ST_BOOLEAN(o->int_value > 0);
+}
+
+static Object *subr_negativep(Object *env, Object *args)
+{
+    ST_ARGS1("negative?", args, o);
+
+    if (!ST_INTP(o))
+    {
+        St_Error("negative?: invalid type");
+    }
+
+    return ST_BOOLEAN(o->int_value < 0);
+}
+
+static Object *subr_oddp(Object *env, Object *args)
+{
+    ST_ARGS1("odd?", args, o);
+
+    if (!ST_INTP(o))
+    {
+        St_Error("odd?: invalid type");
+    }
+
+    return ST_BOOLEAN(o->int_value % 2 != 0);
+}
+
+static Object *subr_evenp(Object *env, Object *args)
+{
+    ST_ARGS1("even?", args, o);
+
+    if (!ST_INTP(o))
+    {
+        St_Error("even?: invalid type");
+    }
+
+    return ST_BOOLEAN(o->int_value % 2 == 0);
+}
+
 static Object *subr_print(Object *env, Object *args)
 {
     for (Object *p = args; !ST_NULLP(p); p = p->cdr) {
@@ -415,13 +489,13 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, ">", subr_gt);
     St_AddSubr(env, ">=", subr_ge);
     St_AddSubr(env, "=", subr_numeric_eq);
-    //St_AddSubr(env, "number?", subr_numberp);
-    //St_AddSubr(env, "integer?", subr_integerp);
-    //St_AddSubr(env, "zero?", subr_zerop);
-    //St_AddSubr(env, "positive?", subr_positivep);
-    //St_AddSubr(env, "negative?", subr_negativep);
-    //St_AddSubr(env, "odd?", subr_oddp);
-    //St_AddSubr(env, "even?", subr_evenp);
+    St_AddSubr(env, "number?", subr_numberp);
+    St_AddSubr(env, "integer?", subr_integerp);
+    St_AddSubr(env, "zero?", subr_zerop);
+    St_AddSubr(env, "positive?", subr_positivep);
+    St_AddSubr(env, "negative?", subr_negativep);
+    St_AddSubr(env, "odd?", subr_oddp);
+    St_AddSubr(env, "even?", subr_evenp);
     St_AddSubr(env, "print", subr_print);
     St_AddSubr(env, "newline", subr_newline);
     St_AddSubr(env, "eq?", subr_eqp);
