@@ -97,3 +97,7 @@
 (assert #f (equal? '(1 2 3) 'a) 'equal?_2)
 (assert #t (equal? 'a 'a) 'equal?_3)
 (assert #t (equal? 1 1) 'equal?_4)
+
+(assert 55 (apply + '(1 2 3 4 5 6 7 8 9 10)) 'apply_0)
+(assert '((1 2 3) 4 5 6) (apply list '(1 2 3) '(4 5 6)) 'apply_1)
+(assert 6 (apply (lambda (a b c) (+ a b c)) '(1 2 3)) 'apply_2)
