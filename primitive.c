@@ -162,6 +162,17 @@ static Object *syntax_define_macro(Object *env, Object *form)
     return sym;
 }
 
+static Object *syntax_begin(Object *env, Object *args)
+{
+    Object *value = Nil;
+
+    for (Object *p = ST_CDR(args); !ST_NULLP(p); p = ST_CDR(p)) {
+        value = St_Eval(env, ST_CAR(p));
+    }
+
+    return value;
+}
+
 static Object *subr_plus(Object *env, Object *args)
 {
     int value = 0;
@@ -511,6 +522,7 @@ void St_InitPrimitives(Object *env)
     St_AddSyntax(env, "lambda", syntax_lambda);
     St_AddSyntax(env, "call/cc", syntax_call_cc);
     St_AddSyntax(env, "define-macro", syntax_define_macro);
+    St_AddSyntax(env, "begin", syntax_begin);
     St_AddSubr(env, "+", subr_plus);
     St_AddSubr(env, "-", subr_minus);
     St_AddSubr(env, "*", subr_mul);
