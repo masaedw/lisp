@@ -1,5 +1,9 @@
 dependencies:
   pre:
+    - sudo apt-get update; sudo apt-get install libgc-dev
     - cmake .
   override:
     - make
+test:
+  override:
+    - ./lisp < test.scm
