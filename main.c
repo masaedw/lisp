@@ -45,6 +45,8 @@ void test_print()
 
 int main(int argc, char** argv)
 {
+    GC_INIT();
+
     Object *env = St_InitEnv();
     St_InitPrimitives(env);
 

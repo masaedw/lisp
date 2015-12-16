@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <gc.h>
 
 // type tag
 enum {
@@ -75,7 +76,7 @@ extern Object *False;
         exit(1);                                \
     } while (0)
 
-#define St_Malloc malloc
+#define St_Malloc GC_MALLOC
 
 Object *St_Alloc(int type);
 
