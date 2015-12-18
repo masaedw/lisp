@@ -173,6 +173,38 @@ static Object *syntax_begin(Object *env, Object *args)
     return value;
 }
 
+static Object *syntax_and(Object *env, Object *args)
+{
+    Object *value = True;
+
+    for (Object *p = ST_CDR(args); !ST_NULLP(p); p = ST_CDR(p)) {
+        value = St_Eval(env, ST_CAR(p));
+
+        if (ST_FALSEP(value))
+        {
+            break;
+        }
+    }
+
+    return value;
+}
+
+static Object *syntax_or(Object *env, Object *args)
+{
+    Object *value = False;
+
+    for (Object *p = ST_CDR(args); !ST_NULLP(p); p = ST_CDR(p)) {
+        value = St_Eval(env, ST_CAR(p));
+
+        if (!ST_FALSEP(value))
+        {
+            break;
+        }
+    }
+
+    return value;
+}
+
 static Object *subr_plus(Object *env, Object *args)
 {
     int value = 0;
@@ -523,6 +555,8 @@ void St_InitPrimitives(Object *env)
     St_AddSyntax(env, "call/cc", syntax_call_cc);
     St_AddSyntax(env, "define-macro", syntax_define_macro);
     St_AddSyntax(env, "begin", syntax_begin);
+    St_AddSyntax(env, "and", syntax_and);
+    St_AddSyntax(env, "or", syntax_or);
     St_AddSubr(env, "+", subr_plus);
     St_AddSubr(env, "-", subr_minus);
     St_AddSubr(env, "*", subr_mul);

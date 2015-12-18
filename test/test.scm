@@ -101,3 +101,11 @@
 (assert 55 (apply + '(1 2 3 4 5 6 7 8 9 10)) 'apply_0)
 (assert '((1 2 3) 4 5 6) (apply list '(1 2 3) '(4 5 6)) 'apply_1)
 (assert 6 (apply (lambda (a b c) (+ a b c)) '(1 2 3)) 'apply_2)
+
+(assert #t (and) 'and_0)
+(assert 3 (and 1 2 3) 'and_1)
+(assert #f (and 1 #f (print 'failed_and_2)) 'and_2)
+
+(assert #f (or) 'or_0)
+(assert 1 (or #f #f 1) 'or_1)
+(assert 1 (or #f 1 (print 'failed_or_2)) 'or_2)
