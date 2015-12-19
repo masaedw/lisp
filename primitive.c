@@ -65,7 +65,19 @@ static Object *syntax_quote(Object *env, Object *form)
 
 static Object *syntax_set(Object *env, Object *form)
 {
-    return Nil; // TODO
+    if (St_Length(ST_CDR(form)) != 2 || !ST_SYMBOLP(ST_CADR(form)))
+    {
+        St_Error("set!: malformed set!");
+    }
+
+    Object *symbol = ST_CADR(form);
+    Object *value = St_Eval(env, ST_CAR(ST_CDDR(form)));
+
+    Object *pair = St_LookupVariablePair(env, symbol);
+
+    ST_CDR_SET(pair, value);
+
+    return value;
 }
 
 static bool nil_or_dotted_list_of_sybol(Object *obj)
