@@ -106,6 +106,9 @@ bool St_ListP(Object *maybe_list);
 #define ST_CADDR(list) ST_CAR(ST_CDR(ST_CDR(list)))
 #define ST_CADDDR(list) ST_CAR(ST_CDR(ST_CDR(ST_CDR(list))))
 
+#define ST_CAR_SET(pair, value) ((pair)->car = (value))
+#define ST_CDR_SET(pair, value) ((pair)->cdr = (value))
+
 #define ST_APPEND1(head, tail, value)                   \
     do {                                                \
         if (ST_NULLP(head))                             \
