@@ -364,7 +364,59 @@ static Object *subr_mul(Object *env, Object *args)
 
 static Object *subr_div(Object *env, Object *args)
 {
-    return Nil; // TODO
+    int len = St_Length(args);
+
+    if (len < 1)
+    {
+        St_Error("/: wrong number of arguments");
+    }
+
+    if (len == 1)
+    {
+        Object *operand = ST_CAR(args);
+        if (!ST_INTP(operand))
+        {
+            St_Error("/: invalid type");
+        }
+
+        if (operand->int_value == 0)
+        {
+            St_Error("division by zero");
+        }
+
+        Object *o = St_Alloc(TINT);
+        o->int_value = 1 / operand->int_value;
+
+        return o;
+    }
+
+    // 2 <= len
+    if (!ST_INTP(ST_CAR(args)))
+    {
+        St_Error("/: invalid type");
+    }
+
+    int value = ST_CAR(args)->int_value;
+
+    for (Object *p = ST_CDR(args); !ST_NULLP(p); p = ST_CDR(p))
+    {
+        if (!ST_INTP(ST_CAR(p)))
+        {
+            St_Error("-: invalid type");
+        }
+
+        if (ST_CAR(p)->int_value == 0)
+        {
+            St_Error("division by zero");
+        }
+
+        value /= ST_CAR(p)->int_value;
+    }
+
+    Object *o = St_Alloc(TINT);
+    o->int_value = value;
+
+    return o;
 }
 
 #define DEFINE_NUMERIC_COMPARISON(fname, op, sym)                       \

@@ -117,3 +117,5 @@
 (define x 1)
 (set! x 2)
 (assert 2 x 'set!_0)
+
+(assert 2 (/ 12 2 3) 'div_0)
