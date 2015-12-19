@@ -173,6 +173,7 @@ void St_AddVariable(Object *env, Object *key, Object *value);
 void St_AddSyntax(Object *env, const char *key, SyntaxFunction *syntax);
 void St_AddSubr(Object *env, const char *key, SubrFunction *subr);
 Object *St_PushEnv(Object *env, Object *keys, Object *values);
+Object *St_LookupVariablePair(Object *env, Object *key);
 Object *St_LookupVariable(Object *env, Object *key);
 
 void St_InitPrimitives(Object *env);

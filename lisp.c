@@ -159,23 +159,34 @@ Object *St_PushEnv(Object *env, Object *keys, Object *values)
     return new_env;
 }
 
-Object *St_LookupVariable(Object *env, Object *key)
+Object *St_LookupVariablePair(Object *env, Object *key)
 {
     if (ST_NULLP(env))
     {
-        St_Error("unbound variable");
+        return Nil;
     }
 
-    for (Object *p = env->cdr; !ST_NULLP(p); p = p->cdr) {
-        Object *symbol = p->car->car;
-        Object *value = p->car->cdr;
+    for (Object *p = ST_CDR(env); !ST_NULLP(p); p = ST_CDR(p)) {
+        Object *symbol = ST_CAAR(p);
 
         if (symbol == key)
         {
-            return value;
+            return ST_CAR(p);
         }
     }
 
     // go to upper level
-    return St_LookupVariable(env->car, key);
+    return St_LookupVariablePair(ST_CAR(env), key);
+}
+
+Object *St_LookupVariable(Object *env, Object *key)
+{
+    Object *pair = St_LookupVariablePair(env, key);
+
+    if (ST_NULLP(pair))
+    {
+        St_Error("unbound variable");
+    }
+
+    return ST_CDR(pair);
 }
