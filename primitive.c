@@ -320,6 +320,11 @@ static Object *subr_minus(Object *env, Object *args)
     }
 
     // 2 <= len
+    if (!ST_INTP(ST_CAR(args)))
+    {
+        St_Error("-: invalid type");
+    }
+
     int value = ST_CAR(args)->int_value;
 
     for (Object *p = ST_CDR(args); !ST_NULLP(p); p = ST_CDR(p))
