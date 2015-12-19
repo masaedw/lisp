@@ -205,6 +205,66 @@ static Object *syntax_or(Object *env, Object *args)
     return value;
 }
 
+void validate_bindings(Object *args)
+{
+    if (ST_NULLP(args))
+    {
+        return;
+    }
+
+    if (!St_ListP(args))
+    {
+        St_Error("let: malformed bindings");
+    }
+
+    for (Object *p = args; !ST_NULLP(p); p = ST_CDR(p)) {
+        Object *b = ST_CAR(p);
+        if (!ST_PAIRP(b) || St_Length(b) != 2 || !ST_SYMBOLP(ST_CAR(b)))
+        {
+            St_Error("let: malformed binding");
+        }
+    }
+}
+
+static Object *syntax_let(Object *env, Object *args)
+{
+    // (let <bindings> <body>)
+    // <bindings> ::= ((sym <expr>)*)
+
+    if (St_Length(args) < 2)
+    {
+        St_Error("let: malformed let");
+    }
+
+    Object *bindings = ST_CADR(args);
+    Object *body = ST_CDDR(args);
+
+    validate_bindings(bindings);
+
+    Object *pshead = Nil;
+    Object *pstail = Nil;
+
+    for (Object *p = bindings; !ST_NULLP(p); p = ST_CDR(p)) {
+        ST_APPEND1(pshead, pstail, ST_CAAR(p));
+    }
+
+    Object *ashead = Nil;
+    Object *astail = Nil;
+
+    for (Object *p = bindings; !ST_NULLP(p); p = ST_CDR(p)) {
+        ST_APPEND1(ashead, astail, St_Eval(env, ST_CAR(ST_CDAR(p))));
+    }
+
+    Object *internal_env = St_PushEnv(env, pshead, ashead);
+    Object *value = Nil;
+
+    for (Object *p = body; !ST_NULLP(p); p = ST_CDR(p)) {
+        value = St_Eval(internal_env, ST_CAR(p));
+    }
+
+    return value;
+}
+
 static Object *subr_plus(Object *env, Object *args)
 {
     int value = 0;
@@ -557,6 +617,7 @@ void St_InitPrimitives(Object *env)
     St_AddSyntax(env, "begin", syntax_begin);
     St_AddSyntax(env, "and", syntax_and);
     St_AddSyntax(env, "or", syntax_or);
+    St_AddSyntax(env, "let", syntax_let);
     St_AddSubr(env, "+", subr_plus);
     St_AddSubr(env, "-", subr_minus);
     St_AddSubr(env, "*", subr_mul);

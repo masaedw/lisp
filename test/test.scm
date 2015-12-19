@@ -109,3 +109,7 @@
 (assert #f (or) 'or_0)
 (assert 1 (or #f #f 1) 'or_1)
 (assert 1 (or #f 1 (print 'failed_or_2)) 'or_2)
+
+(assert 0 (let () 0) 'let_0)
+(assert 1 (let ((a 1)) a) 'let_1)
+(assert 2 (let ((a 1) (b 1)) (+ a b)) 'let_2)
