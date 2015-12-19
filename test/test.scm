@@ -119,3 +119,9 @@
 (assert 2 x 'set!_0)
 
 (assert 2 (/ 12 2 3) 'div_0)
+
+(define p (cons 1 2))
+(set-car! p 3)
+(assert '(3 . 2) p 'set-car!_0)
+(set-cdr! p 4)
+(assert '(3 . 4) p 'set-cdr!_0)

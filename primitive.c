@@ -674,6 +674,35 @@ static Object *subr_apply(Object *env, Object *args)
     return St_Apply(env, proc, real_args);
 }
 
+static Object *subr_set_car(Object *env, Object *args)
+{
+    ST_ARGS2("set-car!", args, pair, value);
+
+    if (!ST_PAIRP(pair))
+    {
+        St_Error("set-car!: pair requied.");
+    }
+
+    ST_CAR_SET(pair, value);
+
+    return value;
+}
+
+static Object *subr_set_cdr(Object *env, Object *args)
+{
+    ST_ARGS2("set-cdr!", args, pair, value);
+
+    if (!ST_PAIRP(pair))
+    {
+        St_Error("set-cdr!: pair requied.");
+    }
+
+    ST_CDR_SET(pair, value);
+
+    return value;
+}
+
+
 void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
@@ -718,4 +747,6 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "length", subr_length);
     St_AddSubr(env, "list?", subr_listp);
     St_AddSubr(env, "apply", subr_apply);
+    St_AddSubr(env, "set-car!", subr_set_car);
+    St_AddSubr(env, "set-cdr!", subr_set_cdr);
 }
