@@ -14,6 +14,7 @@ enum {
     TTRUE,
     TFALSE,
     TSYMBOL,
+    TSTRING,
     TSYNTAX,
     TSUBR,
     TLAMBDA,
@@ -38,6 +39,8 @@ struct Object
         };
 
         char *symbol_value;
+
+        char *string_value;
 
         // syntax
         struct {
@@ -86,6 +89,7 @@ Object *St_Alloc(int type);
 #define ST_PAIRP(obj) ((obj)->type == TCELL)
 #define ST_INTP(obj) ((obj)->type == TINT)
 #define ST_SYMBOLP(obj) ((obj)->type == TSYMBOL)
+#define ST_STRINGP(obj) ((obj)->type == TSTRING)
 #define ST_SYNTAXP(obj) ((obj)->type == TSYNTAX)
 #define ST_SUBRP(obj) ((obj)->type == TSUBR)
 #define ST_LAMBDAP(obj) ((obj)->type == TLAMBDA)

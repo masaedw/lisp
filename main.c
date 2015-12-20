@@ -41,6 +41,11 @@ void test_print()
     St_Print(St_Cons(St_Cons(one, St_Cons(two, Nil)),
                      St_Cons(sym1, St_Cons(sym2, St_Cons(Nil, sym1)))));
     printf("\n");
+
+    Object *str = St_Alloc(TSTRING);
+    str->string_value = "hoge";
+    St_Print(str);
+    printf("\n");
 }
 
 int main(int argc, char** argv)
@@ -57,6 +62,12 @@ int main(int argc, char** argv)
     if (argc >= 2 && strcmp(argv[1], "-i") == 0)
     {
         interactive_mode = true;
+    }
+
+    if (argc >=2 && strcmp(argv[1], "-p") == 0)
+    {
+        test_print();
+        return 0;
     }
 
     while (true) {
