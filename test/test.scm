@@ -118,6 +118,14 @@
 (set! x 2)
 (assert 2 x 'set!_0)
 
+(define y 2)
+(define x
+  (lambda (y)
+    (set! y 1)
+    y))
+(assert 1 (x 3) 'set!_1)
+(assert 2 y 'set!_2)
+
 (assert 2 (/ 12 2 3) 'div_0)
 
 (define p (cons 1 2))
