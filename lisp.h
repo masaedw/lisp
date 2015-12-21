@@ -202,4 +202,8 @@ void St_Print(Object *obj);
 
 Object *St_Eval(Object *env, Object *obj);
 
+// Compiler
+
+Object *St_Compile(Object *expr, Object *next);
+
 #endif
