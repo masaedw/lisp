@@ -702,6 +702,12 @@ static Object *subr_set_cdr(Object *env, Object *args)
     return value;
 }
 
+static Object *subr_compile(Object *env, Object *args)
+{
+    ST_ARGS2("compile", args, expr, next);
+
+    return St_Compile(expr, next);
+}
 
 void St_InitPrimitives(Object *env)
 {
@@ -749,4 +755,5 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "apply", subr_apply);
     St_AddSubr(env, "set-car!", subr_set_car);
     St_AddSubr(env, "set-cdr!", subr_set_cdr);
+    St_AddSubr(env, "compile", subr_compile);
 }
