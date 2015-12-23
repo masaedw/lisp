@@ -201,6 +201,7 @@ void St_Print(Object *obj);
 // Evaluator
 
 Object *St_Eval(Object *env, Object *obj);
+Object *St_Eval_VM(Object *env, Object *obj);
 
 // Compiler
 
