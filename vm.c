@@ -127,14 +127,23 @@ Object *vm(Object *env, Object *insn)
         }
 
         CASE(x, apply) {
-            ST_ARGS3("apply", a, body, e2, vars);
-            x = body;
-            e = St_PushEnv(e2, vars, r);
-            r = Nil;
-            continue;
+            if (ST_LAMBDAP(a) || ST_SUBRP(a)) // a lambda created in interpreter or subr
+            {
+                a = St_Apply(env, a, r);
+                goto label_rtn;
+            }
+            else
+            {
+                ST_ARGS3("apply", a, body, e2, vars);
+                x = body;
+                e = St_PushEnv(e2, vars, r);
+                r = Nil;
+                continue;
+            }
         }
 
         CASE(x, rtn) {
+        label_rtn:
             ST_ARGS4("return", s, x2, e2, r2, s2);
             x = x2;
             e = e2;
