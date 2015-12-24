@@ -75,6 +75,11 @@ static Object *syntax_set(Object *env, Object *form)
 
     Object *pair = St_LookupVariablePair(env, symbol);
 
+    if (pair == Nil)
+    {
+        St_Error("set!: unbound variable");
+    }
+
     ST_CDR_SET(pair, value);
 
     return value;
