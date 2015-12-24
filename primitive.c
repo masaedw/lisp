@@ -714,6 +714,13 @@ static Object *subr_compile(Object *env, Object *args)
     return St_Compile(expr, next);
 }
 
+static Object *subr_eval_vm(Object *env, Object *args)
+{
+    ST_ARGS1("eval-vm", args, expr);
+
+    return St_Eval_VM(env, expr);
+}
+
 void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
@@ -761,4 +768,5 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "set-car!", subr_set_car);
     St_AddSubr(env, "set-cdr!", subr_set_cdr);
     St_AddSubr(env, "compile", subr_compile);
+    St_AddSubr(env, "eval-vm", subr_eval_vm);
 }
