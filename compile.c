@@ -7,6 +7,18 @@ bool tailP(Object *next)
     return ST_CAR(next) == I("return");
 }
 
+static Object *compile(Object *x, Object *next);
+
+static Object *compile_body(Object *body, Object *next)
+{
+    if (ST_NULLP(body))
+    {
+        return next;
+    }
+
+    return compile(ST_CAR(body), compile_body(ST_CDR(body), next));
+}
+
 static Object *compile(Object *x, Object *next)
 {
     if (ST_SYMBOLP(x))
@@ -28,9 +40,9 @@ static Object *compile(Object *x, Object *next)
         if (car == I("lambda"))
         {
             Object *vars = ST_CADR(x);
-            Object *body = ST_CADDR(x);
+            Object *body = ST_CDDR(x);
 
-            return ST_LIST4(I("close"), vars, compile(body, ST_LIST1(I("return"))), next);
+            return ST_LIST4(I("close"), vars, compile_body(body, ST_LIST1(I("return"))), next);
         }
 
         if (car == I("if"))
