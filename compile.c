@@ -45,6 +45,14 @@ static Object *compile(Object *x, Object *next)
             return compile(testE, ST_LIST3(I("test"), thenC, elseC));
         }
 
+        if (car == I("define"))
+        {
+            Object *var = ST_CADR(x);
+            Object *v = ST_CADDR(x);
+
+            return compile(v, ST_LIST3(I("define"), var, next));
+        }
+
         if (car == I("set!"))
         {
             Object *var = ST_CADR(x);

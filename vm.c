@@ -37,6 +37,7 @@ Object *vm(Object *env, Object *insn)
     INSN(constant);
     INSN(close);
     INSN(test);
+    INSN(define);
     INSN(assign);
     INSN(conti);
     INSN(nuate);
@@ -78,6 +79,15 @@ Object *vm(Object *env, Object *insn)
         CASE(x, test) {
             ST_ARGS2("test", ST_CDR(x), thenc, elsec);
             x = a != False ? thenc : elsec;
+            continue;
+        }
+
+        CASE(x, define) {
+            ST_ARGS2("define", ST_CDR(x), var, x2);
+
+            St_AddVariable(e, var, a);
+
+            x = x2;
             continue;
         }
 
