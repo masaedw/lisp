@@ -134,7 +134,6 @@ bool St_ListP(Object *maybe_list);
 
 extern Object *Symbols;
 Object *St_Intern(const char *symbol_string);
-Object *St_Find(Object *env, Object *symbol);
 
 // Primitive utilities
 
