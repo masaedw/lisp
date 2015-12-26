@@ -7,23 +7,45 @@ bool tailP(Object *next)
     return ST_CAR(next) == I("return");
 }
 
-static Object *compile(Object *x, Object *next);
+static Object *compile(Object *x, Object *e, Object *next);
 
-static Object *compile_body(Object *body, Object *next)
+static Object *compile_body(Object *body, Object *e, Object *next)
 {
     if (ST_NULLP(body))
     {
         return next;
     }
 
-    return compile(ST_CAR(body), compile_body(ST_CDR(body), next));
+    return compile(ST_CAR(body), e, compile_body(ST_CDR(body), e, next));
 }
 
-static Object *compile(Object *x, Object *next)
+static Object *compile_lookup(Object *env, Object *var)
+{
+    int rib = 0;
+    int elt = 0;
+
+    for (Object *e = env; !ST_NULLP(e); e = ST_CAR(e), rib++) {
+        for (Object *p = ST_CADR(e); !ST_NULLP(p); p = ST_CDR(p), elt++) {
+            if (ST_CAAR(p) == var)
+            {
+                return St_Cons(St_Integer(rib), St_Integer(elt));
+            }
+        }
+    }
+
+    St_Error("compile: unbound variable");
+}
+
+static Object *extend(Object *env, Object *vars)
+{
+    return St_PushEnv(env, vars, vars);
+}
+
+static Object *compile(Object *x, Object *e, Object *next)
 {
     if (ST_SYMBOLP(x))
     {
-        return ST_LIST3(I("refer"), x, next);
+        return ST_LIST3(I("refer"), compile_lookup(e, x), next);
     }
 
     if (ST_PAIRP(x))
@@ -42,7 +64,7 @@ static Object *compile(Object *x, Object *next)
             Object *vars = ST_CADR(x);
             Object *body = ST_CDDR(x);
 
-            return ST_LIST4(I("close"), vars, compile_body(body, ST_LIST1(I("return"))), next);
+            return ST_LIST4(I("close"), vars, compile_body(body, extend(e, vars), ST_LIST1(I("return"))), next);
         }
 
         if (car == I("if"))
@@ -51,10 +73,10 @@ static Object *compile(Object *x, Object *next)
             Object *thenE = ST_CADDR(x);
             Object *elseE = ST_CADR(ST_CDDR(x));
 
-            Object *thenC = compile(thenE, next);
-            Object *elseC = compile(elseE, next);
+            Object *thenC = compile(thenE, e, next);
+            Object *elseC = compile(elseE, e, next);
 
-            return compile(testE, ST_LIST3(I("test"), thenC, elseC));
+            return compile(testE, e, ST_LIST3(I("test"), thenC, elseC));
         }
 
         if (car == I("define"))
@@ -62,7 +84,11 @@ static Object *compile(Object *x, Object *next)
             Object *var = ST_CADR(x);
             Object *v = ST_CADDR(x);
 
-            return compile(v, ST_LIST3(I("define"), var, next));
+            Object *x = compile(v, e, ST_LIST3(I("define"), var, next));
+
+            St_AddVariable(e, var, var);
+
+            return x;
         }
 
         if (car == I("set!"))
@@ -70,13 +96,13 @@ static Object *compile(Object *x, Object *next)
             Object *var = ST_CADR(x);
             Object *v = ST_CADDR(x);
 
-            return compile(v, ST_LIST3(I("assign"), var, next));
+            return compile(v, e, ST_LIST3(I("assign"), var, next));
         }
 
         if (car == I("call/cc"))
         {
             Object *v = ST_CADR(x);
-            Object *c = ST_LIST2(I("conti"), ST_LIST2(I("argument"), compile(v, ST_LIST1(I("apply")))));
+            Object *c = ST_LIST2(I("conti"), ST_LIST2(I("argument"), compile(v, e, ST_LIST1(I("apply")))));
 
             if (tailP(next))
             {
@@ -89,9 +115,9 @@ static Object *compile(Object *x, Object *next)
         }
 
         // else clause
-        for (Object *args = ST_CDR(x), *c = compile(ST_CAR(x), ST_LIST1(I("apply")));
+        for (Object *args = ST_CDR(x), *c = compile(ST_CAR(x), e, ST_LIST1(I("apply")));
              ;
-             c = compile(ST_CAR(args), ST_LIST2(I("argument"), c)), args = ST_CDR(args))
+             c = compile(ST_CAR(args), e, ST_LIST2(I("argument"), c)), args = ST_CDR(args))
         {
             if (ST_NULLP(args))
             {
@@ -110,7 +136,7 @@ static Object *compile(Object *x, Object *next)
     return ST_LIST3(I("constant"), x, next);
 }
 
-Object *St_Compile(Object *expr, Object *next)
+Object *St_Compile(Object *expr, Object *env, Object *next)
 {
-    return compile(expr, next);
+    return compile(expr, env, next);
 }

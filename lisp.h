@@ -205,6 +205,6 @@ Object *St_Eval_VM(Object *env, Object *obj);
 
 // Compiler
 
-Object *St_Compile(Object *expr, Object *next);
+Object *St_Compile(Object *expr, Object *env, Object *next);
 
 #endif

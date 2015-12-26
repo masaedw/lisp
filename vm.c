@@ -166,5 +166,5 @@ Object *vm(Object *env, Object *insn)
 
 Object *St_Eval_VM(Object *env, Object *obj)
 {
-    return vm(env, St_Compile(obj, ST_LIST1(St_Intern("halt"))));
+    return vm(env, St_Compile(obj, env, ST_LIST1(St_Intern("halt"))));
 }

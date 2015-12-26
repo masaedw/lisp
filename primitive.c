@@ -698,7 +698,7 @@ static Object *subr_compile(Object *env, Object *args)
 {
     ST_ARGS2("compile", args, expr, next);
 
-    return St_Compile(expr, next);
+    return St_Compile(expr, env, next);
 }
 
 static Object *subr_eval_vm(Object *env, Object *args)
