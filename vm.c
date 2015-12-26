@@ -1,21 +1,21 @@
 #include "lisp.h"
 
-Object *make_closure(Object *body, Object *e, Object *vars)
+static Object *make_closure(Object *body, Object *e, Object *vars)
 {
     return ST_LIST3(body, e, vars);
 }
 
-Object *make_continuation(Object *s)
+static Object *make_continuation(Object *s)
 {
     return make_closure(ST_LIST3(St_Intern("nuate"), s, St_Intern("v")), Nil, ST_LIST1(St_Intern("v")));
 }
 
-Object *make_call_frame(Object *x, Object *e, Object *r, Object *s)
+static Object *make_call_frame(Object *x, Object *e, Object *r, Object *s)
 {
     return ST_LIST4(x, e, r, s);
 }
 
-Object *vm(Object *env, Object *insn)
+static Object *vm(Object *env, Object *insn)
 {
     // registers
     Object *a; // Accumulator
