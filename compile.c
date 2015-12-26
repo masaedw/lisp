@@ -22,9 +22,8 @@ static Object *compile_body(Object *body, Object *e, Object *next)
 static Object *compile_lookup(Object *env, Object *var)
 {
     int rib = 0;
-    int elt = 0;
-
     for (Object *e = env; !ST_NULLP(e); e = ST_CAR(e), rib++) {
+        int elt = 0;
         for (Object *p = ST_CADR(e); !ST_NULLP(p); p = ST_CDR(p), elt++) {
             if (ST_CAAR(p) == var)
             {
@@ -33,6 +32,7 @@ static Object *compile_lookup(Object *env, Object *var)
         }
     }
 
+    St_Print(var);
     St_Error("compile: unbound variable");
 }
 
@@ -64,7 +64,7 @@ static Object *compile(Object *x, Object *e, Object *next)
             Object *vars = ST_CADR(x);
             Object *body = ST_CDDR(x);
 
-            return ST_LIST4(I("close"), vars, compile_body(body, extend(e, vars), ST_LIST1(I("return"))), next);
+            return ST_LIST3(I("close"), compile_body(body, extend(e, vars), ST_LIST1(I("return"))), next);
         }
 
         if (car == I("if"))
@@ -84,11 +84,9 @@ static Object *compile(Object *x, Object *e, Object *next)
             Object *var = ST_CADR(x);
             Object *v = ST_CADDR(x);
 
-            Object *x = compile(v, e, ST_LIST3(I("define"), var, next));
-
             St_AddVariable(e, var, var);
 
-            return x;
+            return compile(v, e, ST_LIST3(I("define"), var, next));
         }
 
         if (car == I("set!"))

@@ -1,18 +1,49 @@
 #include "lisp.h"
 
-static Object *make_closure(Object *body, Object *e, Object *vars)
+static Object *make_closure(Object *body, Object *e)
 {
-    return ST_LIST3(body, e, vars);
+    return ST_LIST2(body, e);
 }
 
 static Object *make_continuation(Object *s)
 {
-    return make_closure(ST_LIST3(St_Intern("nuate"), s, St_Intern("v")), Nil, ST_LIST1(St_Intern("v")));
+    return make_closure(ST_LIST3(St_Intern("nuate"), s, St_Cons(St_Integer(0), St_Integer(0))), Nil);
 }
 
 static Object *make_call_frame(Object *x, Object *e, Object *r, Object *s)
 {
     return ST_LIST4(x, e, r, s);
+}
+
+static Object *lookup(Object *env, Object *access)
+{
+    int rib = ST_CAR(access)->int_value;
+    int elt = ST_CDR(access)->int_value;
+
+    Object *e = env;
+
+    while (rib-- > 0) {
+        e = ST_CAR(e);
+    }
+
+    Object *p = ST_CADR(e);
+
+    while (elt-- > 0) {
+        p = ST_CDR(p);
+    }
+
+    return ST_CAR(p);
+}
+
+static Object *extend(Object *env, Object *vals)
+{
+    Object *syms = Nil;
+
+    for (Object *p = vals; !ST_NULLP(p); p = ST_CDR(p)) {
+        syms = St_Cons(Nil, syms);
+    }
+
+    return St_PushEnv(env, syms, vals);
 }
 
 static Object *vm(Object *env, Object *insn)
@@ -57,7 +88,7 @@ static Object *vm(Object *env, Object *insn)
 
         CASE(x, refer) {
             ST_ARGS2("refer", ST_CDR(x), var, x2);
-            a = St_LookupVariable(e, var);
+            a = ST_CDR(lookup(e, var));
             x = x2;
             continue;
         }
@@ -70,8 +101,8 @@ static Object *vm(Object *env, Object *insn)
         }
 
         CASE(x, close) {
-            ST_ARGS3("close", ST_CDR(x), vars, body, x2);
-            a = make_closure(body, e, vars);
+            ST_ARGS2("close", ST_CDR(x), body, x2);
+            a = make_closure(body, e);
             x = x2;
             continue;
         }
@@ -94,7 +125,7 @@ static Object *vm(Object *env, Object *insn)
         CASE(x, assign) {
             ST_ARGS2("assign", ST_CDR(x), var, x2);
 
-            Object *pair = St_LookupVariablePair(e, var);
+            Object *pair = lookup(e, var);
 
             if (pair == Nil)
             {
@@ -115,7 +146,7 @@ static Object *vm(Object *env, Object *insn)
 
         CASE(x, nuate) {
             ST_ARGS2("nuate", ST_CDR(x), s2, var);
-            a = St_LookupVariable(e, var);
+            a = ST_CDR(lookup(e, var));
             x = ST_LIST1(rtn);
             s = s2;
             continue;
@@ -144,9 +175,9 @@ static Object *vm(Object *env, Object *insn)
             }
             else
             {
-                ST_ARGS3("apply", a, body, e2, vars);
+                ST_ARGS2("apply", a, body, e2);
                 x = body;
-                e = St_PushEnv(e2, vars, r);
+                e = extend(e2, r);
                 r = Nil;
                 continue;
             }
