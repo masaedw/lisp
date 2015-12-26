@@ -146,10 +146,7 @@ static Object *read_integer(FILE *stream, int first_digit)
         value = value * 10 + c - '0';
     }
 
-    Object *i = St_Alloc(TINT);
-    i->int_value = value;
-
-    return i;
+    return St_Integer(value);
 }
 
 static Object *read_hash(FILE *stream)

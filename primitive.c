@@ -295,10 +295,7 @@ static Object *subr_plus(Object *env, Object *args)
         value += ST_CAR(p)->int_value;
     }
 
-    Object *o = St_Alloc(TINT);
-    o->int_value = value;
-
-    return o;
+    return St_Integer(value);
 }
 
 static Object *subr_minus(Object *env, Object *args)
@@ -318,10 +315,7 @@ static Object *subr_minus(Object *env, Object *args)
             St_Error("-: invalid type");
         }
 
-        Object *o = St_Alloc(TINT);
-        o->int_value = -operand->int_value;
-
-        return o;
+        return St_Integer(-operand->int_value);
     }
 
     // 2 <= len
@@ -342,10 +336,7 @@ static Object *subr_minus(Object *env, Object *args)
         value -= ST_CAR(p)->int_value;
     }
 
-    Object *o = St_Alloc(TINT);
-    o->int_value = value;
-
-    return o;
+    return St_Integer(value);
 }
 
 static Object *subr_mul(Object *env, Object *args)
@@ -361,10 +352,7 @@ static Object *subr_mul(Object *env, Object *args)
         value *= ST_CAR(p)->int_value;
     }
 
-    Object *o = St_Alloc(TINT);
-    o->int_value = value;
-
-    return o;
+    return St_Integer(value);
 }
 
 static Object *subr_div(Object *env, Object *args)
@@ -389,10 +377,7 @@ static Object *subr_div(Object *env, Object *args)
             St_Error("division by zero");
         }
 
-        Object *o = St_Alloc(TINT);
-        o->int_value = 1 / operand->int_value;
-
-        return o;
+        return St_Integer(1 / operand->int_value);
     }
 
     // 2 <= len
@@ -418,10 +403,7 @@ static Object *subr_div(Object *env, Object *args)
         value /= ST_CAR(p)->int_value;
     }
 
-    Object *o = St_Alloc(TINT);
-    o->int_value = value;
-
-    return o;
+    return St_Integer(value);
 }
 
 #define DEFINE_NUMERIC_COMPARISON(fname, op, sym)                       \
@@ -645,9 +627,7 @@ static Object *subr_length(Object *env, Object *args)
         St_Error("length: must a list");
     }
 
-    Object *o = St_Alloc(TINT);
-    o->int_value = St_Length(list);
-    return o;
+    return St_Integer(St_Length(list));
 }
 
 static Object *subr_listp(Object *env, Object *args)

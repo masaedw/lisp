@@ -13,11 +13,9 @@ void test_print()
     St_Print(False);
     printf("\n");
 
-    Object *one = St_Alloc(TINT);
-    one->int_value = 1;
+    Object *one = St_Integer(1);
 
-    Object *two = St_Alloc(TINT);
-    two->int_value = 2;
+    Object *two = St_Integer(2);
 
     St_Print(St_Cons(one, two));
     printf("\n");
