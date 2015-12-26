@@ -97,16 +97,30 @@ bool St_EqualP(Object *lhs, Object *rhs)
 }
 
 // Environment structure
-// (<upper level env> . <variable alist>)
+// (<upper level env> <variable alist> . <tail cell of variable alist>)
 
 Object *St_InitEnv()
 {
-    return St_Cons(Nil, Nil);
+    return St_Cons(Nil, St_Cons(Nil, Nil));
 }
 
 void St_AddVariable(Object *env, Object *key, Object *value)
 {
-    env->cdr = St_Acons(key, value, env->cdr);
+    Object *head = ST_CADR(env);
+    Object *tail = ST_CDDR(env);
+
+    for (Object *p = head; !ST_NULLP(p); p = ST_CDR(p)) {
+        if (ST_CAAR(p) == key)
+        {
+            ST_CDR_SET(ST_CAR(p), value);
+            return;
+        }
+    }
+
+    ST_APPEND1(head, tail, St_Cons(key, value));
+
+    ST_CAR_SET(ST_CDR(env), head);
+    ST_CDR_SET(ST_CDR(env), tail);
 }
 
 void St_AddSyntax(Object *env, const char *key, SyntaxFunction *syntax)
@@ -129,32 +143,27 @@ void St_AddSubr(Object *env, const char *key, SubrFunction *subr)
 
 Object *St_PushEnv(Object *env, Object *keys, Object *values)
 {
-    Object *new_env = St_Alloc(TCELL);
-    new_env->car = env;
+    Object *new_env = St_Cons(env, St_Cons(Nil, Nil));
 
     Object *p = keys;
     Object *v = values;
-    Object *vars = Nil;
-    Object *tail = Nil;
 
     if (ST_SYMBOLP(p))
     {
-        new_env->cdr = St_Acons(p, values, Nil);
+        St_AddVariable(new_env, p, values);
         return new_env;
     }
 
-    for (; !ST_NULLP(p) && !ST_NULLP(v); p = p->cdr, v = v->cdr)
+    for (; !ST_NULLP(p) && !ST_NULLP(v); p = ST_CDR(p), v = ST_CDR(v))
     {
-        ST_APPEND1(vars, tail, St_Cons(p->car, v->car));
+        St_AddVariable(new_env, ST_CAR(p), ST_CAR(v));
 
-        if (!ST_PAIRP(p->cdr) && !ST_NULLP(p->cdr))
+        if (!ST_PAIRP(ST_CDR(p)) && !ST_NULLP(ST_CDR(p)))
         {
-            ST_APPEND1(vars, tail, St_Cons(p->cdr, v->cdr));
+            St_AddVariable(new_env, ST_CDR(p), ST_CDR(v));
             break;
         }
     }
-
-    new_env->cdr = vars;
 
     return new_env;
 }
@@ -166,7 +175,7 @@ Object *St_LookupVariablePair(Object *env, Object *key)
         return Nil;
     }
 
-    for (Object *p = ST_CDR(env); !ST_NULLP(p); p = ST_CDR(p)) {
+    for (Object *p = ST_CADR(env); !ST_NULLP(p); p = ST_CDR(p)) {
         Object *symbol = ST_CAAR(p);
 
         if (symbol == key)
