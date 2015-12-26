@@ -14,10 +14,10 @@
 ;;
 ;; $ time ./lisp < samples/fib-vm.scm
 ;; 832040
-;; ./lisp < samples/fib-vm.scm  6.37s user 1.59s system 111% cpu 7.102 total
+;; ./lisp < samples/fib-vm.scm  6.69s user 1.98s system 116% cpu 7.417 total
 ;;
 ;; naive interpreter version
 ;;
 ;; $ time ./lisp < samples/fib.scm
 ;; 832040
-;; ./lisp < samples/fib.scm  5.03s user 1.22s system 115% cpu 5.439 total
+;; ./lisp < samples/fib.scm  4.16s user 0.52s system 104% cpu 4.454 total
