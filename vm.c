@@ -123,8 +123,8 @@ Object *vm(Object *env, Object *insn)
 
         CASE(x, frame) {
             ST_ARGS2("frame", ST_CDR(x), ret, x2);
-            r = Nil;
             s = make_call_frame(ret, e, r, s);
+            r = Nil;
             x = x2;
             continue;
         }
