@@ -5,6 +5,8 @@
 (define assert
   (lambda (expected actual msg)
     (print (if (equal? expected actual) 'success_ 'failed_) msg)
+    (if (not (equal? expected actual))
+      (print '__ expected '_expected_but_got_ actual))
     (newline)))
 
 (p (if (eqv? 1 1)
