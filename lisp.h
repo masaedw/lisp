@@ -170,6 +170,7 @@ Object *St_Intern(const char *symbol_string);
     Object *(a4) = ST_CADDDR(args)
 
 #define ST_BOOLEAN(b) ((b) ? True : False)
+Object *St_Integer(int value);
 
 // Basic functions
 

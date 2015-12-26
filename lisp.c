@@ -96,6 +96,13 @@ bool St_EqualP(Object *lhs, Object *rhs)
     return St_EqvP(lhs, rhs);
 }
 
+Object *St_Integer(int value)
+{
+    Object *o = St_Alloc(TINT);
+    o->int_value = value;
+    return o;
+}
+
 // Environment structure
 // (<upper level env> <variable alist> . <tail cell of variable alist>)
 
