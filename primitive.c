@@ -593,6 +593,13 @@ static Object *subr_symbolp(Object *env, Object *args)
     return ST_BOOLEAN(ST_SYMBOLP(o));
 }
 
+static Object *subr_not(Object *env, Object *args)
+{
+    ST_ARGS1("not", args, o);
+
+    return ST_BOOLEAN(o == False);
+}
+
 static Object *subr_cons(Object *env, Object *args)
 {
     ST_ARGS2("cons", args, car, cdr);
@@ -758,6 +765,7 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "null?", subr_nullp);
     St_AddSubr(env, "pair?", subr_pairp);
     St_AddSubr(env, "symbol?", subr_symbolp);
+    St_AddSubr(env, "not", subr_not);
     St_AddSubr(env, "cons", subr_cons);
     St_AddSubr(env, "car", subr_car);
     St_AddSubr(env, "cdr", subr_cdr);
