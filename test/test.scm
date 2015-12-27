@@ -135,3 +135,8 @@
 (assert '(3 . 2) p 'set-car!_0)
 (set-cdr! p 4)
 (assert '(3 . 4) p 'set-cdr!_0)
+
+(assert #t (vector? (make-vector 5)) 'vector_0)
+(define x (make-vector 5))
+(vector-set! x 0 1)
+(assert 1 (vector-ref x 0) 'vector_1)
