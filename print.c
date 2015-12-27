@@ -32,6 +32,23 @@ static void print(FILE *stream, Object *obj)
 
         break;
 
+    case TVECTOR: {
+        fprintf(stream, "#(");
+
+        for (int i = 0; i < obj->size; i++) {
+            print(stream, obj->vector[i]);
+
+            if (i <= obj->size - 1)
+            {
+                fprintf(stream, " ");
+            }
+        }
+
+        fprintf(stream, ")");
+
+        break;
+    }
+
 #define CASE(type, ...)                         \
         case type:                              \
             fprintf(stream, __VA_ARGS__);       \
