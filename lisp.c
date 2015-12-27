@@ -103,6 +103,50 @@ Object *St_Integer(int value)
     return o;
 }
 
+Object *St_MakeVector(int size)
+{
+    Object *o = St_Alloc(TVECTOR);
+
+    if (size < 0)
+    {
+        St_Error("make-vector: size must be a positive integer");
+    }
+
+    o->size = size;
+    o->vector = St_Malloc(sizeof(Object*) * size);
+
+    for (int i = 0; i < size; i++) {
+        o->vector[i] = Nil;
+    }
+
+    return o;
+}
+
+Object *St_VectorRef(Object *v, int idx)
+{
+    if (idx < 0 || v->size <= idx)
+    {
+        St_Error("vector-ref: index out of range");
+    }
+
+    return v->vector[idx];
+}
+
+void St_VectorSet(Object *v, int idx, Object *obj)
+{
+    if (idx < 0 || v->size <= idx)
+    {
+        St_Error("vector-ref: index out of range");
+    }
+
+    v->vector[idx] = obj;
+}
+
+int St_VectorLength(Object *v)
+{
+    return v->size;
+}
+
 // Environment structure
 // (<upper level env> <variable alist> . <tail cell of variable alist>)
 
