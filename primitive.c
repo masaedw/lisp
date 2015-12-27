@@ -694,6 +694,72 @@ static Object *subr_set_cdr(Object *env, Object *args)
     return value;
 }
 
+static Object *subr_vectorp(Object *env, Object *args)
+{
+    ST_ARGS1("vector?", args, v);
+
+    return ST_BOOLEAN(ST_VECTORP(v));
+}
+
+static Object *subr_make_vector(Object *env, Object *args)
+{
+    ST_ARGS1("make-vector", args, size);
+
+    if (!ST_INTP(size) || size->int_value < 0) {
+        St_Error("make-vector: size must be a positive integer");
+    }
+
+    return St_MakeVector(size->int_value);
+}
+
+static Object *subr_vector_ref(Object *env, Object *args)
+{
+    ST_ARGS2("vector-ref", args, v, idx);
+
+    if (!ST_VECTORP(v))
+    {
+        St_Error("vector-ref: vector required.");
+    }
+
+    if (!ST_INTP(idx))
+    {
+        St_Error("vector-ref: integer required.");
+    }
+
+    return St_VectorRef(v, idx->int_value);
+}
+
+static Object *subr_vector_set(Object *env, Object *args)
+{
+    ST_ARGS3("vector-set!", args, v, idx, obj);
+
+    if (!ST_VECTORP(v))
+    {
+        St_Error("vector-set!: vector required.");
+    }
+
+    if (!ST_INTP(idx))
+    {
+        St_Error("vector-set!: integer required.");
+    }
+
+    St_VectorSet(v, idx->int_value, obj);
+
+    return obj;
+}
+
+static Object *subr_vector_length(Object *env, Object *args)
+{
+    ST_ARGS1("vector-length", args, v);
+
+    if (!ST_VECTORP(v))
+    {
+        St_Error("vector-length: vector required.");
+    }
+
+    return St_Integer(St_VectorLength(v));
+}
+
 static Object *subr_compile(Object *env, Object *args)
 {
     ST_ARGS2("compile", args, expr, next);
@@ -755,6 +821,11 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "apply", subr_apply);
     St_AddSubr(env, "set-car!", subr_set_car);
     St_AddSubr(env, "set-cdr!", subr_set_cdr);
+    St_AddSubr(env, "vector?", subr_vectorp);
+    St_AddSubr(env, "make-vector", subr_make_vector);
+    St_AddSubr(env, "vector-ref", subr_vector_ref);
+    St_AddSubr(env, "vector-set!", subr_vector_set);
+    St_AddSubr(env, "vector-length", subr_vector_length);
     St_AddSubr(env, "compile", subr_compile);
     St_AddSubr(env, "eval-vm", subr_eval_vm);
 }
