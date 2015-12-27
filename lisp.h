@@ -15,6 +15,7 @@ enum {
     TFALSE,
     TSYMBOL,
     TSTRING,
+    TVECTOR,
     TSYNTAX,
     TSUBR,
     TLAMBDA,
@@ -41,6 +42,11 @@ struct Object
         char *symbol_value;
 
         char *string_value;
+
+        struct {
+            int size;
+            Object **vector;
+        };
 
         // syntax
         struct {
@@ -89,6 +95,7 @@ Object *St_Alloc(int type);
 #define ST_PAIRP(obj) ((obj)->type == TCELL)
 #define ST_INTP(obj) ((obj)->type == TINT)
 #define ST_SYMBOLP(obj) ((obj)->type == TSYMBOL)
+#define ST_VECTORP(obj) ((obj)->type == TVECTOR)
 #define ST_STRINGP(obj) ((obj)->type == TSTRING)
 #define ST_SYNTAXP(obj) ((obj)->type == TSYNTAX)
 #define ST_SUBRP(obj) ((obj)->type == TSUBR)
@@ -171,6 +178,12 @@ Object *St_Intern(const char *symbol_string);
 
 #define ST_BOOLEAN(b) ((b) ? True : False)
 Object *St_Integer(int value);
+
+Object *St_MakeVector(int size);
+Object *St_VectorRef(Object *vector, int idx);
+void St_VectorSet(Object *vector, int idx, Object *obj);
+int St_VectorLength(Object *vector);
+
 
 // Basic functions
 
