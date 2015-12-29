@@ -1,5 +1,23 @@
 #include "lisp.h"
 
+static Object *stack;
+
+static int push(Object *x, int s)
+{
+    St_VectorSet(stack, s, x);
+    return s + 1;
+}
+
+static Object *index(int s, int i)
+{
+    return St_VectorRef(stack, s - i - 1);
+}
+
+static void indexSet(int s, int i, Object *v)
+{
+    St_VectorSet(stack, s - i - 1, v);
+}
+
 static Object *make_closure(Object *body, Object *e)
 {
     return ST_LIST2(body, e);
