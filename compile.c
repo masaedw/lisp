@@ -19,7 +19,7 @@ static Object *compile_body(Object *body, Object *e, Object *next)
     return compile(ST_CAR(body), e, compile_body(ST_CDR(body), e, next));
 }
 
-static Object *compile_lookup(Object *env, Object *var)
+static void compile_lookup(Object *env, Object *var, int *rrib, int *relt)
 {
     int rib = 0;
     for (Object *e = env; !ST_NULLP(e); e = ST_CAR(e), rib++) {
@@ -27,7 +27,9 @@ static Object *compile_lookup(Object *env, Object *var)
         for (Object *p = ST_CADR(e); !ST_NULLP(p); p = ST_CDR(p), elt++) {
             if (ST_CAAR(p) == var)
             {
-                return St_Cons(St_Integer(rib), St_Integer(elt));
+                *rrib = rib;
+                *relt = elt;
+                return;
             }
         }
     }
@@ -45,7 +47,9 @@ static Object *compile(Object *x, Object *e, Object *next)
 {
     if (ST_SYMBOLP(x))
     {
-        return ST_LIST3(I("refer"), compile_lookup(e, x), next);
+        int n, m;
+        compile_lookup(e, x, &n, &m);
+        return ST_LIST4(I("refer"), St_Integer(n), St_Integer(m), next);
     }
 
     if (ST_PAIRP(x))
@@ -64,7 +68,11 @@ static Object *compile(Object *x, Object *e, Object *next)
             Object *vars = ST_CADR(x);
             Object *body = ST_CDDR(x);
 
-            return ST_LIST3(I("close"), compile_body(body, extend(e, vars), ST_LIST1(I("return"))), next);
+            return ST_LIST3(I("close"),
+                            compile_body(body,
+                                         extend(e, vars),
+                                         ST_LIST2(I("return"), St_Integer(St_Length(vars) + 1))),
+                            next);
         }
 
         if (car == I("if"))
@@ -86,7 +94,10 @@ static Object *compile(Object *x, Object *e, Object *next)
 
             St_AddVariable(e, var, var);
 
-            return compile(v, e, ST_LIST3(I("define"), var, next));
+            int n, m;
+            compile_lookup(e, var, &n, &m);
+
+            return compile(v, e, ST_LIST4(I("define"), St_Integer(n), St_Integer(m), next));
         }
 
         if (car == I("set!"))
@@ -94,7 +105,10 @@ static Object *compile(Object *x, Object *e, Object *next)
             Object *var = ST_CADR(x);
             Object *v = ST_CADDR(x);
 
-            return compile(v, e, ST_LIST3(I("assign"), var, next));
+            int n, m;
+            compile_lookup(e, var, &n, &m);
+
+            return compile(v, e, ST_LIST4(I("assign"), St_Integer(n), St_Integer(m), next));
         }
 
         if (car == I("call/cc"))
