@@ -13,55 +13,22 @@ static Object *index(int s, int i)
     return St_VectorRef(stack, s - i - 1);
 }
 
-static void indexSet(int s, int i, Object *v)
+static void index_set(int s, int i, Object *v)
 {
     St_VectorSet(stack, s - i - 1, v);
 }
 
-static Object *make_closure(Object *body, Object *e)
+static Object *make_functional(Object *body, int e)
 {
-    return ST_LIST2(body, e);
+    return ST_LIST2(body, St_Integer(e));
 }
 
-static Object *make_continuation(Object *s)
+static int find_link(int e, int n)
 {
-    return make_closure(ST_LIST3(St_Intern("nuate"), s, St_Cons(St_Integer(0), St_Integer(0))), Nil);
-}
-
-static Object *make_call_frame(Object *x, Object *e, Object *r, Object *s)
-{
-    return ST_LIST4(x, e, r, s);
-}
-
-static Object *lookup(Object *env, Object *access)
-{
-    int rib = ST_CAR(access)->int_value;
-    int elt = ST_CDR(access)->int_value;
-
-    Object *e = env;
-
-    while (rib-- > 0) {
-        e = ST_CAR(e);
+    for (; n != 0; n--, index(e, -1))
+    {
     }
-
-    Object *p = ST_CADR(e);
-
-    while (elt-- > 0) {
-        p = ST_CDR(p);
-    }
-
-    return ST_CAR(p);
-}
-
-static Object *extend(Object *env, Object *vals)
-{
-    Object *syms = Nil;
-
-    for (Object *p = vals; !ST_NULLP(p); p = ST_CDR(p)) {
-        syms = St_Cons(Nil, syms);
-    }
-
-    return St_PushEnv(env, syms, vals);
+    return e;
 }
 
 static Object *vm(Object *env, Object *insn)
@@ -69,15 +36,15 @@ static Object *vm(Object *env, Object *insn)
     // registers
     Object *a; // Accumulator
     Object *x; // Next expression
-    Object *e; // Current environment
-    Object *r; // Current value rib
-    Object *s; // Current stack
+    int e; // Current environment
+    int s; // Current stack
 
     a = Nil;
     x = insn;
-    e = env;
-    r = Nil;
-    s = Nil;
+    e = 0;
+    s = 0;
+
+    stack = St_MakeVector(1000);
 
     // insns
 #define INSN(x) Object *x = St_Intern(#x)
@@ -88,8 +55,6 @@ static Object *vm(Object *env, Object *insn)
     INSN(test);
     INSN(define);
     INSN(assign);
-    INSN(conti);
-    INSN(nuate);
     INSN(frame);
     INSN(argument);
     INSN(apply);
@@ -105,8 +70,8 @@ static Object *vm(Object *env, Object *insn)
         }
 
         CASE(x, refer) {
-            ST_ARGS2("refer", ST_CDR(x), var, x2);
-            a = ST_CDR(lookup(e, var));
+            ST_ARGS3("refer", ST_CDR(x), n, m, x2);
+            a = index(find_link(n->int_value, e), m->int_value);
             x = x2;
             continue;
         }
@@ -120,7 +85,7 @@ static Object *vm(Object *env, Object *insn)
 
         CASE(x, close) {
             ST_ARGS2("close", ST_CDR(x), body, x2);
-            a = make_closure(body, e);
+            a = make_functional(body, e);
             x = x2;
             continue;
         }
@@ -132,82 +97,47 @@ static Object *vm(Object *env, Object *insn)
         }
 
         CASE(x, define) {
-            ST_ARGS2("define", ST_CDR(x), var, x2);
-
-            St_AddVariable(e, var, a);
-
-            x = x2;
+            ST_ARGS3("define", ST_CDR(x), n, m, x2);
+            index_set(find_link(n->int_value, e), m->int_value, a);
+            x = x2; 
             continue;
         }
 
         CASE(x, assign) {
-            ST_ARGS2("assign", ST_CDR(x), var, x2);
-
-            Object *pair = lookup(e, var);
-
-            if (pair == Nil)
-            {
-                St_Error("set!: unbound variable");
-            }
-
-            ST_CDR_SET(pair, a);
+            ST_ARGS3("assign", ST_CDR(x), n, m, x2);
+            index_set(find_link(n->int_value, e), m->int_value, a);
             x = x2;
-            continue;
-        }
-
-        CASE(x, conti) {
-            ST_ARGS1("conti", ST_CDR(x), x2);
-            a = make_continuation(s);
-            x = x2;
-            continue;
-        }
-
-        CASE(x, nuate) {
-            ST_ARGS2("nuate", ST_CDR(x), s2, var);
-            a = ST_CDR(lookup(e, var));
-            x = ST_LIST1(rtn);
-            s = s2;
             continue;
         }
 
         CASE(x, frame) {
             ST_ARGS2("frame", ST_CDR(x), ret, x2);
-            s = make_call_frame(ret, e, r, s);
-            r = Nil;
             x = x2;
+            s = push(ret, push(St_Integer(e), s));
             continue;
         }
 
         CASE(x, argument) {
             ST_ARGS1("argument", ST_CDR(x), x2);
-            r = St_Cons(a, r);
             x = x2;
+            s = push(a, s);
             continue;
         }
 
         CASE(x, apply) {
-            if (ST_LAMBDAP(a) || ST_SUBRP(a)) // a lambda created in interpreter or subr
-            {
-                a = St_Apply(env, a, r);
-                goto label_rtn;
-            }
-            else
-            {
-                ST_ARGS2("apply", a, body, e2);
-                x = body;
-                e = extend(e2, r);
-                r = Nil;
-                continue;
-            }
+            ST_ARGS2("apply", a, body, link);
+            x = body;
+            e = s;
+            s = push(link, s);
+            continue;
         }
 
         CASE(x, rtn) {
-        label_rtn:
-            ST_ARGS4("return", s, x2, e2, r2, s2);
-            x = x2;
-            e = e2;
-            r = r2;
-            s = s2;
+            ST_ARGS1("return", ST_CDR(x), n);
+            int s2 = s - n->int_value;
+            x = index(s, 0);
+            e = index(s, 1)->int_value;
+            s = s2 - 2;
             continue;
         }
     }
