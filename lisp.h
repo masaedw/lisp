@@ -138,6 +138,7 @@ bool St_ListP(Object *maybe_list);
         }                                               \
     } while (0)
 
+#define ST_FOREACH(p, list) for (Object *p = (list); !ST_NULLP(p); p = ST_CDR(p))
 
 extern Object *Symbols;
 Object *St_Intern(const char *symbol_string);
