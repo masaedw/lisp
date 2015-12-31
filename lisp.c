@@ -160,7 +160,7 @@ void St_AddVariable(Object *env, Object *key, Object *value)
     Object *head = ST_CADR(env);
     Object *tail = ST_CDDR(env);
 
-    for (Object *p = head; !ST_NULLP(p); p = ST_CDR(p)) {
+    ST_FOREACH(p, head) {
         if (ST_CAAR(p) == key)
         {
             ST_CDR_SET(ST_CAR(p), value);
@@ -226,7 +226,7 @@ Object *St_LookupVariablePair(Object *env, Object *key)
         return Nil;
     }
 
-    for (Object *p = ST_CADR(env); !ST_NULLP(p); p = ST_CDR(p)) {
+    ST_FOREACH(p, ST_CADR(env)) {
         Object *symbol = ST_CAAR(p);
 
         if (symbol == key)

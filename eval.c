@@ -7,7 +7,7 @@ static Object *map_eval(Object *env, Object *args)
     Object *head = Nil;
     Object *tail = Nil;
 
-    for (Object *p = args; !ST_NULLP(p); p = p->cdr) {
+    ST_FOREACH(p, args) {
         Object *val = St_Eval(env, p->car);
 
         ST_APPEND1(head, tail, val);
@@ -21,7 +21,7 @@ static Object *apply(Object *env, Object *proc, Object *args)
     Object *internal_env = St_PushEnv(proc->env, proc->params, args);
     Object *value = Nil;
 
-    for (Object *p = proc->body; !ST_NULLP(p); p = p->cdr) {
+    ST_FOREACH(p, proc->body) {
         value = eval(internal_env, p->car);
     }
 

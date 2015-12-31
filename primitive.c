@@ -183,7 +183,7 @@ static Object *syntax_begin(Object *env, Object *args)
 {
     Object *value = Nil;
 
-    for (Object *p = ST_CDR(args); !ST_NULLP(p); p = ST_CDR(p)) {
+    ST_FOREACH(p, ST_CDR(args)) {
         value = St_Eval(env, ST_CAR(p));
     }
 
@@ -194,7 +194,7 @@ static Object *syntax_and(Object *env, Object *args)
 {
     Object *value = True;
 
-    for (Object *p = ST_CDR(args); !ST_NULLP(p); p = ST_CDR(p)) {
+    ST_FOREACH(p, ST_CDR(args)) {
         value = St_Eval(env, ST_CAR(p));
 
         if (ST_FALSEP(value))
@@ -210,7 +210,7 @@ static Object *syntax_or(Object *env, Object *args)
 {
     Object *value = False;
 
-    for (Object *p = ST_CDR(args); !ST_NULLP(p); p = ST_CDR(p)) {
+    ST_FOREACH(p, ST_CDR(args)) {
         value = St_Eval(env, ST_CAR(p));
 
         if (!ST_FALSEP(value))
@@ -234,7 +234,7 @@ void validate_bindings(Object *args)
         St_Error("let: malformed bindings");
     }
 
-    for (Object *p = args; !ST_NULLP(p); p = ST_CDR(p)) {
+    ST_FOREACH(p, args) {
         Object *b = ST_CAR(p);
         if (!ST_PAIRP(b) || St_Length(b) != 2 || !ST_SYMBOLP(ST_CAR(b)))
         {
@@ -261,21 +261,21 @@ static Object *syntax_let(Object *env, Object *args)
     Object *pshead = Nil;
     Object *pstail = Nil;
 
-    for (Object *p = bindings; !ST_NULLP(p); p = ST_CDR(p)) {
+    ST_FOREACH(p, bindings) {
         ST_APPEND1(pshead, pstail, ST_CAAR(p));
     }
 
     Object *ashead = Nil;
     Object *astail = Nil;
 
-    for (Object *p = bindings; !ST_NULLP(p); p = ST_CDR(p)) {
+    ST_FOREACH(p, bindings) {
         ST_APPEND1(ashead, astail, St_Eval(env, ST_CAR(ST_CDAR(p))));
     }
 
     Object *internal_env = St_PushEnv(env, pshead, ashead);
     Object *value = Nil;
 
-    for (Object *p = body; !ST_NULLP(p); p = ST_CDR(p)) {
+    ST_FOREACH(p, body) {
         value = St_Eval(internal_env, ST_CAR(p));
     }
 
@@ -286,7 +286,7 @@ static Object *subr_plus(Object *env, Object *args)
 {
     int value = 0;
 
-    for (Object *p = args; !ST_NULLP(p); p = ST_CDR(p)) {
+    ST_FOREACH(p, args) {
         if (!ST_INTP(ST_CAR(p)))
         {
             St_Error("+: invalid type");
@@ -326,8 +326,7 @@ static Object *subr_minus(Object *env, Object *args)
 
     int value = ST_CAR(args)->int_value;
 
-    for (Object *p = ST_CDR(args); !ST_NULLP(p); p = ST_CDR(p))
-    {
+    ST_FOREACH(p, ST_CDR(args)) {
         if (!ST_INTP(ST_CAR(p)))
         {
             St_Error("-: invalid type");
@@ -343,7 +342,7 @@ static Object *subr_mul(Object *env, Object *args)
 {
     int value = 1;
 
-    for (Object *p = args; !ST_NULLP(p); p = ST_CDR(p)) {
+    ST_FOREACH(p, args) {
         if (!ST_INTP(ST_CAR(p)))
         {
             St_Error("*: invalid type");
@@ -388,8 +387,7 @@ static Object *subr_div(Object *env, Object *args)
 
     int value = ST_CAR(args)->int_value;
 
-    for (Object *p = ST_CDR(args); !ST_NULLP(p); p = ST_CDR(p))
-    {
+    ST_FOREACH(p, ST_CDR(args)) {
         if (!ST_INTP(ST_CAR(p)))
         {
             St_Error("-: invalid type");
@@ -520,7 +518,7 @@ static Object *subr_evenp(Object *env, Object *args)
 
 static Object *subr_print(Object *env, Object *args)
 {
-    for (Object *p = args; !ST_NULLP(p); p = p->cdr) {
+    ST_FOREACH(p, args) {
         St_Print(p->car);
     }
 
