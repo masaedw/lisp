@@ -63,19 +63,19 @@ static Object *eval(Object *env, Object *obj)
             St_Error("eval: invalid application");
         }
 
-        Object *fst = eval(env, obj->car);
+        Object *fst = eval(env, ST_CAR(obj));
         if (ST_SYNTAXP(fst))
         {
             return fst->syntax(env, obj);
         }
         if (ST_SUBRP(fst))
         {
-            Object *args = map_eval(env, obj->cdr);
+            Object *args = map_eval(env, ST_CDR(obj));
             return fst->subr(env, args);
         }
         if (ST_LAMBDAP(fst))
         {
-            Object *args = map_eval(env, obj->cdr);
+            Object *args = map_eval(env, ST_CDR(obj));
             return apply(env, fst, args);
         }
         if (ST_MACROP(fst))
