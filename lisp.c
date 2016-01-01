@@ -138,7 +138,7 @@ Object *St_VectorRef(Object *v, int idx)
 {
     if (idx < 0 || v->size <= idx)
     {
-        St_Error("vector-ref: index out of range");
+        St_Error("vector-ref: index out of range: %d against %d", idx, v->size);
     }
 
     return v->vector[idx];
