@@ -25,7 +25,7 @@ static Object *make_functional(Object *body, int e)
 
 static int find_link(int e, int n)
 {
-    for (; n != 0; n--, index(e, -1))
+    for (; n != 0; n--, e = index(e, -1)->int_value)
     {
     }
     return e;
