@@ -1,8 +1,20 @@
+#include <stdarg.h>
+
 #include "lisp.h"
 
 Object *Nil = &(Object) { TNIL };
 Object *True = &(Object) { TTRUE };
 Object *False = &(Object) { TFALSE };
+
+void St_Error(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(stderr, fmt, args);
+    va_end(args);
+
+    exit(1);
+}
 
 Object *St_Alloc(int type)
 {

@@ -79,11 +79,7 @@ extern Object *Nil;
 extern Object *True;
 extern Object *False;
 
-#define St_Error(message)                       \
-    do {                                        \
-        fprintf(stderr, message);               \
-        exit(1);                                \
-    } while (0)
+void St_Error(const char *fmt, ...) __attribute__((noreturn));
 
 #define St_Malloc GC_MALLOC
 
