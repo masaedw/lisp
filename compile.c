@@ -133,14 +133,7 @@ static Object *compile(Object *x, Object *e, Object *next)
         {
             if (ST_NULLP(args))
             {
-                if (tailP(next))
-                {
-                    return c;
-                }
-                else
-                {
-                    return ST_LIST3(I("frame"), next, c);
-                }
+                return ST_LIST3(I("frame"), next, c);
             }
         }
     } // pair
