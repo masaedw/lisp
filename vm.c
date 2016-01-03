@@ -66,7 +66,6 @@ static Object *vm(Object *env, Object *insn)
     x = insn;
     e = prepare_stack(env, 0);
     s = e + 1;
-    printf("es:(%d %d)\n", e, s);
 
     // static link (pushed last)    pushed by `apply`
     // first argument               pushed by `argument`
@@ -95,7 +94,7 @@ static Object *vm(Object *env, Object *insn)
     INSN(apply);
     Object *rtn = St_Intern("return");
 #undef INSN
-    
+
 #define CASE(x, insn) if (ST_CAR(x) == insn)
 
     while (true) {
@@ -160,10 +159,27 @@ static Object *vm(Object *env, Object *insn)
         }
 
         CASE(x, apply) {
-            ST_ARGS2("apply", a, body, link);
-            x = body;
-            e = s;
-            s = push(link, s);
+            if (ST_LAMBDAP(a) || ST_SUBRP(a))
+            {
+                int len = 0; // TODO: count argument length
+                Object *head = Nil;
+                Object *tail = Nil;
+
+                for (int i = 0; i < len; i++) {
+                    ST_APPEND1(head, tail, index(s, i));
+                }
+
+                a = St_Apply(env, a, head);
+                x = index(s, len);
+                s = e + 1;
+            }
+            else
+            {
+                ST_ARGS2("apply", a, body, link);
+                x = body;
+                e = s;
+                s = push(link, s);
+            }
             continue;
         }
 
