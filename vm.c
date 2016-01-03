@@ -23,7 +23,7 @@ static Object *make_functional(Object *body, int e)
     return ST_LIST2(body, St_Integer(e));
 }
 
-static int find_link(int e, int n)
+static int find_link(int n, int e)
 {
     for (; n != 0; n--, e = index(e, -1)->int_value)
     {
