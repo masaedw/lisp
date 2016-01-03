@@ -31,6 +31,27 @@ static int find_link(int n, int e)
     return e;
 }
 
+static int prepare_stack(Object *env, int e)
+{
+    if (ST_CAR(env) != Nil)
+    {
+        e += prepare_stack(ST_CAR(env), e) + 1;
+    }
+
+    int ne = e + St_Length(ST_CADR(env));
+    int i = 0;
+
+    ST_FOREACH(p, ST_CADR(env)) {
+        Object *v = ST_CDAR(p);
+
+        index_set(ne, i++, v);
+    }
+
+    index_set(ne, -1, St_Integer(e));
+
+    return ne;
+}
+
 static Object *vm(Object *env, Object *insn)
 {
     // registers
@@ -39,12 +60,26 @@ static Object *vm(Object *env, Object *insn)
     int e; // Current environment
     int s; // Current stack
 
+    stack = St_MakeVector(1000);
+
     a = Nil;
     x = insn;
-    e = 0;
-    s = 0;
+    e = prepare_stack(env, 0);
+    s = e + 1;
+    printf("es:(%d %d)\n", e, s);
 
-    stack = St_MakeVector(1000);
+    // static link (pushed last)    pushed by `apply`
+    // first argument               pushed by `argument`
+    // ...                          ...
+    // last argument                pushed by `argument`
+    // next expression              pushed by `frame`
+    // dynamic link (pushed first)  pushed by `frame`
+
+    // static link
+    // The static link, on the other hand, always points to the frame of the closest enclosing function definition of the called function.
+
+    // dynamic link
+    // The dynamic link always points to the caller’s frame.
 
     // insns
 #define INSN(x) Object *x = St_Intern(#x)
