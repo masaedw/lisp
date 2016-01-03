@@ -170,8 +170,8 @@ static Object *vm(Object *env, Object *insn)
         CASE(x, rtn) {
             ST_ARGS1("return", ST_CDR(x), n);
             int s2 = s - n->int_value;
-            x = index(s, 0);
-            e = index(s, 1)->int_value;
+            x = index(s2, 0);
+            e = index(s2, 1)->int_value;
             s = s2 - 2;
             continue;
         }
