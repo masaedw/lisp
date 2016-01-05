@@ -59,6 +59,7 @@ static Object *vm(Object *env, Object *insn)
     Object *x; // Next expression
     int e; // Current environment
     int s; // Current stack
+    int f; // Current frame bottom
 
     stack = St_MakeVector(1000);
 
@@ -66,11 +67,13 @@ static Object *vm(Object *env, Object *insn)
     x = insn;
     e = prepare_stack(env, 0);
     s = e + 1;
+    f = s;
 
     // static link (pushed last)    pushed by `apply`
     // first argument               pushed by `argument`
     // ...                          ...
     // last argument                pushed by `argument`
+    // current frame                pushed by `frame` to return from subr
     // next expression              pushed by `frame`
     // dynamic link (pushed first)  pushed by `frame`
 
@@ -147,7 +150,8 @@ static Object *vm(Object *env, Object *insn)
         CASE(x, frame) {
             ST_ARGS2("frame", ST_CDR(x), ret, x2);
             x = x2;
-            s = push(ret, push(St_Integer(e), s));
+            s = push(St_Integer(f), push(ret, push(St_Integer(e), s)));
+            f = s;
             continue;
         }
 
@@ -159,9 +163,10 @@ static Object *vm(Object *env, Object *insn)
         }
 
         CASE(x, apply) {
-            if (ST_LAMBDAP(a) || ST_SUBRP(a))
+            if (ST_SUBRP(a))
             {
-                int len = 0; // TODO: count argument length
+                // not supported higher order functions
+                int len = s - f;
                 Object *head = Nil;
                 Object *tail = Nil;
 
@@ -170,8 +175,11 @@ static Object *vm(Object *env, Object *insn)
                 }
 
                 a = St_Apply(env, a, head);
-                x = index(s, len);
-                s = e + 1;
+
+                // return
+                f = index(s, len + 0)->int_value;
+                x = index(s, len + 1);
+                s = s - len - 3;
             }
             else
             {
@@ -186,9 +194,10 @@ static Object *vm(Object *env, Object *insn)
         CASE(x, rtn) {
             ST_ARGS1("return", ST_CDR(x), n);
             int s2 = s - n->int_value;
-            x = index(s2, 0);
-            e = index(s2, 1)->int_value;
-            s = s2 - 2;
+            f = index(s2, 0)->int_value;
+            x = index(s2, 1);
+            e = index(s2, 2)->int_value;
+            s = s2 - 3;
             continue;
         }
     }
