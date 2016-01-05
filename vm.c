@@ -102,6 +102,12 @@ static Object *vm(Object *env, Object *insn)
 
     while (true) {
 
+        /*
+        printf("%s (e:%d s:%d f:%d) ", ST_CAR(x)->symbol_value, e, s, f);
+        St_Print(a);
+        printf("\n");
+        //*/
+
         CASE(x, halt) {
             return a;
         }
