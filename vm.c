@@ -31,6 +31,20 @@ static int find_link(int n, int e)
     return e;
 }
 
+static Object *save_stack(int s)
+{
+    Object *v = St_MakeVector(s);
+    St_CopyVector(v, stack, s);
+    return v;
+}
+
+static int restore_stack(Object *v)
+{
+    int s = St_VectorLength(v);
+    St_CopyVector(stack, v, s);
+    return s;
+}
+
 static int prepare_stack(Object *env, int e)
 {
     if (ST_CAR(env) != Nil)
