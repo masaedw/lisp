@@ -18,9 +18,9 @@ static void index_set(int s, int i, Object *v)
     St_VectorSet(stack, s - i - 1, v);
 }
 
-static Object *make_functional(Object *body, int e)
+static Object *make_closure(Object *body, Object *e)
 {
-    return ST_LIST2(body, St_Integer(e));
+    return ST_LIST2(body, e);
 }
 
 static int find_link(int n, int e)
@@ -43,6 +43,17 @@ static int restore_stack(Object *v)
     int s = St_VectorLength(v);
     St_CopyVector(stack, v, s);
     return s;
+}
+
+static Object *make_continuation(int s)
+{
+    return make_closure(ST_LIST4(St_Intern("refer"),
+                                 St_Integer(0),
+                                 St_Integer(0),
+                                 ST_LIST3(St_Intern("nuate"),
+                                          save_stack(s),
+                                          ST_LIST2(St_Intern("return"), St_Integer(0)))),
+                        Nil);
 }
 
 static int prepare_stack(Object *env, int e)
@@ -104,8 +115,8 @@ static Object *vm(Object *env, Object *insn)
     INSN(constant);
     INSN(close);
     INSN(test);
-    INSN(define);
-    INSN(assign);
+    INSN(conti);
+    INSN(nuate);
     INSN(frame);
     INSN(argument);
     INSN(apply);
@@ -142,7 +153,7 @@ static Object *vm(Object *env, Object *insn)
 
         CASE(x, close) {
             ST_ARGS2("close", ST_CDR(x), body, x2);
-            a = make_functional(body, e);
+            a = make_closure(body, St_Integer(e));
             x = x2;
             continue;
         }
@@ -153,18 +164,17 @@ static Object *vm(Object *env, Object *insn)
             continue;
         }
 
-        CASE(x, define) {
-            ST_ARGS3("define", ST_CDR(x), n, m, x2);
-            index_set(find_link(n->int_value, e), m->int_value, a);
-            x = x2; 
+        CASE(x, conti) {
+            ST_ARGS1("conti", ST_CDR(x), x2);
+            a = make_continuation(s);
+            x = x2;
             continue;
         }
 
-        CASE(x, assign) {
-            ST_ARGS3("assign", ST_CDR(x), n, m, x2);
-            index_set(find_link(n->int_value, e), m->int_value, a);
+        CASE(x, nuate) {
+            ST_ARGS2("nuate", ST_CDR(x), st, x2);
             x = x2;
-            continue;
+            s = restore_stack(st);
         }
 
         CASE(x, frame) {

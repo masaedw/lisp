@@ -87,6 +87,17 @@ static Object *compile(Object *x, Object *e, Object *next)
             return compile(testE, e, ST_LIST3(I("test"), thenC, elseC));
         }
 
+        if (car == I("call/cc"))
+        {
+            Object *x2 = ST_CADR(x);
+            return ST_LIST3(I("frame"),
+                            next,
+                            ST_LIST2(I("conti"),
+                                     ST_LIST2(I("argument"),
+                                              compile(x2, e, ST_LIST1(I("apply"))))));
+        }
+
+        /*
         if (car == I("define"))
         {
             Object *var = ST_CADR(x);
@@ -110,6 +121,7 @@ static Object *compile(Object *x, Object *e, Object *next)
 
             return compile(v, e, ST_LIST4(I("assign"), St_Integer(n), St_Integer(m), next));
         }
+        */
 
         // else clause
         for (Object *args = ST_CDR(x), *c = compile(ST_CAR(x), e, ST_LIST1(I("apply")));
