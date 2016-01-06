@@ -178,6 +178,7 @@ Object *St_Integer(int value);
 
 Object *St_MakeVector(int size);
 Object *St_VectorRef(Object *vector, int idx);
+void St_CopyVector(Object *dst, Object *src, int size);
 void St_VectorSet(Object *vector, int idx, Object *obj);
 int St_VectorLength(Object *vector);
 

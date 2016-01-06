@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include <string.h>
 
 #include "lisp.h"
 
@@ -132,6 +133,11 @@ Object *St_MakeVector(int size)
     }
 
     return o;
+}
+
+void St_CopyVector(Object *dst, Object *src, int size)
+{
+    memcpy(dst->vector, src->vector, sizeof(Object*) * size);
 }
 
 Object *St_VectorRef(Object *v, int idx)
