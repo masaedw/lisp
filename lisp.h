@@ -98,6 +98,8 @@ Object *St_Alloc(int type);
 #define ST_LAMBDAP(obj) ((obj)->type == TLAMBDA)
 #define ST_MACROP(obj) ((obj)->type == TMACRO)
 
+// List and Pair
+
 Object *St_Cons(Object *car, Object *cdr);
 Object *St_Acons(Object *key, Object *val, Object *cdr);
 Object *St_Reverse(Object *list);
@@ -135,6 +137,8 @@ bool St_ListP(Object *maybe_list);
     } while (0)
 
 #define ST_FOREACH(p, list) for (Object *p = (list); !ST_NULLP(p); p = ST_CDR(p))
+
+// Symbol
 
 extern Object *Symbols;
 Object *St_Intern(const char *symbol_string);
@@ -176,12 +180,13 @@ Object *St_Intern(const char *symbol_string);
 #define ST_BOOLEAN(b) ((b) ? True : False)
 Object *St_Integer(int value);
 
+// Vector
+
 Object *St_MakeVector(int size);
 Object *St_VectorRef(Object *vector, int idx);
 void St_CopyVector(Object *dst, Object *src, int size);
 void St_VectorSet(Object *vector, int idx, Object *obj);
 int St_VectorLength(Object *vector);
-
 
 // Basic functions
 
