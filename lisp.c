@@ -88,6 +88,53 @@ bool St_ListP(Object *maybe_list)
     return ST_NULLP(ST_CDR(p));
 }
 
+bool St_SetMemberP(Object *obj, Object *s)
+{
+    ST_FOREACH(p, s) {
+        if (obj == ST_CAR(p))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+Object *St_SetCons(Object *obj, Object *s)
+{
+    return St_SetMemberP(obj, s)
+        ? s
+        : St_Cons(obj, s);
+}
+
+Object *St_SetUnion(Object *s1, Object *s2)
+{
+    ST_FOREACH(p, s1) {
+        s2 = St_SetCons(ST_CAR(p), s2);
+    }
+    return s2;
+}
+
+Object *St_SetMinus(Object *s1, Object *s2)
+{
+    ST_FOREACH(p, s1) {
+        if (!St_SetMemberP(ST_CAR(p), s2))
+        {
+            return St_Cons(ST_CAR(p), St_SetMinus(ST_CDR(p), s2));
+        }
+    }
+    return Nil;
+}
+
+Object *St_SetIntersect(Object *s1, Object *s2)
+{
+    ST_FOREACH(p, s1) {
+        if (St_SetMemberP(ST_CAR(p), s2)) {
+            return St_Cons(ST_CAR(p), St_SetIntersect(ST_CDR(p), s2));
+        }
+    }
+    return Nil;
+}
+
 bool St_EqvP(Object *lhs, Object *rhs)
 {
     if (ST_INTP(lhs) && ST_INTP(rhs))

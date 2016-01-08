@@ -138,6 +138,14 @@ bool St_ListP(Object *maybe_list);
 
 #define ST_FOREACH(p, list) for (Object *p = (list); !ST_NULLP(p); p = ST_CDR(p))
 
+// List as Set
+
+bool St_SetMemberP(Object *obj, Object *s);
+Object *St_SetCons(Object *obj, Object *s);
+Object *St_SetUnion(Object *s1, Object *s2);
+Object *St_SetMinus(Object *s1, Object *s2);
+Object *St_SetIntersect(Object *s1, Object *s2);
+
 // Symbol
 
 extern Object *Symbols;
