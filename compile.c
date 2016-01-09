@@ -19,25 +19,6 @@ static Object *compile_body(Object *body, Object *e, Object *next)
     return compile(ST_CAR(body), e, compile_body(ST_CDR(body), e, next));
 }
 
-static void compile_lookup(Object *env, Object *var, int *rrib, int *relt)
-{
-    int rib = 0;
-    for (Object *e = env; !ST_NULLP(e); e = ST_CAR(e), rib++) {
-        int elt = 0;
-        for (Object *p = ST_CADR(e); !ST_NULLP(p); p = ST_CDR(p), elt++) {
-            if (ST_CAAR(p) == var)
-            {
-                *rrib = rib;
-                *relt = elt;
-                return;
-            }
-        }
-    }
-
-    St_Print(var);
-    St_Error("compile: unbound variable");
-}
-
 static Object *compile_refer(Object *env, Object *x, Object *next)
 {
     int nl = 0;
@@ -69,18 +50,70 @@ static Object *collect_free(Object *env, Object *vars, Object *next)
     return next;
 }
 
-static Object *extend(Object *env, Object *vars)
+static Object *find_free(Object *x, Object *b)
 {
-    return St_PushEnv(env, vars, vars);
+    if (ST_SYMBOLP(x))
+    {
+        return (St_SetMemberP(x, b))
+            ? Nil
+            : ST_LIST1(x);
+    }
+
+    if (ST_PAIRP(x))
+    {
+        Object *car = ST_CAR(x);
+
+#define CASE(sym) if (car == I(#sym))
+
+        CASE(quote) {
+            return Nil;
+        }
+
+        CASE(lambda) {
+            Object *vars = ST_CADR(x);
+            Object *body = ST_CDDR(x);
+
+            return find_free(body, St_SetUnion(vars, b));
+        }
+
+        CASE(if) {
+            Object *testc = ST_CADR(x);
+            Object *thenc = ST_CADDR(x);
+            Object *elsec = ST_CADR(ST_CDDR(x));
+
+            return St_SetUnion(find_free(testc, b),
+                               St_SetUnion(find_free(thenc, b),
+                                           find_free(elsec, b)));
+        }
+
+        CASE(call/cc) {
+            Object *exp = ST_CADR(x);
+
+            return find_free(exp, b);
+        }
+
+        else {
+            Object *r = Nil;
+
+            ST_FOREACH(p, x) {
+                r = St_SetUnion(find_free(ST_CAR(p), b), r);
+            }
+
+            return r;
+        }
+
+#undef CASE
+
+    }
+
+    return Nil;
 }
 
 static Object *compile(Object *x, Object *e, Object *next)
 {
     if (ST_SYMBOLP(x))
     {
-        int n, m;
-        compile_lookup(e, x, &n, &m);
-        return ST_LIST4(I("refer"), St_Integer(n), St_Integer(m), next);
+        return compile_refer(e, x, next);
     }
 
     if (ST_PAIRP(x))
@@ -99,11 +132,15 @@ static Object *compile(Object *x, Object *e, Object *next)
             Object *vars = ST_CADR(x);
             Object *body = ST_CDDR(x);
 
-            return ST_LIST3(I("close"),
-                            compile_body(body,
-                                         extend(e, vars),
-                                         ST_LIST2(I("return"), St_Integer(St_Length(vars) + 1))),
-                            next);
+            Object *free = find_free(body, vars);
+
+            return collect_free(e,
+                                free,
+                                ST_LIST4(I("close"),
+                                         St_Integer(St_Length(free)),
+                                         compile_body(body, St_Cons(vars, free),
+                                                      ST_LIST2(I("return"), St_Integer(St_Length(vars)))),
+                                         next));
         }
 
         if (car == I("if"))
