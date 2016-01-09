@@ -38,6 +38,37 @@ static void compile_lookup(Object *env, Object *var, int *rrib, int *relt)
     St_Error("compile: unbound variable");
 }
 
+static Object *compile_refer(Object *env, Object *x, Object *next)
+{
+    int nl = 0;
+    ST_FOREACH(locals, ST_CAR(env)) {
+        if (ST_CAR(locals) == x)
+        {
+            return ST_LIST3(I("refer-local"), St_Integer(nl), next);
+        }
+        nl++;
+    }
+
+    int nf = 0;
+    ST_FOREACH(free, ST_CDR(env)) {
+        if (ST_CAR(free) == x)
+        {
+            return ST_LIST3(I("refer-free"), St_Integer(nf), next);
+        }
+        nf++;
+    }
+
+    return Nil; // never reached
+}
+
+static Object *collect_free(Object *env, Object *vars, Object *next)
+{
+    ST_FOREACH(p, vars) {
+        next = compile_refer(env, ST_CAR(p), ST_LIST2(I("argument"), next));
+    }
+    return next;
+}
+
 static Object *extend(Object *env, Object *vars)
 {
     return St_PushEnv(env, vars, vars);
