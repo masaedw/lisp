@@ -18,17 +18,27 @@ static void index_set(int s, int i, Object *v)
     St_VectorSet(stack, s - i - 1, v);
 }
 
-static Object *make_closure(Object *body, Object *e)
+static Object *make_closure(Object *body, int n, int s)
 {
-    return ST_LIST2(body, e);
+    Object *v = St_MakeVector(n + 1);
+
+    St_VectorSet(v, 0, body);
+
+    for (int i = 0; i < n; i++) {
+        St_VectorSet(v, i + 1, index(s, i));
+    }
+
+    return v;
 }
 
-static int find_link(int n, int e)
+static Object *closure_body(Object *c)
 {
-    for (; n != 0; n--, e = index(e, -1)->int_value)
-    {
-    }
-    return e;
+    return St_VectorRef(c, 0);
+}
+
+static Object *index_closure(Object *c, int n)
+{
+    return St_VectorRef(c, n + 1);
 }
 
 static Object *save_stack(int s)
@@ -53,7 +63,8 @@ static Object *make_continuation(int s)
                                  ST_LIST3(St_Intern("nuate"),
                                           save_stack(s),
                                           ST_LIST2(St_Intern("return"), St_Integer(0)))),
-                        Nil);
+                        0,
+                        0);
 }
 
 static int prepare_stack(Object *env, int e)
@@ -82,28 +93,24 @@ static Object *vm(Object *env, Object *insn)
     // registers
     Object *a; // Accumulator
     Object *x; // Next expression
-    int e; // Current environment
-    int s; // Current stack
-    int f; // Current frame bottom
+    int f;     // Current frame
+    Object *c; // Current closure
+    int s;     // Current stack
 
     stack = St_MakeVector(1000);
 
     a = Nil;
     x = insn;
-    e = prepare_stack(env, 0);
-    s = e + 1;
+    c = Nil;
+    s = prepare_stack(env, 0) + 1;
     f = s;
 
-    // static link (pushed last)    pushed by `apply`
     // first argument               pushed by `argument`
     // ...                          ...
     // last argument                pushed by `argument`
-    // current frame                pushed by `frame` to return from subr
     // next expression              pushed by `frame`
+    // current frame                pushed by `frame`
     // dynamic link (pushed first)  pushed by `frame`
-
-    // static link
-    // The static link, on the other hand, always points to the frame of the closest enclosing function definition of the called function.
 
     // dynamic link
     // The dynamic link always points to the caller’s frame.
@@ -111,7 +118,8 @@ static Object *vm(Object *env, Object *insn)
     // insns
 #define INSN(x) Object *x = St_Intern(#x)
     INSN(halt);
-    INSN(refer);
+    Object *refer_local = St_Intern("refer-local");
+    Object *refer_free = St_Intern("refer-free");
     INSN(constant);
     INSN(close);
     INSN(test);
@@ -127,8 +135,8 @@ static Object *vm(Object *env, Object *insn)
 
     while (true) {
 
-        /*
-        printf("%s (e:%d s:%d f:%d) ", ST_CAR(x)->symbol_value, e, s, f);
+        //*
+        printf("%s (f:%d s:%d) ", ST_CAR(x)->symbol_value, f, s);
         St_Print(a);
         printf("\n");
         //*/
@@ -137,9 +145,16 @@ static Object *vm(Object *env, Object *insn)
             return a;
         }
 
-        CASE(x, refer) {
-            ST_ARGS3("refer", ST_CDR(x), n, m, x2);
-            a = index(find_link(n->int_value, e), m->int_value);
+        CASE(x, refer_local) {
+            ST_ARGS2("refer-local", ST_CDR(x), n, x2);
+            a = index(f, n->int_value);
+            x = x2;
+            continue;
+        }
+
+        CASE(x, refer_free) {
+            ST_ARGS2("refer-free", ST_CDR(x), n, x2);
+            a = index_closure(c, n->int_value);
             x = x2;
             continue;
         }
@@ -152,9 +167,10 @@ static Object *vm(Object *env, Object *insn)
         }
 
         CASE(x, close) {
-            ST_ARGS2("close", ST_CDR(x), body, x2);
-            a = make_closure(body, St_Integer(e));
+            ST_ARGS3("close", ST_CDR(x), n, body, x2);
+            a = make_closure(body, n->int_value, s);
             x = x2;
+            s = s - n->int_value;
             continue;
         }
 
@@ -175,12 +191,13 @@ static Object *vm(Object *env, Object *insn)
             ST_ARGS2("nuate", ST_CDR(x), st, x2);
             x = x2;
             s = restore_stack(st);
+            continue;
         }
 
         CASE(x, frame) {
             ST_ARGS2("frame", ST_CDR(x), ret, x2);
             x = x2;
-            s = push(St_Integer(f), push(ret, push(St_Integer(e), s)));
+            s = push(ret, push(St_Integer(f), push(c, s)));
             f = s;
             continue;
         }
@@ -207,16 +224,16 @@ static Object *vm(Object *env, Object *insn)
                 a = St_Apply(env, a, head);
 
                 // return
-                f = index(s, len + 0)->int_value;
-                x = index(s, len + 1);
-                s = s - len - 3;
+                x = index(s, len + 0);
+                f = index(s, len + 1)->int_value;
+                c = index(s, len + 2);
+                s = s - len - 3; 
             }
             else
             {
-                ST_ARGS2("apply", a, body, link);
-                x = body;
-                e = s;
-                s = push(link, s);
+                x = closure_body(a);
+                f = s;
+                c = a;
             }
             continue;
         }
@@ -224,9 +241,9 @@ static Object *vm(Object *env, Object *insn)
         CASE(x, rtn) {
             ST_ARGS1("return", ST_CDR(x), n);
             int s2 = s - n->int_value;
-            f = index(s2, 0)->int_value;
-            x = index(s2, 1);
-            e = index(s2, 2)->int_value;
+            x = index(s2, 0);
+            f = index(s2, 1)->int_value;
+            c = index(s2, 2);
             s = s2 - 3;
             continue;
         }
