@@ -208,5 +208,13 @@ static Object *compile(Object *x, Object *e, Object *next)
 
 Object *St_Compile(Object *expr, Object *env, Object *next)
 {
-    return compile(expr, env, next);
+    Object *head = Nil;
+    Object *tail = Nil;
+
+    for (Object *p = env; !ST_NULLP(p); p = ST_CAR(p)) {
+        ST_FOREACH(q, ST_CADR(p)) {
+            ST_APPEND1(head, tail, ST_CAAR(q));
+        }
+    }
+    return compile(expr, St_Cons(Nil, head), next);
 }
