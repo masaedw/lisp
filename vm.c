@@ -96,14 +96,16 @@ static Object *vm(Object *env, Object *insn)
     int f;     // Current frame
     Object *c; // Current closure
     int s;     // Current stack
+    int g;     // Global variables
 
     stack = St_MakeVector(1000);
 
     a = Nil;
     x = insn;
     c = Nil;
-    s = prepare_stack(env, 0) + 1;
+    s = prepare_stack(env, 0);
     f = s;
+    g = s;
 
     // first argument               pushed by `argument`
     // ...                          ...
@@ -135,7 +137,7 @@ static Object *vm(Object *env, Object *insn)
 
     while (true) {
 
-        //*
+        /*
         printf("%s (f:%d s:%d) ", ST_CAR(x)->symbol_value, f, s);
         St_Print(a);
         printf("\n");
@@ -154,7 +156,14 @@ static Object *vm(Object *env, Object *insn)
 
         CASE(x, refer_free) {
             ST_ARGS2("refer-free", ST_CDR(x), n, x2);
-            a = index_closure(c, n->int_value);
+            if (ST_NULLP(c))
+            {
+                a = index(g, n->int_value);
+            }
+            else
+            {
+                a = index_closure(c, n->int_value);
+            }
             x = x2;
             continue;
         }
@@ -212,8 +221,6 @@ static Object *vm(Object *env, Object *insn)
         CASE(x, apply) {
             if (ST_SUBRP(a))
             {
-                // Global variable reference is currently not supported. So can't refer subr for now.
-
                 // not supported higher order functions
                 int len = s - f;
                 Object *head = Nil;
