@@ -57,14 +57,13 @@ static int restore_stack(Object *v)
 
 static Object *make_continuation(int s)
 {
-    return make_closure(ST_LIST4(St_Intern("refer"),
-                                 St_Integer(0),
+    return make_closure(ST_LIST3(St_Intern("refer-local"),
                                  St_Integer(0),
                                  ST_LIST3(St_Intern("nuate"),
                                           save_stack(s),
                                           ST_LIST2(St_Intern("return"), St_Integer(0)))),
                         0,
-                        0);
+                        s);
 }
 
 static int prepare_stack(Object *env, int e)
@@ -94,6 +93,7 @@ static Object *vm(Object *env, Object *insn)
     Object *a; // Accumulator
     Object *x; // Next expression
     int f;     // Current frame
+    int fp;    // Most inner frame
     Object *c; // Current closure
     int s;     // Current stack
     int g;     // Global variables
@@ -103,19 +103,15 @@ static Object *vm(Object *env, Object *insn)
     a = Nil;
     x = insn;
     c = Nil;
-    s = prepare_stack(env, 0);
-    f = s;
-    g = s;
+    fp = f = g = s = prepare_stack(env, 0);
 
     // first argument               pushed by `argument`
     // ...                          ...
     // last argument                pushed by `argument`
     // next expression              pushed by `frame`
     // current frame                pushed by `frame`
-    // dynamic link (pushed first)  pushed by `frame`
-
-    // dynamic link
-    // The dynamic link always points to the caller’s frame.
+    // most inner frame             pushed by `frame`
+    // current closuer              pushed by `frame`
 
     // insns
 #define INSN(x) Object *x = St_Intern(#x)
@@ -138,7 +134,18 @@ static Object *vm(Object *env, Object *insn)
     while (true) {
 
         /*
-        printf("%s (f:%d s:%d) ", ST_CAR(x)->symbol_value, f, s);
+        St_Print(ST_CAR(x));
+        if (St_Length(x) > 1)
+        {
+            printf(" [");
+            St_Print(ST_CADR(x));
+            printf("]");
+        }
+        else
+        {
+            printf(" []");
+        }
+        printf(" (f:%d s:%d) ", f, s);
         St_Print(a);
         printf("\n");
         //*/
@@ -206,8 +213,8 @@ static Object *vm(Object *env, Object *insn)
         CASE(x, frame) {
             ST_ARGS2("frame", ST_CDR(x), ret, x2);
             x = x2;
-            s = push(ret, push(St_Integer(f), push(c, s)));
-            f = s;
+            s = push(ret, push(St_Integer(f), push(St_Integer(fp), push(c, s))));
+            fp = s;
             continue;
         }
 
@@ -222,7 +229,7 @@ static Object *vm(Object *env, Object *insn)
             if (ST_SUBRP(a))
             {
                 // not supported higher order functions
-                int len = s - f;
+                int len = s - fp;
                 Object *head = Nil;
                 Object *tail = Nil;
 
@@ -235,8 +242,9 @@ static Object *vm(Object *env, Object *insn)
                 // return
                 x = index(s, len + 0);
                 f = index(s, len + 1)->int_value;
-                c = index(s, len + 2);
-                s = s - len - 3; 
+                fp = index(s, len + 2)->int_value;
+                c = index(s, len + 3);
+                s = s - len - 4;
             }
             else
             {
@@ -252,8 +260,9 @@ static Object *vm(Object *env, Object *insn)
             int s2 = s - n->int_value;
             x = index(s2, 0);
             f = index(s2, 1)->int_value;
-            c = index(s2, 2);
-            s = s2 - 3;
+            fp = index(s2, 2)->int_value;
+            c = index(s2, 3);
+            s = s2 - 4;
             continue;
         }
     }
