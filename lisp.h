@@ -39,13 +39,13 @@ struct Object
             Object *cdr;
         };
 
-        char *symbol_value;
+        char symbol_value[1];
 
-        char *string_value;
+        char string_value[1];
 
         struct {
             int size;
-            Object **vector;
+            Object *vector[1];
         };
 
         // syntax
@@ -83,7 +83,7 @@ void St_Error(const char *fmt, ...) __attribute__((noreturn));
 
 #define St_Malloc GC_MALLOC
 
-Object *St_Alloc(int type);
+Object *St_Alloc(int type, size_t size);
 
 #define ST_NULLP(obj) ((obj) == Nil)
 #define ST_TRUEP(obj) ((obj) == True)

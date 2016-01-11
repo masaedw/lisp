@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include <stddef.h>
 #include <string.h>
 
 #include "lisp.h"
@@ -17,9 +18,9 @@ void St_Error(const char *fmt, ...)
     exit(1);
 }
 
-Object *St_Alloc(int type)
+Object *St_Alloc(int type, size_t size)
 {
-    Object *obj = (Object *)St_Malloc(sizeof(Object));
+    Object *obj = (Object *)St_Malloc(offsetof(Object, int_value) + size);
 
     obj->type = type;
 
@@ -28,7 +29,7 @@ Object *St_Alloc(int type)
 
 Object *St_Cons(Object *car, Object *cdr)
 {
-    Object *cell = St_Alloc(TCELL);
+    Object *cell = St_Alloc(TCELL, sizeof(void*) * 2);
 
     cell->car = car;
     cell->cdr = cdr;
@@ -158,22 +159,20 @@ bool St_EqualP(Object *lhs, Object *rhs)
 
 Object *St_Integer(int value)
 {
-    Object *o = St_Alloc(TINT);
+    Object *o = St_Alloc(TINT, sizeof(int));
     o->int_value = value;
     return o;
 }
 
 Object *St_MakeVector(int size)
 {
-    Object *o = St_Alloc(TVECTOR);
-
     if (size < 0)
     {
         St_Error("make-vector: size must be a positive integer");
     }
 
+    Object *o = St_Alloc(TVECTOR, sizeof(void*) * (size + 1));
     o->size = size;
-    o->vector = St_Malloc(sizeof(Object*) * size);
 
     for (int i = 0; i < size; i++) {
         o->vector[i] = Nil;
@@ -241,7 +240,7 @@ void St_AddVariable(Object *env, Object *key, Object *value)
 
 void St_AddSyntax(Object *env, const char *key, SyntaxFunction *syntax)
 {
-    Object *s = St_Alloc(TSYNTAX);
+    Object *s = St_Alloc(TSYNTAX, sizeof(void*) * 2);
     s->syntax = syntax;
     s->syntax_name = key;
 
@@ -250,7 +249,7 @@ void St_AddSyntax(Object *env, const char *key, SyntaxFunction *syntax)
 
 void St_AddSubr(Object *env, const char *key, SubrFunction *subr)
 {
-    Object *s = St_Alloc(TSUBR);
+    Object *s = St_Alloc(TSUBR, sizeof(void*) * 2);
     s->subr = subr;
     s->subr_name = key;
 

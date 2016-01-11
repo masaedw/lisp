@@ -135,7 +135,7 @@ static Object *syntax_lambda(Object *env, Object *form)
 
     // TODO: validate body
 
-    Object *lambda = St_Alloc(TLAMBDA);
+    Object *lambda = St_Alloc(TLAMBDA, sizeof(void*) * 3);
     lambda->params = params;
     lambda->env = env;
     lambda->body = body;
@@ -170,7 +170,7 @@ static Object *syntax_define_macro(Object *env, Object *form)
         St_Error("define-macro: needs a lambda");
     }
 
-    Object *macro = St_Alloc(TMACRO);
+    Object *macro = St_Alloc(TMACRO, sizeof(void*) * 2);
     macro->proc = proc;
     macro->macro_symbol = sym;
 

@@ -22,9 +22,8 @@ Object *St_Intern(const char *symbol_value)
         return p->car;
     }
 
-    Object *symbol = St_Alloc(TSYMBOL);
     size_t len = strlen(symbol_value);
-    symbol->symbol_value = (char*)St_Malloc(len);
+    Object *symbol = St_Alloc(TSYMBOL, len);
     strcpy(symbol->symbol_value, symbol_value);
 
     Symbols = St_Cons(symbol, Symbols);
