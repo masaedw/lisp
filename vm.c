@@ -212,6 +212,8 @@ static Object *vm(Object *env, Object *insn)
         CASE(x, apply) {
             if (ST_SUBRP(a))
             {
+                // Global variable reference is currently not supported. So can't refer subr for now.
+
                 // not supported higher order functions
                 int len = s - f;
                 Object *head = Nil;
