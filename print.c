@@ -38,7 +38,7 @@ static void print(FILE *stream, Object *obj)
         for (int i = 0; i < obj->size; i++) {
             print(stream, obj->vector[i]);
 
-            if (i <= obj->size - 1)
+            if (i < obj->size - 1)
             {
                 fprintf(stream, " ");
             }
