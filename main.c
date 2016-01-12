@@ -42,6 +42,12 @@ void test_print()
     memcpy(str->string_value, "hoge", 5);
     St_Print(str);
     printf("\n");
+
+    Object *v = St_MakeVector(3);
+    St_VectorSet(v, 0, one);
+    St_VectorSet(v, 1, sym1);
+    St_VectorSet(v, 2, True);
+    St_Print(v);
 }
 
 int main(int argc, char** argv)
