@@ -772,6 +772,41 @@ static Object *subr_eval_vm(Object *env, Object *args)
     return St_Eval_VM(env, expr);
 }
 
+static Object *subr_set_memberp(Object *env, Object *args)
+{
+    ST_ARGS2("set-member?", args, obj, set);
+
+    return ST_BOOLEAN(St_SetMemberP(obj, set));
+}
+
+static Object *subr_set_cons(Object *env, Object *args)
+{
+    ST_ARGS2("set-cons", args, obj, set);
+
+    return St_SetCons(obj, set);
+}
+
+static Object *subr_set_union(Object *env, Object *args)
+{
+    ST_ARGS2("set-union", args, s1, s2);
+
+    return St_SetUnion(s1, s2);
+}
+
+static Object *subr_set_minus(Object *env, Object *args)
+{
+    ST_ARGS2("set-minus", args, s1, s2);
+
+    return St_SetMinus(s1, s2);
+}
+
+static Object *subr_set_intersect(Object *env, Object *args)
+{
+    ST_ARGS2("set-intersect", args, s1, s2);
+
+    return St_SetIntersect(s1, s2);
+}
+
 void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
@@ -826,4 +861,9 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "vector-length", subr_vector_length);
     St_AddSubr(env, "compile", subr_compile);
     St_AddSubr(env, "eval-vm", subr_eval_vm);
+    St_AddSubr(env, "set-member?", subr_set_memberp);
+    St_AddSubr(env, "set-cons", subr_set_cons);
+    St_AddSubr(env, "set-union", subr_set_union);
+    St_AddSubr(env, "set-minus", subr_set_minus);
+    St_AddSubr(env, "set-intersect", subr_set_intersect);
 }

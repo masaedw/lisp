@@ -140,3 +140,11 @@
 (define x (make-vector 5))
 (vector-set! x 0 1)
 (assert 1 (vector-ref x 0) 'vector_1)
+
+(assert #t (set-member? 'a '(a b c)) 'set-member?_0)
+(assert #f (set-member? 'd '(a b c)) 'set-member?_1)
+(assert '(a b c) (set-cons 'a '(a b c)) 'set-cons_0)
+(assert '(d a b c) (set-cons 'd '(a b c)) 'set-cons_1)
+(assert '(c b a d e) (set-union '(a b c) '(a d e)) 'set-union_0)
+(assert '(b c) (set-minus '(a b c) '(a d e)) 'set-minus_0)
+(assert '(a) (set-intersect '(a b c) '(a d e)) 'set-intersect_0)
