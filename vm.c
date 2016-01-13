@@ -87,6 +87,25 @@ static int prepare_stack(Object *env, int e)
     return ne;
 }
 
+static Object *make_box(Object *obj)
+{
+    Object *v = St_MakeVector(1);
+
+    St_VectorSet(v, 0, obj);
+
+    return obj;
+}
+
+static Object *unbox(Object *v)
+{
+    return St_VectorRef(v, 0);
+}
+
+static void set_box(Object *box, Object *obj)
+{
+    St_VectorSet(box, 0, obj);
+}
+
 static Object *vm(Object *env, Object *insn)
 {
     // registers
@@ -118,9 +137,13 @@ static Object *vm(Object *env, Object *insn)
     INSN(halt);
     Object *refer_local = St_Intern("refer-local");
     Object *refer_free = St_Intern("refer-free");
+    INSN(indirect);
     INSN(constant);
     INSN(close);
+    INSN(box);
     INSN(test);
+    Object *assign_local = St_Intern("assign-local");
+    Object *assign_free = St_Intern("assign-free");
     INSN(conti);
     INSN(nuate);
     INSN(frame);
@@ -175,6 +198,13 @@ static Object *vm(Object *env, Object *insn)
             continue;
         }
 
+        CASE(x, indirect) {
+            ST_ARGS1("indirect", ST_CDR(x), x2);
+            a = unbox(a);
+            x = x2;
+            continue;
+        }
+
         CASE(x, constant) {
             ST_ARGS2("constant", ST_CDR(x), obj, x2);
             a = obj;
@@ -190,9 +220,30 @@ static Object *vm(Object *env, Object *insn)
             continue;
         }
 
+        CASE(x, box) {
+            ST_ARGS2("box", ST_CDR(x), n, x2);
+            index_set(s, n->int_value, make_box(index(s, n->int_value)));
+            x = x2;
+            continue;
+        }
+
         CASE(x, test) {
             ST_ARGS2("test", ST_CDR(x), thenc, elsec);
             x = a != False ? thenc : elsec;
+            continue;
+        }
+
+        CASE(x, assign_local) {
+            ST_ARGS2("assign-local", ST_CDR(x), n, x2);
+            set_box(index(f, n->int_value), a);
+            x = x2;
+            continue;
+        }
+
+        CASE(x, assign_free) {
+            ST_ARGS2("assign-free", ST_CDR(x), n, x2);
+            set_box(index_closure(c, n->int_value), a);
+            x = x2;
             continue;
         }
 
