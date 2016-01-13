@@ -201,7 +201,7 @@ static Object *find_sets(Object *x, Object *v)
 
 static Object *make_boxes(Object *sets, Object *vars, Object *next, int n)
 {
-    if (ST_NULLP(ST_CAR(vars)))
+    if (ST_NULLP(vars))
     {
         return next;
     }
