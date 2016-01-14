@@ -107,7 +107,8 @@ static Object *find_free(Object *x, Object *b)
             Object *var = ST_CADR(x);
             Object *exp = ST_CADDR(x);
 
-            return St_SetCons(var, find_free(exp, b));
+            return St_SetUnion(St_SetMemberP(var, b) ? Nil : ST_LIST1(var),
+                               find_free(exp, b));
         }
 
         CASE(call/cc) {
@@ -171,7 +172,8 @@ static Object *find_sets(Object *x, Object *v)
             Object *var = ST_CADR(x);
             Object *x2 = ST_CADDR(x);
 
-            return St_SetCons(var, find_sets(x2, v));
+            return St_SetUnion(St_SetMemberP(var, v) ? Nil : ST_LIST1(var),
+                               find_sets(x2, v));
         }
 
         CASE(call/cc) {
