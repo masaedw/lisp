@@ -244,7 +244,7 @@ static Object *compile(Object *x, Object *e, Object *s, Object *next)
             return collect_free(e,
                                 free,
                                 ST_LIST4(I("close"),
-                                         St_Integer(St_Length(vars)),
+                                         St_Integer(St_Length(free)),
                                          make_boxes(sets, vars,
                                                     compile_body(body, St_Cons(vars, free), St_SetUnion(sets, St_SetIntersect(s, free)),
                                                                  ST_LIST2(I("return"), St_Integer(St_Length(vars)))),
