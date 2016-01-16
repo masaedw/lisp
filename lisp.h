@@ -14,6 +14,7 @@ enum {
     TTRUE,
     TFALSE,
     TSYMBOL,
+    TCHAR,
     TSTRING,
     TVECTOR,
     TSYNTAX,
@@ -42,6 +43,8 @@ struct Object
         char symbol_value[1];
 
         char string_value[1];
+
+        int char_value;
 
         struct {
             int size;
@@ -92,6 +95,7 @@ Object *St_Alloc(int type, size_t size);
 #define ST_INTP(obj) ((obj)->type == TINT)
 #define ST_SYMBOLP(obj) ((obj)->type == TSYMBOL)
 #define ST_VECTORP(obj) ((obj)->type == TVECTOR)
+#define ST_CHARP(obj) ((obj)->type == TCHAR)
 #define ST_STRINGP(obj) ((obj)->type == TSTRING)
 #define ST_SYNTAXP(obj) ((obj)->type == TSYNTAX)
 #define ST_SUBRP(obj) ((obj)->type == TSUBR)
