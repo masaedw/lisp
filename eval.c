@@ -49,6 +49,7 @@ static Object *eval(Object *env, Object *obj)
     case TNIL:
     case TTRUE:
     case TFALSE:
+    case TSTRING:
     case TSYNTAX:
     case TSUBR:
     case TLAMBDA:

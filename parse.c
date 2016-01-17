@@ -1,5 +1,6 @@
-#include <stdio.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "lisp.h"
 
@@ -9,8 +10,10 @@ static Object *read_integer(FILE *stream, int first_digit);
 static Object *read_hash(FILE *stream);
 static void read_comment(FILE *stream);
 static Object *read_symbol(FILE *stream, char first_char);
+static Object *read_string(FILE *stream);
 
 #define SYMBOL_LENGTH 50
+#define STRING_LENGTH 5000
 
 static int peek(FILE *stream)
 {
@@ -52,6 +55,8 @@ static Object *read_expr(FILE* stream)
     case ';':
         read_comment(stream);
         return read_expr(stream);
+    case '"':
+        return read_string(stream);
     default:
         return read_symbol(stream, c);
     }
@@ -208,6 +213,76 @@ static Object *read_symbol(FILE *stream, char first_char)
     buf[p] = 0;
 
     return St_Intern(buf);
+}
+
+static Object *read_string(FILE *stream)
+{
+    char buf[STRING_LENGTH + 1];
+    bool backslash = false;
+
+    int p = 0;
+    for (int c = getc(stream); ; c = getc(stream)) {
+        if (c == EOF)
+        {
+            St_Error("read: unfinished string");
+        }
+
+        if (backslash)
+        {
+            switch (c) {
+            case 'a':
+                buf[p++] = '\a';
+                break;
+            case 'b':
+                buf[p++] = '\b';
+                break;
+            case 'f':
+                buf[p++] = '\f';
+                break;
+            case 'n':
+                buf[p++] = '\n';
+                break;
+            case 'r':
+                buf[p++] = '\r';
+                break;
+            case 'v':
+                buf[p++] = '\v';
+                break;
+            case '\\':
+                buf[p++] = '\\';
+                break;
+            case '"':
+                buf[p++] = '"';
+                break;
+            default:
+                St_Error("read: unsupported backslash literal: %c", c);
+            }
+            backslash = false;
+        }
+        else if (c == '"')
+        {
+            break;
+        }
+        else if (c == '\\')
+        {
+            backslash = true;
+        }
+        else
+        {
+            buf[p++] = (char)c;
+            if (p > STRING_LENGTH)
+            {
+                St_Error("read: too long string literal size");
+            }
+        }
+    }
+
+    buf[p] = 0;
+
+    Object *str = St_Alloc(TSTRING, p + 1);
+    memcpy(str->string_value, buf, p + 1);
+
+    return str;
 }
 
 Object *St_Read(FILE* stream)
