@@ -196,7 +196,13 @@ Object *St_Intern(const char *symbol_string);
 
 #define ST_BOOLEAN(b) ((b) ? True : False)
 Object *St_Integer(int value);
+
+// String
+
 Object *St_MakeString(int len, char* buf);
+int St_StringLength(Object *s);
+bool St_StringEqualP(Object *s1, Object *s2);
+bool St_StringAppend(Object *list);
 
 // Vector
 
