@@ -106,6 +106,14 @@ static void set_box(Object *box, Object *obj)
     St_VectorSet(box, 0, obj);
 }
 
+static int shift_args(int n, int m, int s)
+{
+    for (int i = n - 1; i >= 0; i--) {
+        index_set(s, i + m, index(s, i));
+    }
+    return s - m;
+}
+
 static Object *vm(Object *env, Object *insn)
 {
     // registers
@@ -148,6 +156,7 @@ static Object *vm(Object *env, Object *insn)
     INSN(nuate);
     INSN(frame);
     INSN(argument);
+    INSN(shift);
     INSN(apply);
     Object *rtn = St_Intern("return");
 #undef INSN
@@ -274,6 +283,12 @@ static Object *vm(Object *env, Object *insn)
             x = x2;
             s = push(a, s);
             continue;
+        }
+
+        CASE(x, shift) {
+            ST_ARGS3("shift", ST_CDR(x), n, m, x2);
+            x = x2;
+            s = shift_args(n->int_value, m->int_value, s);
         }
 
         CASE(x, apply) {
