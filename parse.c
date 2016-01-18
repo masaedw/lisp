@@ -230,6 +230,9 @@ static Object *read_string(FILE *stream)
         if (backslash)
         {
             switch (c) {
+            case '0':
+                buf[p++] = '\0';
+                break;
             case 'a':
                 buf[p++] = '\a';
                 break;
