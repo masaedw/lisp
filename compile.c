@@ -4,7 +4,7 @@
 
 #define I(x) St_Intern(x)
 
-bool tailP(Object *next)
+static bool tailP(Object *next)
 {
     return ST_CAR(next) == I("return");
 }
@@ -279,7 +279,9 @@ static Object *compile(Object *x, Object *e, Object *s, Object *next)
                             next,
                             ST_LIST2(I("conti"),
                                      ST_LIST2(I("argument"),
-                                              compile(x2, e, s, ST_LIST1(I("apply"))))));
+                                              compile(x2, e, s, tailP(next)
+                                                      ? ST_LIST4(I("shift"), St_Integer(1), ST_CADR(next), ST_LIST1(I("apply")))
+                                                      : ST_LIST1(I("apply"))))));
         }
 
         /*
@@ -298,13 +300,13 @@ static Object *compile(Object *x, Object *e, Object *s, Object *next)
         */
 
         // else clause
-        for (Object *args = ST_CDR(x), *c = compile(ST_CAR(x), e, s, ST_LIST1(I("apply")));
+        for (Object *args = ST_CDR(x), *c = compile(ST_CAR(x), e, s, tailP(next) ? ST_LIST4(I("shift"), St_Integer(St_Length(ST_CDR(x))), ST_CADR(next), ST_LIST1(I("apply"))) : ST_LIST1(I("apply")));
              ;
              c = compile(ST_CAR(args), e, s, ST_LIST2(I("argument"), c)), args = ST_CDR(args))
         {
             if (ST_NULLP(args))
             {
-                return ST_LIST3(I("frame"), next, c);
+                return tailP(next) ? c : ST_LIST3(I("frame"), next, c);
             }
         }
     } // pair
