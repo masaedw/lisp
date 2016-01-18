@@ -173,6 +173,43 @@ Object *St_MakeString(int len, char *buf)
     return o;
 }
 
+int St_StringLength(Object *s)
+{
+    return s->len;
+}
+
+bool St_StringEqualP(Object *s1, Object *s2)
+{
+    if (St_StringLength(s1) != St_StringLength(s2))
+    {
+        return false;
+    }
+
+    int len = St_StringLength(s1);
+
+    return memcpy(s1->string_value, s2->string_value, len) == 0;
+}
+
+Object *St_StringAppend(Object *list)
+{
+    int newlen = 0;
+
+    ST_FOREACH(p, list) {
+        newlen += St_StringLength(ST_CAR(p));
+    }
+
+    char *buf = St_Malloc(newlen);
+    int bp = 0;
+
+    ST_FOREACH(p, list) {
+        int len = St_StringLength(ST_CAR(p));
+        memcpy(buf + bp, list->string_value, len);
+        bp += len;
+    }
+
+    return St_MakeString(newlen, buf);
+}
+
 Object *St_MakeVector(int size)
 {
     if (size < 0)

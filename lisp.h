@@ -202,7 +202,7 @@ Object *St_Integer(int value);
 Object *St_MakeString(int len, char* buf);
 int St_StringLength(Object *s);
 bool St_StringEqualP(Object *s1, Object *s2);
-bool St_StringAppend(Object *list);
+Object *St_StringAppend(Object *list);
 
 // Vector
 
