@@ -164,6 +164,15 @@ Object *St_Integer(int value)
     return o;
 }
 
+Object *St_MakeString(int len, char *buf)
+{
+    Object *o = St_Alloc(TSTRING, offsetof(Object, string_value) - offsetof(Object, int_value) + len);
+    o->len = len;
+    memcpy(o->string_value, buf, len);
+
+    return o;
+}
+
 Object *St_MakeVector(int size)
 {
     if (size < 0)

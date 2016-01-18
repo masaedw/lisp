@@ -255,6 +255,7 @@ static Object *read_string(FILE *stream)
                 buf[p++] = '"';
                 break;
             default:
+
                 St_Error("read: unsupported backslash literal: %c", c);
             }
             backslash = false;
@@ -277,12 +278,7 @@ static Object *read_string(FILE *stream)
         }
     }
 
-    buf[p] = 0;
-
-    Object *str = St_Alloc(TSTRING, p + 1);
-    memcpy(str->string_value, buf, p + 1);
-
-    return str;
+    return St_MakeString(p, buf);
 }
 
 Object *St_Read(FILE* stream)

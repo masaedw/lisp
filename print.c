@@ -49,6 +49,14 @@ static void print(FILE *stream, Object *obj)
         break;
     }
 
+    case TSTRING: {
+        for (int i = 0; i < obj->len; i++) {
+            fprintf(stream, "%c", obj->string_value[i]);
+        }
+
+        break;
+    }
+
 #define CASE(type, ...)                         \
         case type:                              \
             fprintf(stream, __VA_ARGS__);       \
@@ -59,7 +67,6 @@ static void print(FILE *stream, Object *obj)
         CASE(TTRUE, "#t");
         CASE(TFALSE, "#f");
         CASE(TSYMBOL, "%s", obj->symbol_value);
-        CASE(TSTRING, "\"%s\"", obj->string_value);
         CASE(TSYNTAX, "#<syntax %s>", obj->syntax_name);
         CASE(TSUBR, "#<subr %s>", obj->subr_name);
         CASE(TLAMBDA, "#<lambda>");
