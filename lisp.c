@@ -154,6 +154,11 @@ bool St_EqualP(Object *lhs, Object *rhs)
             St_EqualP(ST_CDR(lhs), ST_CDR(rhs));
     }
 
+    if (ST_STRINGP(lhs) && ST_STRINGP(rhs))
+    {
+        return St_StringEqualP(lhs, rhs);
+    }
+
     return St_EqvP(lhs, rhs);
 }
 
