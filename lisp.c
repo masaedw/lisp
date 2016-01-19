@@ -355,7 +355,7 @@ Object *St_LookupVariable(Object *env, Object *key)
 
     if (ST_NULLP(pair))
     {
-        St_Error("unbound variable");
+        St_Error("unbound variable: %s", key->symbol_value);
     }
 
     return ST_CDR(pair);
