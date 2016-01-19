@@ -99,6 +99,7 @@
 (assert #f (equal? '(1 2 3) 'a) 'equal?_2)
 (assert #t (equal? 'a 'a) 'equal?_3)
 (assert #t (equal? 1 1) 'equal?_4)
+(assert #t (equal? "hoge" "hoge") 'equal?_5)
 
 (assert 55 (apply + '(1 2 3 4 5 6 7 8 9 10)) 'apply_0)
 (assert '((1 2 3) 4 5 6) (apply list '(1 2 3) '(4 5 6)) 'apply_1)
@@ -148,3 +149,9 @@
 (assert '(c b a d e) (set-union '(a b c) '(a d e)) 'set-union_0)
 (assert '(b c) (set-minus '(a b c) '(a d e)) 'set-minus_0)
 (assert '(a) (set-intersect '(a b c) '(a d e)) 'set-intersect_0)
+
+(assert "" (make-string 0) 'make-string_0)
+(assert 9 (string-length (make-string 9)) 'make-string_1)
+(assert "abcdefg" (string-append "ab" "cd" "efg") 'string-append_0)
+(assert #t (string=? "abc" "abc" "abc") 'string=?_0)
+(assert #f (string=? "abc" "abcdefg" "x") 'string=?_1)

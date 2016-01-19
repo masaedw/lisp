@@ -807,6 +807,78 @@ static Object *subr_set_intersect(Object *env, Object *args)
     return St_SetIntersect(s1, s2);
 }
 
+static Object *subr_stringp(Object *env, Object *args)
+{
+    ST_ARGS1("string?", args, o);
+
+    return ST_BOOLEAN(ST_STRINGP(o));
+}
+
+static Object *subr_make_string(Object *env, Object *args)
+{
+    ST_ARGS1("make-string", args, len);
+
+    if (!ST_INTP(len))
+    {
+        St_Error("integer required");
+    }
+
+    return St_MakeEmptyString(len->int_value);
+}
+
+static Object *subr_string_length(Object *env, Object *args)
+{
+    ST_ARGS1("string-length", args, s);
+
+    if (!ST_STRINGP(s))
+    {
+        St_Error("string-length: string required");
+    }
+
+    return St_Integer(St_StringLength(s));
+}
+
+static Object *subr_string_append(Object *env, Object *args)
+{
+    ST_FOREACH(p, args) {
+        if (!ST_STRINGP(ST_CAR(p)))
+        {
+            St_Error("string-append: string required");
+        }
+    }
+
+    return St_StringAppend(args);
+}
+
+static Object *subr_string_equalp(Object *env, Object *args)
+{
+    int len = 0;
+
+    ST_FOREACH(p, args) {
+        len++;
+        if (!ST_STRINGP(ST_CAR(p)))
+        {
+            St_Error("string=?: string required");
+        }
+    }
+
+    if (len < 2)
+    {
+        St_Error("string=?: wrong number of argumats, at least 2 argument required");
+    }
+
+    Object *fst = ST_CAR(args);
+
+    ST_FOREACH(p, ST_CDR(args)) {
+        if (!St_StringEqualP(fst, ST_CAR(p)))
+        {
+            return False;
+        }
+    }
+
+    return True;
+}
+
 void St_InitPrimitives(Object *env)
 {
     St_AddSyntax(env, "if", syntax_if);
@@ -866,4 +938,9 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "set-union", subr_set_union);
     St_AddSubr(env, "set-minus", subr_set_minus);
     St_AddSubr(env, "set-intersect", subr_set_intersect);
+    St_AddSubr(env, "string?", subr_stringp);
+    St_AddSubr(env, "make-string", subr_make_string);
+    St_AddSubr(env, "string-length", subr_string_length);
+    St_AddSubr(env, "string-append", subr_string_append);
+    St_AddSubr(env, "string=?", subr_string_equalp);
 }
