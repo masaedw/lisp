@@ -199,7 +199,7 @@ bool St_StringEqualP(Object *s1, Object *s2)
 
     int len = St_StringLength(s1);
 
-    return memcpy(s1->string_value, s2->string_value, len) == 0;
+    return memcmp(s1->string_value, s2->string_value, len) == 0;
 }
 
 Object *St_StringAppend(Object *list)
@@ -210,16 +210,16 @@ Object *St_StringAppend(Object *list)
         newlen += St_StringLength(ST_CAR(p));
     }
 
-    char *buf = St_Malloc(newlen);
-    int bp = 0;
+    Object *o = St_MakeEmptyString(newlen);
+    int offset = 0;
 
     ST_FOREACH(p, list) {
         int len = St_StringLength(ST_CAR(p));
-        memcpy(buf + bp, list->string_value, len);
-        bp += len;
+        memcpy(o->string_value + offset, ST_CAR(p)->string_value, len);
+        offset += len;
     }
 
-    return St_MakeString(newlen, buf);
+    return o;
 }
 
 Object *St_MakeVector(int size)
