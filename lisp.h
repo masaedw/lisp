@@ -199,6 +199,7 @@ Object *St_Integer(int value);
 
 // String
 
+Object *St_MakeEmptyString(int len);
 Object *St_MakeString(int len, char* buf);
 int St_StringLength(Object *s);
 bool St_StringEqualP(Object *s1, Object *s2);

@@ -169,10 +169,17 @@ Object *St_Integer(int value)
     return o;
 }
 
-Object *St_MakeString(int len, char *buf)
+Object *St_MakeEmptyString(int len)
 {
     Object *o = St_Alloc(TSTRING, offsetof(Object, string_value) - offsetof(Object, int_value) + len);
     o->len = len;
+
+    return o;
+}
+
+Object *St_MakeString(int len, char *buf)
+{
+    Object *o = St_MakeEmptyString(len);
     memcpy(o->string_value, buf, len);
 
     return o;
