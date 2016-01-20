@@ -7,6 +7,7 @@
 Object *Nil = &(Object) { TNIL };
 Object *True = &(Object) { TTRUE };
 Object *False = &(Object) { TFALSE };
+Object *Unbound = &(Object) { TUNBOUND };
 
 void St_Error(const char *fmt, ...)
 {

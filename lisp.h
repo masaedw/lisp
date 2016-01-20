@@ -13,6 +13,7 @@ enum {
     TNIL,
     TTRUE,
     TFALSE,
+    TUNBOUND,
     TSYMBOL,
     TCHAR,
     TSTRING,
@@ -84,6 +85,7 @@ struct Object
 extern Object *Nil;
 extern Object *True;
 extern Object *False;
+extern Object *Unbound;
 
 void St_Error(const char *fmt, ...) __attribute__((noreturn));
 
@@ -94,6 +96,7 @@ Object *St_Alloc(int type, size_t size);
 #define ST_NULLP(obj) ((obj) == Nil)
 #define ST_TRUEP(obj) ((obj) == True)
 #define ST_FALSEP(obj) ((obj) == False)
+#define ST_UNBOUNDP(obj) ((obj) == Unbound)
 #define ST_PAIRP(obj) ((obj)->type == TCELL)
 #define ST_INTP(obj) ((obj)->type == TINT)
 #define ST_SYMBOLP(obj) ((obj)->type == TSYMBOL)
