@@ -20,25 +20,27 @@ static void index_set(int s, int i, Object *v)
 
 static Object *make_closure(Object *body, int n, int s)
 {
-    Object *v = St_MakeVector(n + 1);
+    Object *c = St_Alloc(TLAMBDAVM, sizeof(Object *) * 2);
+    Object *f = n == 0 ? Nil : St_MakeVector(n);
 
-    St_VectorSet(v, 0, body);
+    c->lambda_vm.body = body;
+    c->lambda_vm.free = f;
 
     for (int i = 0; i < n; i++) {
-        St_VectorSet(v, i + 1, index(s, i));
+        St_VectorSet(f, i, index(s, i));
     }
 
-    return v;
+    return c;
 }
 
 static Object *closure_body(Object *c)
 {
-    return St_VectorRef(c, 0);
+    return c->lambda_vm.body;
 }
 
 static Object *index_closure(Object *c, int n)
 {
-    return St_VectorRef(c, n + 1);
+    return St_VectorRef(c->lambda_vm.free, n);
 }
 
 static Object *save_stack(int s)
