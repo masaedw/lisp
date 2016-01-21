@@ -33,52 +33,58 @@ struct Object
     int type;
 
     union {
-        int int_value;
+        struct {
+            int value;
+        } integer;
 
         // cell
         struct {
             Object *car;
             Object *cdr;
-        };
+        } cell;
 
-        char symbol_value[1];
+        struct {
+            char value[1];
+        } symbol;
 
         struct {
             int len;
-            char string_value[1];
-        };
+            char value[1];
+        } string;
 
-        int char_value;
+        struct {
+            int value;
+        } charcter;
 
         struct {
             int size;
-            Object *vector[1];
-        };
+            Object *data[1];
+        } vector;
 
         // syntax
         struct {
-            SyntaxFunction *syntax;
-            const char *syntax_name;
-        };
+            SyntaxFunction *body;
+            const char *name;
+        } syntax;
 
         // subr
         struct {
-            SubrFunction *subr;
-            const char *subr_name;
-        };
+            SubrFunction *body;
+            const char *name;
+        } subr;
 
         // lambda
         struct {
             Object *params;
             Object *body;
             Object *env;
-        };
+        } lambda;
 
         // macro
         struct {
             Object *proc;
-            Object *macro_symbol;
-        };
+            Object *symbol;
+        } macro;
     };
 };
 
@@ -121,8 +127,8 @@ bool St_ListP(Object *maybe_list);
 #define ST_LIST3(a0, a1, a2)     St_Cons((a0), ST_LIST2((a1), (a2)))
 #define ST_LIST4(a0, a1, a2, a3) St_Cons((a0), ST_LIST3((a1), (a2), (a3)))
 
-#define ST_CAR(pair) (pair)->car
-#define ST_CDR(pair) (pair)->cdr
+#define ST_CAR(pair) (pair)->cell.car
+#define ST_CDR(pair) (pair)->cell.cdr
 #define ST_CDDR(list) ST_CDR(ST_CDR(list))
 #define ST_CDAR(list) ST_CDR(ST_CAR(list))
 #define ST_CADR(list) ST_CAR(ST_CDR(list))
@@ -130,8 +136,8 @@ bool St_ListP(Object *maybe_list);
 #define ST_CADDR(list) ST_CAR(ST_CDR(ST_CDR(list)))
 #define ST_CADDDR(list) ST_CAR(ST_CDR(ST_CDR(ST_CDR(list))))
 
-#define ST_CAR_SET(pair, value) ((pair)->car = (value))
-#define ST_CDR_SET(pair, value) ((pair)->cdr = (value))
+#define ST_CAR_SET(pair, value) ((pair)->cell.car = (value))
+#define ST_CDR_SET(pair, value) ((pair)->cell.cdr = (value))
 
 #define ST_APPEND1(head, tail, value)                   \
     do {                                                \
@@ -141,8 +147,8 @@ bool St_ListP(Object *maybe_list);
         }                                               \
         else                                            \
         {                                               \
-            tail->cdr = St_Cons((value), Nil);          \
-            tail = tail->cdr;                           \
+            ST_CDR_SET(tail, St_Cons((value), Nil));    \
+            tail = ST_CDR(tail);                        \
         }                                               \
     } while (0)
 

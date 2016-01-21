@@ -119,7 +119,7 @@ static Object *read_list(FILE* stream)
 
         if (is_next_last)
         {
-            tail->cdr = i;
+            ST_CDR_SET(tail, i);
             is_next_last = false;
             is_next_end = true;
         }

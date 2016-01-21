@@ -14,18 +14,18 @@ static void print(FILE *stream, Object *obj)
     case TCELL:
         fprintf(stream, "(");
 
-        print(stream, obj->car);
+        print(stream, ST_CAR(obj));
 
-        while (ST_PAIRP(obj->cdr)) {
-            obj = obj->cdr;
+        while (ST_PAIRP(ST_CAR(obj))) {
+            obj = ST_CDR(obj);
             fprintf(stream, " ");
-            print(stream, obj->car);
+            print(stream, ST_CAR(obj));
         }
 
-        if (!ST_NULLP(obj->cdr))
+        if (!ST_NULLP(ST_CDR(obj)))
         {
             fprintf(stream, " . ");
-            print(stream, obj->cdr);
+            print(stream, ST_CDR(obj));
         }
 
         fprintf(stream, ")");
@@ -35,10 +35,10 @@ static void print(FILE *stream, Object *obj)
     case TVECTOR: {
         fprintf(stream, "#(");
 
-        for (int i = 0; i < obj->size; i++) {
-            print(stream, obj->vector[i]);
+        for (int i = 0; i < St_VectorLength(obj); i++) {
+            print(stream, St_VectorRef(obj, i));
 
-            if (i < obj->size - 1)
+            if (i < St_VectorLength(obj) - 1)
             {
                 fprintf(stream, " ");
             }
@@ -50,8 +50,8 @@ static void print(FILE *stream, Object *obj)
     }
 
     case TSTRING: {
-        for (int i = 0; i < obj->len; i++) {
-            fprintf(stream, "%c", obj->string_value[i]);
+        for (int i = 0; i < obj->string.len; i++) {
+            fprintf(stream, "%c", obj->string.value[i]);
         }
 
         break;
@@ -62,13 +62,13 @@ static void print(FILE *stream, Object *obj)
             fprintf(stream, __VA_ARGS__);       \
             break
 
-        CASE(TINT, "%d", obj->int_value);
+        CASE(TINT, "%d", obj->integer.value);
         CASE(TNIL, "()");
         CASE(TTRUE, "#t");
         CASE(TFALSE, "#f");
-        CASE(TSYMBOL, "%s", obj->symbol_value);
-        CASE(TSYNTAX, "#<syntax %s>", obj->syntax_name);
-        CASE(TSUBR, "#<subr %s>", obj->subr_name);
+        CASE(TSYMBOL, "%s", obj->symbol.value);
+        CASE(TSYNTAX, "#<syntax %s>", obj->syntax.name);
+        CASE(TSUBR, "#<subr %s>", obj->subr.name);
         CASE(TLAMBDA, "#<lambda>");
         CASE(TMACRO, "#<macro>");
 #undef CASE

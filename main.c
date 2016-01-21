@@ -39,7 +39,7 @@ void test_print()
     printf("\n");
 
     Object *str = St_Alloc(TSTRING, 5);
-    memcpy(str->string_value, "hoge", 5);
+    memcpy(str->string.value, "hoge", 5);
     St_Print(str);
     printf("\n");
 

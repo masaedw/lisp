@@ -188,7 +188,7 @@ static Object *vm(Object *env, Object *insn)
 
         CASE(x, refer_local) {
             ST_ARGS2("refer-local", ST_CDR(x), n, x2);
-            a = index(f, n->int_value);
+            a = index(f, n->integer.value);
             x = x2;
             continue;
         }
@@ -197,11 +197,11 @@ static Object *vm(Object *env, Object *insn)
             ST_ARGS2("refer-free", ST_CDR(x), n, x2);
             if (ST_NULLP(c))
             {
-                a = index(g, n->int_value);
+                a = index(g, n->integer.value);
             }
             else
             {
-                a = index_closure(c, n->int_value);
+                a = index_closure(c, n->integer.value);
             }
             x = x2;
             continue;
@@ -223,15 +223,15 @@ static Object *vm(Object *env, Object *insn)
 
         CASE(x, close) {
             ST_ARGS3("close", ST_CDR(x), n, body, x2);
-            a = make_closure(body, n->int_value, s);
+            a = make_closure(body, n->integer.value, s);
             x = x2;
-            s = s - n->int_value;
+            s = s - n->integer.value;
             continue;
         }
 
         CASE(x, box) {
             ST_ARGS2("box", ST_CDR(x), n, x2);
-            index_set(s, n->int_value, make_box(index(s, n->int_value)));
+            index_set(s, n->integer.value, make_box(index(s, n->integer.value)));
             x = x2;
             continue;
         }
@@ -244,14 +244,14 @@ static Object *vm(Object *env, Object *insn)
 
         CASE(x, assign_local) {
             ST_ARGS2("assign-local", ST_CDR(x), n, x2);
-            set_box(index(f, n->int_value), a);
+            set_box(index(f, n->integer.value), a);
             x = x2;
             continue;
         }
 
         CASE(x, assign_free) {
             ST_ARGS2("assign-free", ST_CDR(x), n, x2);
-            set_box(index_closure(c, n->int_value), a);
+            set_box(index_closure(c, n->integer.value), a);
             x = x2;
             continue;
         }
@@ -288,7 +288,7 @@ static Object *vm(Object *env, Object *insn)
         CASE(x, shift) {
             ST_ARGS3("shift", ST_CDR(x), n, m, x2);
             x = x2;
-            s = shift_args(n->int_value, m->int_value, s);
+            s = shift_args(n->integer.value, m->integer.value, s);
         }
 
         CASE(x, apply) {
@@ -307,8 +307,8 @@ static Object *vm(Object *env, Object *insn)
 
                 // return
                 x = index(s, len + 0);
-                f = index(s, len + 1)->int_value;
-                fp = index(s, len + 2)->int_value;
+                f = index(s, len + 1)->integer.value;
+                fp = index(s, len + 2)->integer.value;
                 c = index(s, len + 3);
                 s = s - len - 4;
             }
@@ -323,10 +323,10 @@ static Object *vm(Object *env, Object *insn)
 
         CASE(x, rtn) {
             ST_ARGS1("return", ST_CDR(x), n);
-            int s2 = s - n->int_value;
+            int s2 = s - n->integer.value;
             x = index(s2, 0);
-            f = index(s2, 1)->int_value;
-            fp = index(s2, 2)->int_value;
+            f = index(s2, 1)->integer.value;
+            fp = index(s2, 2)->integer.value;
             c = index(s2, 3);
             s = s2 - 4;
             continue;

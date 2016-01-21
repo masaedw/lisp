@@ -21,7 +21,7 @@ void St_Error(const char *fmt, ...)
 
 Object *St_Alloc(int type, size_t size)
 {
-    Object *obj = (Object *)St_Malloc(offsetof(Object, int_value) + size);
+    Object *obj = (Object *)St_Malloc(offsetof(Object, integer.value) + size);
 
     obj->type = type;
 
@@ -32,8 +32,8 @@ Object *St_Cons(Object *car, Object *cdr)
 {
     Object *cell = St_Alloc(TCELL, sizeof(void*) * 2);
 
-    cell->car = car;
-    cell->cdr = cdr;
+    ST_CAR_SET(cell, car);
+    ST_CDR_SET(cell, cdr);
 
     return cell;
 }
@@ -47,8 +47,7 @@ int St_Length(Object *list)
 {
     int length = 0;
 
-    for (; !ST_NULLP(list); list = list->cdr)
-    {
+    ST_FOREACH(p, list) {
         length++;
     }
 
@@ -63,11 +62,11 @@ Object *St_Reverse(Object *list)
     }
 
     Object *p = list;
-    Object *r = St_Cons(list->car, Nil);
+    Object *r = St_Cons(ST_CAR(list), Nil);
 
-    while (ST_PAIRP(p->cdr)) {
-        p = p->cdr;
-        r = St_Cons(p->car, r);
+    while (ST_PAIRP(ST_CDR(p))) {
+        p = ST_CDR(p);
+        r = St_Cons(ST_CAR(p), r);
     }
 
     return r;
@@ -84,7 +83,7 @@ bool St_ListP(Object *maybe_list)
 
     while (ST_PAIRP(ST_CDR(p)))
     {
-        p = p->cdr;
+        p = ST_CDR(p);
     }
 
     return ST_NULLP(ST_CDR(p));
@@ -141,7 +140,7 @@ bool St_EqvP(Object *lhs, Object *rhs)
 {
     if (ST_INTP(lhs) && ST_INTP(rhs))
     {
-        return lhs->int_value == rhs->int_value;
+        return lhs->integer.value == rhs->integer.value;
     }
 
     return lhs == rhs;
@@ -166,14 +165,14 @@ bool St_EqualP(Object *lhs, Object *rhs)
 Object *St_Integer(int value)
 {
     Object *o = St_Alloc(TINT, sizeof(int));
-    o->int_value = value;
+    o->integer.value = value;
     return o;
 }
 
 Object *St_MakeEmptyString(int len)
 {
-    Object *o = St_Alloc(TSTRING, offsetof(Object, string_value) - offsetof(Object, int_value) + len);
-    o->len = len;
+    Object *o = St_Alloc(TSTRING, offsetof(Object, string.value) - offsetof(Object, integer.value) + len);
+    o->string.len = len;
 
     return o;
 }
@@ -181,14 +180,14 @@ Object *St_MakeEmptyString(int len)
 Object *St_MakeString(int len, char *buf)
 {
     Object *o = St_MakeEmptyString(len);
-    memcpy(o->string_value, buf, len);
+    memcpy(o->string.value, buf, len);
 
     return o;
 }
 
 int St_StringLength(Object *s)
 {
-    return s->len;
+    return s->string.len;
 }
 
 bool St_StringEqualP(Object *s1, Object *s2)
@@ -200,7 +199,7 @@ bool St_StringEqualP(Object *s1, Object *s2)
 
     int len = St_StringLength(s1);
 
-    return memcmp(s1->string_value, s2->string_value, len) == 0;
+    return memcmp(s1->string.value, s2->string.value, len) == 0;
 }
 
 Object *St_StringAppend(Object *list)
@@ -216,7 +215,7 @@ Object *St_StringAppend(Object *list)
 
     ST_FOREACH(p, list) {
         int len = St_StringLength(ST_CAR(p));
-        memcpy(o->string_value + offset, ST_CAR(p)->string_value, len);
+        memcpy(o->string.value + offset, ST_CAR(p)->string.value, len);
         offset += len;
     }
 
@@ -231,10 +230,10 @@ Object *St_MakeVector(int size)
     }
 
     Object *o = St_Alloc(TVECTOR, sizeof(void*) * (size + 1));
-    o->size = size;
+    o->vector.size = size;
 
     for (int i = 0; i < size; i++) {
-        o->vector[i] = Nil;
+        o->vector.data[i] = Nil;
     }
 
     return o;
@@ -242,32 +241,32 @@ Object *St_MakeVector(int size)
 
 void St_CopyVector(Object *dst, Object *src, int size)
 {
-    memcpy(dst->vector, src->vector, sizeof(Object*) * size);
+    memcpy(dst->vector.data, src->vector.data, sizeof(Object*) * size);
 }
 
 Object *St_VectorRef(Object *v, int idx)
 {
-    if (idx < 0 || v->size <= idx)
+    if (idx < 0 || v->vector.size <= idx)
     {
-        St_Error("vector-ref: index out of range: %d against %d", idx, v->size);
+        St_Error("vector-ref: index out of range: %d against %d", idx, v->vector.size);
     }
 
-    return v->vector[idx];
+    return v->vector.data[idx];
 }
 
 void St_VectorSet(Object *v, int idx, Object *obj)
 {
-    if (idx < 0 || v->size <= idx)
+    if (idx < 0 || v->vector.size <= idx)
     {
         St_Error("vector-ref: index out of range");
     }
 
-    v->vector[idx] = obj;
+    v->vector.data[idx] = obj;
 }
 
 int St_VectorLength(Object *v)
 {
-    return v->size;
+    return v->vector.size;
 }
 
 // Environment structure
@@ -300,8 +299,8 @@ void St_AddVariable(Object *env, Object *key, Object *value)
 void St_AddSyntax(Object *env, const char *key, SyntaxFunction *syntax)
 {
     Object *s = St_Alloc(TSYNTAX, sizeof(void*) * 2);
-    s->syntax = syntax;
-    s->syntax_name = key;
+    s->syntax.body = syntax;
+    s->syntax.name = key;
 
     St_AddVariable(env, St_Intern(key), s);
 }
@@ -309,8 +308,8 @@ void St_AddSyntax(Object *env, const char *key, SyntaxFunction *syntax)
 void St_AddSubr(Object *env, const char *key, SubrFunction *subr)
 {
     Object *s = St_Alloc(TSUBR, sizeof(void*) * 2);
-    s->subr = subr;
-    s->subr_name = key;
+    s->subr.body = subr;
+    s->subr.name = key;
 
     St_AddVariable(env, St_Intern(key), s);
 }
@@ -368,7 +367,7 @@ Object *St_LookupVariable(Object *env, Object *key)
 
     if (ST_NULLP(pair))
     {
-        St_Error("unbound variable: %s", key->symbol_value);
+        St_Error("unbound variable: %s", key->symbol.value);
     }
 
     return ST_CDR(pair);
