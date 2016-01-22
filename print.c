@@ -16,7 +16,7 @@ static void print(FILE *stream, Object *obj)
 
         print(stream, ST_CAR(obj));
 
-        while (ST_PAIRP(ST_CAR(obj))) {
+        while (ST_PAIRP(ST_CDR(obj))) {
             obj = ST_CDR(obj);
             fprintf(stream, " ");
             print(stream, ST_CAR(obj));
