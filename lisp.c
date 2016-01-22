@@ -258,7 +258,7 @@ void St_VectorSet(Object *v, int idx, Object *obj)
 {
     if (idx < 0 || v->vector.size <= idx)
     {
-        St_Error("vector-ref: index out of range");
+        St_Error("vector-set: index out of range");
     }
 
     v->vector.data[idx] = obj;
@@ -267,6 +267,68 @@ void St_VectorSet(Object *v, int idx, Object *obj)
 int St_VectorLength(Object *v)
 {
     return v->vector.size;
+}
+
+// dynamic array
+
+Object *St_MakeDVector(int size, int capa)
+{
+    return St_Cons(St_Integer(size), St_MakeVector(capa));
+}
+
+Object *St_DVectorRef(Object *vector, int idx)
+{
+    int len = St_DVectorLength(vector);
+    if (idx < 0 || len <= idx)
+    {
+        St_Error("dvector-ref: index out of range %d against %d", idx, len);
+    }
+
+    return St_VectorRef(St_DVectorData(vector), idx);
+}
+
+void St_DVectorSet(Object *vector, int idx, Object *obj)
+{
+    int len = St_DVectorLength(vector);
+    if (idx < 0 || len <= idx)
+    {
+        St_Error("dvector-set: index out of range %d against %d", idx, len);
+    }
+
+    St_VectorSet(St_DVectorData(vector), idx, obj);
+}
+
+int St_DVectorLength(Object *vector)
+{
+    return ST_CAR(vector)->integer.value;
+}
+
+Object *St_DVectorData(Object *vector)
+{
+   return ST_CDR(vector);
+}
+
+int St_DVectorCapacity(Object *vector)
+{
+    return St_VectorLength(St_DVectorData(vector));
+}
+
+int St_DVectorPush(Object *vector, Object *obj)
+{
+    int len = St_DVectorLength(vector);
+    int capa = St_DVectorCapacity(vector);
+
+    if (len == capa)
+    {
+        Object *data = St_MakeVector(capa * 1.4);
+        St_CopyVector(data, ST_CDR(vector), capa);
+        ST_CDR_SET(vector, data);
+    }
+
+    St_VectorSet(St_DVectorData(vector), len, obj);
+    ST_CAR_SET(vector, St_Integer(len + 1));
+
+    return len;
 }
 
 // Environment structure

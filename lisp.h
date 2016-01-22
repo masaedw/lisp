@@ -230,6 +230,16 @@ void St_CopyVector(Object *dst, Object *src, int size);
 void St_VectorSet(Object *vector, int idx, Object *obj);
 int St_VectorLength(Object *vector);
 
+// Dynamic Vector (complex type)
+
+Object *St_MakeDVector(int size, int capa);
+Object *St_DVectorRef(Object *vector, int idx);
+void St_DVectorSet(Object *vector, int idx, Object *obj);
+int St_DVectorLength(Object *vector);
+Object *St_DVectorData(Object *vector);
+int St_DVectorCapacity(Object *vector);
+int St_DVectorPush(Object *vector, Object *obj);
+
 // Basic functions
 
 bool St_EqvP(Object *lhs, Object *rhs);
