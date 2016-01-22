@@ -4,33 +4,70 @@
 
 #define I(x) St_Intern(x)
 
+static Object *make_module(Object *list)
+{
+    int size = St_Length(list);
+    Object *v = St_MakeDVector(size, size);
+
+    int i = 0;
+    ST_FOREACH(p, list) {
+        St_DVectorSet(v, i++, ST_CAR(p));
+    }
+
+    return v;
+}
+
+#define NOT_FOUND (-1)
+
+static int module_contains(Object *m, Object *sym)
+{
+    int size = St_DVectorLength(m);
+    for (int i = 0; i < size; i++) {
+        Object *pair = St_DVectorRef(m, i);
+        if (ST_CAR(pair) == sym)
+        {
+            return i;
+        }
+    }
+    return NOT_FOUND;
+}
+
+static int module_add(Object *m, Object *sym)
+{
+    int i = module_contains(m, sym);
+    return i == NOT_FOUND
+        ? St_DVectorPush(m, St_Cons(sym, Unbound))
+        : i;
+}
+
 static bool tailP(Object *next)
 {
     return ST_CAR(next) == I("return");
 }
 
-static Object *compile(Object *x, Object *e, Object *s, Object *next);
+static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next);
 
-static Object *compile_body(Object *body, Object *e, Object *s, Object *next)
+static Object *compile_body(Object *body, Object *m, Object *e, Object *s, Object *next)
 {
     if (ST_NULLP(body))
     {
         return next;
     }
 
-    return compile(ST_CAR(body), e, s, compile_body(ST_CDR(body), e, s, next));
+    return compile(ST_CAR(body), m, e, s, compile_body(ST_CDR(body), m, e, s, next));
 }
 
-static Object *compile_lookup(Object *env, Object *x, Object *next, const char* insn)
+static Object *compile_lookup(Object *module, Object *env, Object *x, Object *next, const char* insn)
 {
-    char buf[strlen(insn) + 7];
+    char buf[strlen(insn) + 9];
     strcpy(buf, insn);
+    char *bp = buf + strlen(insn);
 
     int nl = 0;
     ST_FOREACH(locals, ST_CAR(env)) {
         if (ST_CAR(locals) == x)
         {
-            strcpy(buf + strlen(insn), "-local");
+            strcpy(bp, "-local");
             return ST_LIST3(I(buf), St_Integer(nl), next);
         }
         nl++;
@@ -40,29 +77,31 @@ static Object *compile_lookup(Object *env, Object *x, Object *next, const char* 
     ST_FOREACH(free, ST_CDR(env)) {
         if (ST_CAR(free) == x)
         {
-            strcpy(buf + strlen(insn), "-free");
+            strcpy(bp, "-free");
             return ST_LIST3(I(buf), St_Integer(nf), next);
         }
         nf++;
     }
 
-    return Nil; // never reached
+    strcpy(bp, "-module");
+    int nm = module_add(module, x);
+    return ST_LIST3(I(buf), St_Integer(nm), next);
 }
 
-static Object *compile_refer(Object *env, Object *x, Object *next)
+static Object *compile_refer(Object *module, Object *env, Object *x, Object *next)
 {
-    return compile_lookup(env, x, next, "refer");
+    return compile_lookup(module, env, x, next, "refer");
 }
 
-static Object *compile_assign(Object *env, Object *x, Object *next)
+static Object *compile_assign(Object *module, Object *env, Object *x, Object *next)
 {
-    return compile_lookup(env, x, next, "assign");
+    return compile_lookup(module, env, x, next, "assign");
 }
 
-static Object *collect_free(Object *env, Object *vars, Object *next)
+static Object *collect_free(Object *module, Object *env, Object *vars, Object *next)
 {
     ST_FOREACH(p, vars) {
-        next = compile_refer(env, ST_CAR(p), ST_LIST2(I("argument"), next));
+        next = compile_refer(module, env, ST_CAR(p), ST_LIST2(I("argument"), next));
     }
     return next;
 }
@@ -215,11 +254,11 @@ static Object *make_boxes(Object *sets, Object *vars, Object *next, int n)
         : next2;
 }
 
-static Object *compile(Object *x, Object *e, Object *s, Object *next)
+static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
 {
     if (ST_SYMBOLP(x))
     {
-        return compile_refer(e, x, St_SetMemberP(x, s) ? ST_LIST2(I("indirect"), next) : next);
+        return compile_refer(m, e, x, St_SetMemberP(x, s) ? ST_LIST2(I("indirect"), next) : next);
     }
 
     if (ST_PAIRP(x))
@@ -241,12 +280,13 @@ static Object *compile(Object *x, Object *e, Object *s, Object *next)
             Object *free = find_free(body, vars);
             Object *sets = find_sets(body, vars);
 
-            return collect_free(e,
+            return collect_free(m,
+                                e,
                                 free,
                                 ST_LIST4(I("close"),
                                          St_Integer(St_Length(free)),
                                          make_boxes(sets, vars,
-                                                    compile_body(body, St_Cons(vars, free), St_SetUnion(sets, St_SetIntersect(s, free)),
+                                                    compile_body(body, m, St_Cons(vars, free), St_SetUnion(sets, St_SetIntersect(s, free)),
                                                                  ST_LIST2(I("return"), St_Integer(St_Length(vars)))),
                                                     0),
                                          next));
@@ -258,10 +298,10 @@ static Object *compile(Object *x, Object *e, Object *s, Object *next)
             Object *thenE = ST_CADDR(x);
             Object *elseE = ST_CADR(ST_CDDR(x));
 
-            Object *thenC = compile(thenE, e, s, next);
-            Object *elseC = compile(elseE, e, s, next);
+            Object *thenC = compile(thenE, m, e, s, next);
+            Object *elseC = compile(elseE, m, e, s, next);
 
-            return compile(testE, e, s, ST_LIST3(I("test"), thenC, elseC));
+            return compile(testE, m, e, s, ST_LIST3(I("test"), thenC, elseC));
         }
 
         if (car == I("set!"))
@@ -269,7 +309,7 @@ static Object *compile(Object *x, Object *e, Object *s, Object *next)
             Object *var = ST_CADR(x);
             Object *x2 = ST_CADDR(x);
 
-            return compile(x2, e, s, compile_assign(e, var, next));
+            return compile(x2, m, e, s, compile_assign(m, e, var, next));
         }
 
         if (car == I("call/cc"))
@@ -279,7 +319,7 @@ static Object *compile(Object *x, Object *e, Object *s, Object *next)
                             next,
                             ST_LIST2(I("conti"),
                                      ST_LIST2(I("argument"),
-                                              compile(x2, e, s, tailP(next)
+                                              compile(x2, m, e, s, tailP(next)
                                                       ? ST_LIST4(I("shift"), St_Integer(1), ST_CADR(next), ST_LIST1(I("apply")))
                                                       : ST_LIST1(I("apply"))))));
         }
@@ -300,9 +340,9 @@ static Object *compile(Object *x, Object *e, Object *s, Object *next)
         */
 
         // else clause
-        for (Object *args = ST_CDR(x), *c = compile(ST_CAR(x), e, s, tailP(next) ? ST_LIST4(I("shift"), St_Integer(St_Length(ST_CDR(x))), ST_CADR(next), ST_LIST1(I("apply"))) : ST_LIST1(I("apply")));
+        for (Object *args = ST_CDR(x), *c = compile(ST_CAR(x), m, e, s, tailP(next) ? ST_LIST4(I("shift"), St_Integer(St_Length(ST_CDR(x))), ST_CADR(next), ST_LIST1(I("apply"))) : ST_LIST1(I("apply")));
              ;
-             c = compile(ST_CAR(args), e, s, ST_LIST2(I("argument"), c)), args = ST_CDR(args))
+             c = compile(ST_CAR(args), m, e, s, ST_LIST2(I("argument"), c)), args = ST_CDR(args))
         {
             if (ST_NULLP(args))
             {
@@ -324,5 +364,5 @@ Object *St_Compile(Object *expr, Object *env, Object *next)
             ST_APPEND1(head, tail, ST_CAAR(q));
         }
     }
-    return compile(expr, St_Cons(Nil, head), Nil, next);
+    return compile(expr, make_module(head), St_Cons(Nil, Nil), Nil, next);
 }
