@@ -331,6 +331,52 @@ int St_DVectorPush(Object *vector, Object *obj)
     return len;
 }
 
+Object *St_MakeModule(Object *alist)
+{
+    int size = St_Length(alist);
+    Object *v = St_MakeDVector(size, size);
+
+    int i = 0;
+    ST_FOREACH(p, alist) {
+        St_DVectorSet(v, i++, ST_CAR(p));
+    }
+
+    return v;
+}
+
+#define NOT_FOUND (-1)
+
+static int module_contains(Object *m, Object *sym)
+{
+    int size = St_DVectorLength(m);
+    for (int i = 0; i < size; i++) {
+        Object *pair = St_DVectorRef(m, i);
+        if (ST_CAR(pair) == sym)
+        {
+            return i;
+        }
+    }
+    return NOT_FOUND;
+}
+
+int St_ModuleIndex(Object *m, Object *sym, Object *init)
+{
+    int i = module_contains(m, sym);
+    return i == NOT_FOUND
+        ? St_DVectorPush(m, St_Cons(sym, init))
+        : i;
+}
+
+void St_ModuleSet(Object *m, int idx, Object *val)
+{
+    St_DVectorSet(m, idx, val);
+}
+
+Object *St_ModuleRef(Object *m, int i)
+{
+    return St_DVectorRef(m, i);
+}
+
 // Environment structure
 // (<upper level env> <variable alist> . <tail cell of variable alist>)
 

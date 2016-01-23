@@ -6,38 +6,12 @@
 
 static Object *make_module(Object *list)
 {
-    int size = St_Length(list);
-    Object *v = St_MakeDVector(size, size);
-
-    int i = 0;
-    ST_FOREACH(p, list) {
-        St_DVectorSet(v, i++, ST_CAR(p));
-    }
-
-    return v;
-}
-
-#define NOT_FOUND (-1)
-
-static int module_contains(Object *m, Object *sym)
-{
-    int size = St_DVectorLength(m);
-    for (int i = 0; i < size; i++) {
-        Object *pair = St_DVectorRef(m, i);
-        if (ST_CAR(pair) == sym)
-        {
-            return i;
-        }
-    }
-    return NOT_FOUND;
+    return St_MakeModule(list);
 }
 
 static int module_add(Object *m, Object *sym)
 {
-    int i = module_contains(m, sym);
-    return i == NOT_FOUND
-        ? St_DVectorPush(m, St_Cons(sym, Unbound))
-        : i;
+    return St_ModuleIndex(m, sym, Unbound);
 }
 
 static bool tailP(Object *next)

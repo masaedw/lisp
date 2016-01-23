@@ -240,6 +240,13 @@ Object *St_DVectorData(Object *vector);
 int St_DVectorCapacity(Object *vector);
 int St_DVectorPush(Object *vector, Object *obj);
 
+// Module
+
+Object *St_MakeModule(Object *alist);
+int St_ModuleIndex(Object *module, Object *sym, Object *init);
+void St_ModuleSet(Object *module, int idx, Object *val);
+Object *St_ModuleRef(Object *module, int idx);
+
 // Basic functions
 
 bool St_EqvP(Object *lhs, Object *rhs);
