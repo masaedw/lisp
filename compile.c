@@ -11,7 +11,7 @@ static Object *make_module(Object *list)
 
 static int module_add(Object *m, Object *sym)
 {
-    return St_ModuleIndex(m, sym, Unbound);
+    return St_ModuleFindOrInitialize(m, sym, Unbound);
 }
 
 static bool tailP(Object *next)

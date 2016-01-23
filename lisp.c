@@ -359,7 +359,7 @@ static int module_contains(Object *m, Object *sym)
     return NOT_FOUND;
 }
 
-int St_ModuleIndex(Object *m, Object *sym, Object *init)
+int St_ModuleFindOrInitialize(Object *m, Object *sym, Object *init)
 {
     int i = module_contains(m, sym);
     return i == NOT_FOUND
