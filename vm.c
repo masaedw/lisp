@@ -68,27 +68,6 @@ static Object *make_continuation(int s)
                         s);
 }
 
-static int prepare_stack(Object *env, int e)
-{
-    if (ST_CAR(env) != Nil)
-    {
-        e += prepare_stack(ST_CAR(env), e) + 1;
-    }
-
-    int ne = e + St_Length(ST_CADR(env));
-    int i = 0;
-
-    ST_FOREACH(p, ST_CADR(env)) {
-        Object *v = ST_CDAR(p);
-
-        index_set(ne, i++, v);
-    }
-
-    index_set(ne, -1, St_Integer(e));
-
-    return ne;
-}
-
 static Object *make_box(Object *obj)
 {
     Object *v = St_MakeVector(1);
@@ -116,7 +95,7 @@ static int shift_args(int n, int m, int s)
     return s - m;
 }
 
-static Object *vm(Object *env, Object *insn)
+static Object *vm(Object *m, Object *env, Object *insn)
 {
     // registers
     Object *a; // Accumulator
@@ -125,14 +104,13 @@ static Object *vm(Object *env, Object *insn)
     int fp;    // Most inner frame
     Object *c; // Current closure
     int s;     // Current stack
-    int g;     // Global variables
 
     stack = St_MakeVector(1000);
 
     a = Nil;
     x = insn;
     c = Nil;
-    fp = f = g = s = prepare_stack(env, 0);
+    fp = f = s = 0;
 
     // first argument               pushed by `argument`
     // ...                          ...
@@ -145,15 +123,17 @@ static Object *vm(Object *env, Object *insn)
     // insns
 #define INSN(x) Object *x = St_Intern(#x)
     INSN(halt);
-    Object *refer_local = St_Intern("refer-local");
-    Object *refer_free = St_Intern("refer-free");
+    Object *refer_local  = St_Intern("refer-local");
+    Object *refer_free   = St_Intern("refer-free");
+    Object *refer_module = St_Intern("refer-module");
     INSN(indirect);
     INSN(constant);
     INSN(close);
     INSN(box);
     INSN(test);
-    Object *assign_local = St_Intern("assign-local");
-    Object *assign_free = St_Intern("assign-free");
+    Object *assign_local  = St_Intern("assign-local");
+    Object *assign_free   = St_Intern("assign-free");
+    Object *assign_module = St_Intern("assign-module");
     INSN(conti);
     INSN(nuate);
     INSN(frame);
@@ -197,14 +177,14 @@ static Object *vm(Object *env, Object *insn)
 
         CASE(x, refer_free) {
             ST_ARGS2("refer-free", ST_CDR(x), n, x2);
-            if (ST_NULLP(c))
-            {
-                a = index(g, n->integer.value);
-            }
-            else
-            {
-                a = index_closure(c, n->integer.value);
-            }
+            a = index_closure(c, n->integer.value);
+            x = x2;
+            continue;
+        }
+
+        CASE(x, refer_module) {
+            ST_ARGS2("refer-module", ST_CDR(x), n, x2);
+            a = ST_CDR(St_ModuleRef(m, n->integer.value));
             x = x2;
             continue;
         }
@@ -254,6 +234,13 @@ static Object *vm(Object *env, Object *insn)
         CASE(x, assign_free) {
             ST_ARGS2("assign-free", ST_CDR(x), n, x2);
             set_box(index_closure(c, n->integer.value), a);
+            x = x2;
+            continue;
+        }
+
+        CASE(x, assign_module) {
+            ST_ARGS2("assign-module", ST_CDR(x), n, x2);
+            St_ModuleSet(m, n->integer.value, a);
             x = x2;
             continue;
         }
@@ -336,7 +323,7 @@ static Object *vm(Object *env, Object *insn)
     }
 }
 
-Object *St_Eval_VM(Object *env, Object *obj)
+Object *St_Eval_VM(Object *module, Object *env, Object *obj)
 {
-    return vm(env, St_Compile(obj, env, ST_LIST1(St_Intern("halt"))));
+    return vm(module, env, St_Compile(obj, module, env, ST_LIST1(St_Intern("halt"))));
 }

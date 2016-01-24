@@ -4,10 +4,12 @@
 
 #include "lisp.h"
 
-Object *Nil = &(Object) { TNIL };
+static Object _Nil = { TNIL };
+Object *Nil = &_Nil;
 Object *True = &(Object) { TTRUE };
 Object *False = &(Object) { TFALSE };
 Object *Unbound = &(Object) { TUNBOUND };
+Object *GlobalModule = &_Nil;
 
 void St_Error(const char *fmt, ...)
 {
@@ -375,6 +377,19 @@ void St_ModuleSet(Object *m, int idx, Object *val)
 Object *St_ModuleRef(Object *m, int i)
 {
     return St_DVectorRef(m, i);
+}
+
+void St_InitModule(Object *env)
+{
+    Object *head = Nil;
+    Object *tail = Nil;
+
+    for (Object *p = env; !ST_NULLP(p); p = ST_CAR(p)) {
+        ST_FOREACH(q, ST_CADR(p)) {
+            ST_APPEND1(head, tail, ST_CAR(q));
+        }
+    }
+    GlobalModule = St_MakeModule(head);
 }
 
 // Environment structure

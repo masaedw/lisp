@@ -242,10 +242,12 @@ int St_DVectorPush(Object *vector, Object *obj);
 
 // Module
 
+extern Object *GlobalModule;
 Object *St_MakeModule(Object *alist);
 int St_ModuleFindOrInitialize(Object *module, Object *sym, Object *init);
 void St_ModuleSet(Object *module, int idx, Object *val);
 Object *St_ModuleRef(Object *module, int idx);
+void St_InitModule(Object *env);
 
 // Basic functions
 
@@ -276,10 +278,10 @@ void St_Print(Object *obj);
 // Evaluator
 
 Object *St_Eval(Object *env, Object *obj);
-Object *St_Eval_VM(Object *env, Object *obj);
+Object *St_Eval_VM(Object *module, Object *env, Object *obj);
 
 // Compiler
 
-Object *St_Compile(Object *expr, Object *env, Object *next);
+Object *St_Compile(Object *expr, Object *module, Object *env, Object *next);
 
 #endif

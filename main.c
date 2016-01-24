@@ -56,6 +56,7 @@ int main(int argc, char** argv)
 
     Object *env = St_InitEnv();
     St_InitPrimitives(env);
+    St_InitModule(env);
 
     Object *expr;
 

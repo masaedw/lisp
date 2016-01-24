@@ -4,11 +4,6 @@
 
 #define I(x) St_Intern(x)
 
-static Object *make_module(Object *list)
-{
-    return St_MakeModule(list);
-}
-
 static int module_add(Object *m, Object *sym)
 {
     return St_ModuleFindOrInitialize(m, sym, Unbound);
@@ -328,15 +323,7 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
     return ST_LIST3(I("constant"), x, next);
 }
 
-Object *St_Compile(Object *expr, Object *env, Object *next)
+Object *St_Compile(Object *expr, Object *module, Object *env, Object *next)
 {
-    Object *head = Nil;
-    Object *tail = Nil;
-
-    for (Object *p = env; !ST_NULLP(p); p = ST_CAR(p)) {
-        ST_FOREACH(q, ST_CADR(p)) {
-            ST_APPEND1(head, tail, ST_CAAR(q));
-        }
-    }
-    return compile(expr, make_module(head), St_Cons(Nil, Nil), Nil, next);
+    return compile(expr, module, St_Cons(Nil, Nil), Nil, next);
 }

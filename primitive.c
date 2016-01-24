@@ -762,14 +762,14 @@ static Object *subr_compile(Object *env, Object *args)
 {
     ST_ARGS2("compile", args, expr, next);
 
-    return St_Compile(expr, env, next);
+    return St_Compile(expr, GlobalModule, env, next);
 }
 
 static Object *subr_eval_vm(Object *env, Object *args)
 {
     ST_ARGS1("eval-vm", args, expr);
 
-    return St_Eval_VM(env, expr);
+    return St_Eval_VM(GlobalModule, env, expr);
 }
 
 static Object *subr_set_memberp(Object *env, Object *args)
