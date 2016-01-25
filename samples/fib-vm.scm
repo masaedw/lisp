@@ -1,16 +1,15 @@
-(define fib ())
+(define expr
+ '(define fib
+    (lambda (n)
+      (if (= 0 n)
+        0
+        (if (= 1 n)
+          1
+          (+ (fib (- n 1)) (fib (- n 2))))))))
 
-(print
- (eval-vm
-  '((lambda ()
-      (set! fib
-            (lambda (n)
-              (if (= 0 n)
-                0
-                (if (= 1 n)
-                  1
-                  (+ (fib (- n 1)) (fib (- n 2)))))))
-      (fib 30)))))
+(eval-vm expr)
+
+(print (eval-vm '(fib 30)))
 (newline)
 
 ;; first heap based vm version
@@ -25,6 +24,13 @@
 ;; $ time ./lisp < samples/fib-vm.scm
 ;; 832040
 ;; ./lisp < samples/fib-vm.scm  4.48s user 1.37s system 120% cpu 4.855 total
+;;
+;;
+;; stack based vm version (after 4.7)
+;;
+;; $ time ./lisp < samples/fib-vm.scm
+;; 832040
+;; ./lisp < samples/fib-vm.scm  4.10s user 0.67s system 84% cpu 5.643 total
 ;;
 ;;
 ;; naive interpreter version
