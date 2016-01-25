@@ -371,7 +371,7 @@ int St_ModuleFindOrInitialize(Object *m, Object *sym, Object *init)
 
 void St_ModuleSet(Object *m, int idx, Object *val)
 {
-    St_DVectorSet(m, idx, val);
+    ST_CDR_SET(St_DVectorRef(m, idx), val);
 }
 
 Object *St_ModuleRef(Object *m, int i)
