@@ -184,7 +184,12 @@ static Object *vm(Object *m, Object *env, Object *insn)
 
         CASE(x, refer_module) {
             ST_ARGS2("refer-module", ST_CDR(x), n, x2);
-            a = ST_CDR(St_ModuleRef(m, n->integer.value));
+            Object *pair = St_ModuleRef(m, n->integer.value);
+            if (ST_UNBOUNDP(ST_CDR(pair)))
+            {
+                St_Error("unbound variable %s", ST_CAR(pair)->symbol.value);
+            }
+            a = ST_CDR(pair);
             x = x2;
             continue;
         }

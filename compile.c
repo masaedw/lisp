@@ -245,8 +245,9 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
         {
             Object *vars = ST_CADR(x);
             Object *body = ST_CDDR(x);
+            Object *module_vars = St_ModuleSymbols(m);
 
-            Object *free = find_free(body, vars);
+            Object *free = find_free(body, St_SetUnion(vars, module_vars));
             Object *sets = find_sets(body, vars);
 
             return collect_free(m,
@@ -293,20 +294,13 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
                                                       : ST_LIST1(I("apply"))))));
         }
 
-        /*
-        if (car == I("define"))
+        if (car == I("define")) // not internal define for now
         {
             Object *var = ST_CADR(x);
             Object *v = ST_CADDR(x);
 
-            St_AddVariable(e, var, var);
-
-            int n, m;
-            compile_lookup(e, var, &n, &m);
-
-            return compile(v, e, ST_LIST4(I("define"), St_Integer(n), St_Integer(m), next));
+            return compile(v, m, e, s, compile_assign(m, e, var, next));
         }
-        */
 
         // else clause
         for (Object *args = ST_CDR(x), *c = compile(ST_CAR(x), m, e, s, tailP(next) ? ST_LIST4(I("shift"), St_Integer(St_Length(ST_CDR(x))), ST_CADR(next), ST_LIST1(I("apply"))) : ST_LIST1(I("apply")));
