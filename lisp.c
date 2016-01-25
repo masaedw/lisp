@@ -379,6 +379,18 @@ Object *St_ModuleRef(Object *m, int i)
     return St_DVectorRef(m, i);
 }
 
+Object *St_ModuleSymbols(Object *m)
+{
+    int len = St_DVectorLength(m);
+    Object *syms = Nil;
+
+    for (int i = 0; i < len; i++) {
+        syms = St_Cons(ST_CAR(St_DVectorRef(m, i)), syms);
+    }
+
+    return syms;
+}
+
 void St_InitModule(Object *env)
 {
     Object *head = Nil;
