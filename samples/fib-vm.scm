@@ -30,7 +30,7 @@
 ;;
 ;; $ time ./lisp < samples/fib-vm.scm
 ;; 832040
-;; ./lisp < samples/fib-vm.scm  4.10s user 0.67s system 84% cpu 5.643 total
+;; ./lisp < samples/fib-vm.scm  3.57s user 0.42s system 104% cpu 3.813 total
 ;;
 ;;
 ;; naive interpreter version
