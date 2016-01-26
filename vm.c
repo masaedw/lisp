@@ -43,6 +43,14 @@ static Object *index_closure(Object *c, int n)
     return St_VectorRef(c->lambda_vm.free, n);
 }
 
+static Object *make_macro(Object *sym, Object *proc)
+{
+    Object *macro = St_Alloc(TMACRO, sizeof(void*) * 2);
+    macro->macro.proc = proc;
+    macro->macro.symbol = sym;
+    return macro;
+}
+
 static Object *save_stack(int s)
 {
     Object *v = St_MakeVector(s);
@@ -140,6 +148,7 @@ static Object *vm(Object *m, Object *env, Object *insn)
     INSN(argument);
     INSN(shift);
     INSN(apply);
+    INSN(macro);
     Object *rtn = St_Intern("return");
 #undef INSN
 
@@ -312,6 +321,13 @@ static Object *vm(Object *m, Object *env, Object *insn)
                 f = s;
                 c = a;
             }
+            continue;
+        }
+
+        CASE(x, macro) {
+            ST_ARGS2("macro", ST_CDR(x), sym, x2);
+            a = make_macro(sym, a);
+            x = x2;
             continue;
         }
 

@@ -302,6 +302,14 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
             return compile(v, m, e, s, compile_assign(m, e, var, next));
         }
 
+        if (car == I("define-macro"))
+        {
+            Object *var = ST_CADR(x);
+            Object *v = ST_CADDR(x);
+
+            return compile(v, m, e, s, ST_LIST3(I("macro"), var, compile_assign(m, e, var, next)));
+        }
+
         // else clause
         for (Object *args = ST_CDR(x), *c = compile(ST_CAR(x), m, e, s, tailP(next) ? ST_LIST4(I("shift"), St_Integer(St_Length(ST_CDR(x))), ST_CADR(next), ST_LIST1(I("apply"))) : ST_LIST1(I("apply")));
              ;
