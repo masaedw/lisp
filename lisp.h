@@ -244,6 +244,7 @@ int St_DVectorPush(Object *vector, Object *obj);
 
 extern Object *GlobalModule;
 Object *St_MakeModule(Object *alist);
+Object *St_ModuleFind(Object *module, Object *sym);
 int St_ModuleFindOrInitialize(Object *module, Object *sym, Object *init);
 void St_ModuleSet(Object *module, int idx, Object *val);
 Object *St_ModuleRef(Object *module, int idx);
