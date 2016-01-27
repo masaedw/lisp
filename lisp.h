@@ -130,10 +130,11 @@ Object *St_Reverse(Object *list);
 int St_Length(Object *list);
 bool St_ListP(Object *maybe_list);
 
-#define ST_LIST1(a0)             St_Cons((a0), Nil)
-#define ST_LIST2(a0, a1)         St_Cons((a0), ST_LIST1((a1)))
-#define ST_LIST3(a0, a1, a2)     St_Cons((a0), ST_LIST2((a1), (a2)))
-#define ST_LIST4(a0, a1, a2, a3) St_Cons((a0), ST_LIST3((a1), (a2), (a3)))
+#define ST_LIST1(a0)                 St_Cons((a0), Nil)
+#define ST_LIST2(a0, a1)             St_Cons((a0), ST_LIST1((a1)))
+#define ST_LIST3(a0, a1, a2)         St_Cons((a0), ST_LIST2((a1), (a2)))
+#define ST_LIST4(a0, a1, a2, a3)     St_Cons((a0), ST_LIST3((a1), (a2), (a3)))
+#define ST_LIST5(a0, a1, a2, a3, a4) St_Cons((a0), ST_LIST4((a1), (a2), (a3), (a4)))
 
 #define ST_CAR(pair) (pair)->cell.car
 #define ST_CDR(pair) (pair)->cell.cdr
