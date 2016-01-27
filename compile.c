@@ -104,7 +104,7 @@ static Object *find_free(Object *x, Object *b)
         CASE(if) {
             Object *testc = ST_CADR(x);
             Object *thenc = ST_CADDR(x);
-            Object *elsec = ST_CADR(ST_CDDR(x));
+            Object *elsec = ST_CDR(ST_CDDR(x));
 
             return St_SetUnion(find_free(testc, b),
                                St_SetUnion(find_free(thenc, b),
@@ -169,7 +169,7 @@ static Object *find_sets(Object *x, Object *v)
         CASE(if) {
             Object *testc = ST_CADR(x);
             Object *thenc = ST_CADDR(x);
-            Object *elsec = ST_CADR(ST_CDDR(x));
+            Object *elsec = ST_CDR(ST_CDDR(x));
 
             return St_SetUnion(find_sets(testc, v),
                                St_SetUnion(find_sets(thenc, v),
@@ -266,10 +266,15 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
         {
             Object *testE = ST_CADR(x);
             Object *thenE = ST_CADDR(x);
-            Object *elseE = ST_CADR(ST_CDDR(x));
+            Object *elseE = ST_CDR(ST_CDDR(x));
 
             Object *thenC = compile(thenE, m, e, s, next);
-            Object *elseC = compile(elseE, m, e, s, next);
+            Object *elseC = next;
+
+            if (!ST_NULLP(elseE))
+            {
+                elseC = compile(elseE, m, e, s, next);
+            }
 
             return compile(testE, m, e, s, ST_LIST3(I("test"), thenC, elseC));
         }
