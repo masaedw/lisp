@@ -18,13 +18,14 @@ static void index_set(int s, int i, Object *v)
     St_VectorSet(stack, s - i - 1, v);
 }
 
-static Object *make_closure(Object *body, int n, int s)
+static Object *make_closure(Object *body, int arity, int n, int s)
 {
     Object *c = St_Alloc(TLAMBDAVM, sizeof(Object *) * 2);
     Object *f = n == 0 ? Nil : St_MakeVector(n);
 
     c->lambda_vm.body = body;
     c->lambda_vm.free = f;
+    c->lambda_vm.arity = arity;
 
     for (int i = 0; i < n; i++) {
         St_VectorSet(f, i, index(s, i));
@@ -72,6 +73,7 @@ static Object *make_continuation(int s)
                                  ST_LIST3(St_Intern("nuate"),
                                           save_stack(s),
                                           ST_LIST2(St_Intern("return"), St_Integer(0)))),
+                        1,
                         0,
                         s);
 }
@@ -218,8 +220,8 @@ static Object *vm(Object *m, Object *env, Object *insn)
         }
 
         CASE(x, close) {
-            ST_ARGS3("close", ST_CDR(x), n, body, x2);
-            a = make_closure(body, n->integer.value, s);
+            ST_ARGS4("close", ST_CDR(x), arity, n, body, x2);
+            a = make_closure(body, arity->integer.value, n->integer.value, s);
             x = x2;
             s = s - n->integer.value;
             continue;

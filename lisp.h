@@ -85,6 +85,7 @@ struct Object
         struct {
             Object *body;
             Object *free;
+            int arity;
         } lambda_vm;
 
         // macro
