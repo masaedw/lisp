@@ -283,6 +283,7 @@ void St_Print(Object *obj);
 
 Object *St_Eval(Object *env, Object *obj);
 Object *St_Eval_VM(Object *module, Object *env, Object *obj);
+Object *St__Eval_INSN(Object *module, Object *env, Object *insn);
 
 // Compiler
 

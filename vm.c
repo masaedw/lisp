@@ -350,3 +350,8 @@ Object *St_Eval_VM(Object *module, Object *env, Object *obj)
 {
     return vm(module, env, St_Compile(obj, module, env, ST_LIST1(St_Intern("halt"))));
 }
+
+Object *St__Eval_INSN(Object *module, Object *env, Object *insn)
+{
+    return vm(module, env, insn);
+}
