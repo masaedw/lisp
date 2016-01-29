@@ -207,8 +207,6 @@ static Object *find_sets(Object *x, Object *v)
     return Nil;
 }
 
-
-
 static Object *make_boxes(Object *sets, Object *vars, Object *next, int n)
 {
     if (ST_NULLP(vars))
@@ -221,6 +219,11 @@ static Object *make_boxes(Object *sets, Object *vars, Object *next, int n)
     return St_SetMemberP(ST_CAR(vars), sets)
         ? ST_LIST3(I("box"), St_Integer(n), next2)
         : next2;
+}
+
+static int macro_arity(Object *m)
+{
+    return m->macro.proc->lambda_vm.arity;
 }
 
 static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
@@ -314,6 +317,34 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
             Object *v = ST_CADDR(x);
 
             return compile(v, m, e, s, ST_LIST3(I("macro"), var, compile_assign(m, e, var, next)));
+        }
+
+        if (ST_SYMBOLP(car))
+        {
+            Object *o = St_ModuleFind(m, car);
+            if (ST_MACROP(o))
+            {
+                int arity = macro_arity(o);
+
+                if (St_Length(x) != arity + 1)
+                {
+                    St_Error("wrong number of arguments: %s", o->macro.symbol->symbol.value);
+                }
+
+                Object *i = ST_LIST3(I("constant"), o->macro.proc, ST_LIST1(I("apply")));
+
+                ST_FOREACH(p, ST_CDR(x)) {
+                    i = ST_LIST3(I("constant"), ST_CAR(p),
+                                 ST_LIST2(I("argument"),
+                                          i));
+                }
+
+                i = ST_LIST3(I("frame"), ST_LIST1(I("halt")), i);
+
+                Object *ne = St__Eval_INSN(m, Nil, i);
+
+                return compile(ne, m, e, s, next);
+            }
         }
 
         // else clause
