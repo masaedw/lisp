@@ -39,6 +39,11 @@ static Object *closure_body(Object *c)
     return c->lambda_vm.body;
 }
 
+static int closure_arity(Object *c)
+{
+    return c->lambda_vm.arity;
+}
+
 static Object *index_closure(Object *c, int n)
 {
     return St_VectorRef(c->lambda_vm.free, n);
@@ -99,8 +104,17 @@ static void set_box(Object *box, Object *obj)
 
 static int shift_args(int n, int m, int s)
 {
-    for (int i = n - 1; i >= 0; i--) {
-        index_set(s, i + m, index(s, i));
+    if (m > 0)
+    {
+        for (int i = n - 1; i >= 0; i--) {
+            index_set(s, i + m, index(s, i));
+        }
+    }
+    else
+    {
+        for (int i = 0; i < n; i++) {
+            index_set(s, i + m, index(s, i));
+        }
     }
     return s - m;
 }
@@ -229,7 +243,7 @@ static Object *vm(Object *m, Object *env, Object *insn)
 
         CASE(x, box) {
             ST_ARGS2("box", ST_CDR(x), n, x2);
-            index_set(s, n->integer.value, make_box(index(s, n->integer.value)));
+            index_set(f, n->integer.value, make_box(index(f, n->integer.value)));
             x = x2;
             continue;
         }
@@ -319,6 +333,38 @@ static Object *vm(Object *m, Object *env, Object *insn)
             }
             else
             {
+                int len = s - fp;
+                int arity = closure_arity(a);
+
+                if (arity >= 0)
+                {
+                    if (arity != len)
+                    {
+                        St_Error("wrong number of arguments: required %d but got %d", arity, len);
+                    }
+                }
+                else
+                {
+                    int required = -arity - 1;
+                    if (required > len)
+                    {
+                        St_Error("wrong number of arguments: required %d but got %d", required, len);
+                    }
+
+                    int listed = len - required;
+
+                    Object *head = Nil;
+                    Object *tail = Nil;
+
+                    for (int i = 0 + required; i < listed + required; i++) {
+                        ST_APPEND1(head, tail, index(s, i));
+                    }
+
+                    shift_args(required, listed - 1, s);
+                    index_set(s, listed + required - 1, head);
+                    s -= listed - 1;
+                }
+
                 x = closure_body(a);
                 f = s;
                 c = a;

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string.h>
 
 #include "lisp.h"
@@ -246,9 +247,26 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
 
         if (car == I("lambda"))
         {
-            Object *vars = ST_CADR(x);
+            Object *params = ST_CADR(x);
             Object *body = ST_CDDR(x);
             Object *module_vars = St_ModuleSymbols(m);
+
+            Object *p;
+            int arity = 0;
+            Object *vars = Nil;
+            Object *tail = Nil;
+
+            for (p = params; ST_PAIRP(p); p = ST_CDR(p))
+            {
+                arity++;
+                ST_APPEND1(vars, tail, ST_CAR(p));
+            }
+
+            if (!ST_NULLP(p))
+            {
+                arity = -arity - 1;
+                ST_APPEND1(vars, tail, p);
+            }
 
             Object *free = find_free(body, St_SetUnion(vars, module_vars));
             Object *sets = find_sets(body, vars);
@@ -257,11 +275,11 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
                                 e,
                                 free,
                                 ST_LIST5(I("close"),
-                                         St_Integer(St_Length(vars)),
+                                         St_Integer(arity),
                                          St_Integer(St_Length(free)),
                                          make_boxes(sets, vars,
                                                     compile_body(body, m, St_Cons(vars, free), St_SetUnion(sets, St_SetIntersect(s, free)),
-                                                                 ST_LIST2(I("return"), St_Integer(St_Length(vars)))),
+                                                                 ST_LIST2(I("return"), St_Integer(abs(arity)))),
                                                     0),
                                          next));
         }
