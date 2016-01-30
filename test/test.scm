@@ -36,7 +36,7 @@
 
 (assert #t (list? '(a)) 'list_0)
 (assert #t (list? '(a b c)) 'list_1)
-(assert #f (list? '()) 'list_2)
+(assert #t (list? '()) 'list_2)
 (assert #f (list? 'a) 'list_3)
 (assert #f (list? '(a . b)) 'list_4)
 (assert #f (list? 1) 'list_5)
@@ -50,18 +50,18 @@
 
 (define x
   (lambda (a . args)
-    (if (list? args)
-      (length args)
-      (if (null? args)
-        'nil
+    (if (null? args)
+      'nil
+      (if (list? args)
+        (length args)
         'error))))
 
 (define y
   (lambda args
-    (if (list? args)
-      (length args)
-      (if (null? args)
-        'nil
+    (if (null? args)
+      'nil
+      (if (list? args)
+        (length args)
         'error))))
 
 
