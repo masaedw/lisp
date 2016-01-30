@@ -91,6 +91,27 @@ bool St_ListP(Object *maybe_list)
     return ST_NULLP(ST_CDR(p));
 }
 
+bool St_DottedListP(Object *maybe_list)
+{
+    if (ST_NULLP(maybe_list))
+    {
+        return false;
+    }
+
+    if (!ST_PAIRP(maybe_list))
+    {
+        return true;
+    }
+
+    Object *p = maybe_list;
+
+    while (ST_PAIRP(ST_CDR(p))) {
+        p = ST_CDR(p);
+    }
+
+    return !ST_NULLP(ST_CDR(p));
+}
+
 bool St_SetMemberP(Object *obj, Object *s)
 {
     ST_FOREACH(p, s) {

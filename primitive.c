@@ -635,6 +635,13 @@ static Object *subr_listp(Object *env, Object *args)
     return ST_BOOLEAN(St_ListP(o));
 }
 
+static Object *subr_dotted_listp(Object *env, Object *args)
+{
+    ST_ARGS1("dotted-list?", args, o);
+
+    return ST_BOOLEAN(St_DottedListP(o));
+}
+
 static Object *append_argument(Object *args)
 {
     if (ST_NULLP(ST_CDR(args)))
@@ -923,6 +930,7 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "list", subr_list);
     St_AddSubr(env, "length", subr_length);
     St_AddSubr(env, "list?", subr_listp);
+    St_AddSubr(env, "dotted-list?", subr_dotted_listp);
     St_AddSubr(env, "apply", subr_apply);
     St_AddSubr(env, "set-car!", subr_set_car);
     St_AddSubr(env, "set-cdr!", subr_set_cdr);

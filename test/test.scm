@@ -41,6 +41,12 @@
 (assert #f (list? '(a . b)) 'list_4)
 (assert #f (list? 1) 'list_5)
 
+(assert #t (dotted-list? 'a) 'dotted-list?_0)
+(assert #t (dotted-list? '(a . a)) 'dotted-list?_1)
+(assert #t (dotted-list? '(a a . a)) 'dotted-list?_2)
+(assert #f (dotted-list? '()) 'dotted-list?_3)
+(assert #f (dotted-list? '(a)) 'dotted-list?_4)
+(assert #f (dotted-list? '(a a)) 'dotted-list?_5)
 
 (define x
   (lambda (a . args)

@@ -130,6 +130,7 @@ Object *St_Acons(Object *key, Object *val, Object *cdr);
 Object *St_Reverse(Object *list);
 int St_Length(Object *list);
 bool St_ListP(Object *maybe_list);
+bool St_DottedListP(Object *maybe_list);
 
 #define ST_LIST1(a0)                 St_Cons((a0), Nil)
 #define ST_LIST2(a0, a1)             St_Cons((a0), ST_LIST1((a1)))
