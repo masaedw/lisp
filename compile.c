@@ -180,7 +180,7 @@ static Object *find_sets(Object *x, Object *v)
             Object *var = ST_CADR(x);
             Object *x2 = ST_CADDR(x);
 
-            return St_SetUnion(St_SetMemberP(var, v) ? Nil : ST_LIST1(var),
+            return St_SetUnion(St_SetMemberP(var, v) ? ST_LIST1(var) : Nil,
                                find_sets(x2, v));
         }
 
