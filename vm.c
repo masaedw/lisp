@@ -84,7 +84,7 @@ static Object *make_box(Object *obj)
 
     St_VectorSet(v, 0, obj);
 
-    return obj;
+    return v;
 }
 
 static Object *unbox(Object *v)
