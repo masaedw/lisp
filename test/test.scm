@@ -14,7 +14,7 @@
      'failed_eqv_1_1))
 
 (define-macro m
-  (lambda (f)
+  (lambda ()
     ''macro))
 
 (define-macro my-if
@@ -64,7 +64,6 @@
         (length args)
         'error))))
 
-
 (assert 2 (x 'a 'b 'c) 'rest_aprams_0)
 (assert 'nil (x 'a) 'rest_params_1)
 
@@ -107,21 +106,21 @@
 (assert #t (equal? 1 1) 'equal?_4)
 (assert #t (equal? "hoge" "hoge") 'equal?_5)
 
-(assert 55 (apply + '(1 2 3 4 5 6 7 8 9 10)) 'apply_0)
-(assert '((1 2 3) 4 5 6) (apply list '(1 2 3) '(4 5 6)) 'apply_1)
-(assert 6 (apply (lambda (a b c) (+ a b c)) '(1 2 3)) 'apply_2)
+;;(assert 55 (apply + '(1 2 3 4 5 6 7 8 9 10)) 'apply_0)
+;;(assert '((1 2 3) 4 5 6) (apply list '(1 2 3) '(4 5 6)) 'apply_1)
+;;(assert 6 (apply (lambda (a b c) (+ a b c)) '(1 2 3)) 'apply_2)
 
-(assert #t (and) 'and_0)
-(assert 3 (and 1 2 3) 'and_1)
-(assert #f (and 1 #f (print 'failed_and_2)) 'and_2)
+;;(assert #t (and) 'and_0)
+;;(assert 3 (and 1 2 3) 'and_1)
+;;(assert #f (and 1 #f (print 'failed_and_2)) 'and_2)
 
-(assert #f (or) 'or_0)
-(assert 1 (or #f #f 1) 'or_1)
-(assert 1 (or #f 1 (print 'failed_or_2)) 'or_2)
+;;(assert #f (or) 'or_0)
+;;(assert 1 (or #f #f 1) 'or_1)
+;;(assert 1 (or #f 1 (print 'failed_or_2)) 'or_2)
 
-(assert 0 (let () 0) 'let_0)
-(assert 1 (let ((a 1)) a) 'let_1)
-(assert 2 (let ((a 1) (b 1)) (+ a b)) 'let_2)
+;;(assert 0 (let () 0) 'let_0)
+;;(assert 1 (let ((a 1)) a) 'let_1)
+;;(assert 2 (let ((a 1) (b 1)) (+ a b)) 'let_2)
 
 (define x 1)
 (set! x 2)

@@ -80,7 +80,7 @@ int main(int argc, char** argv)
             return 0;
         }
 
-        Object *value = St_Eval(env, expr);
+        Object *value = St_Eval_VM(GlobalModule, env, expr);
 
         if (interactive_mode)
         {
