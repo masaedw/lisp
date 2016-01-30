@@ -277,7 +277,7 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
 
             if (!ST_NULLP(elseE))
             {
-                elseC = compile(elseE, m, e, s, next);
+                elseC = compile(ST_CAR(elseE), m, e, s, next);
             }
 
             return compile(testE, m, e, s, ST_LIST3(I("test"), thenC, elseC));
