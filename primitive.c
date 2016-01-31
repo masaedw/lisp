@@ -1,227 +1,5 @@
 #include "lisp.h"
 
-static Object *syntax_if(Object *env, Object *form)
-{
-    // TODO: form validation
-
-    // (if cond then else)
-
-    Object *cond = ST_CADR(form);
-    Object *then_block = ST_CADDR(form);
-    Object *else_block = Nil;
-
-    if (ST_PAIRP(ST_CDR(ST_CDDR(form))))
-    {
-        else_block = ST_CADR(ST_CDDR(form));
-    }
-
-    Object *result = St_Eval(env, cond);
-
-    if (!ST_FALSEP(result))
-    {
-        return St_Eval(env, then_block);
-    }
-    else
-    {
-        return St_Eval(env, else_block);
-    }
-}
-
-static Object *syntax_define(Object *env, Object *form)
-{
-    int len = St_Length(ST_CDR(form));
-
-    if (len != 2)
-    {
-        St_Error("define: malformed define");
-    }
-
-    Object *sym = ST_CADR(form);
-    Object *body = ST_CAR(ST_CDDR(form));
-
-    if (!ST_SYMBOLP(sym))
-    {
-        St_Error("define: symbol required");
-    }
-
-    Object *value = St_Eval(env, body);
-
-    St_AddVariable(env, sym, value);
-
-    return sym;
-}
-
-static Object *syntax_quote(Object *env, Object *form)
-{
-    int len = St_Length(ST_CDR(form));
-
-    if (len != 1)
-    {
-        St_Error("quote: malformed quote");
-    }
-
-    return ST_CADR(form);
-}
-
-static Object *syntax_set(Object *env, Object *form)
-{
-    if (St_Length(ST_CDR(form)) != 2 || !ST_SYMBOLP(ST_CADR(form)))
-    {
-        St_Error("set!: malformed set!");
-    }
-
-    Object *symbol = ST_CADR(form);
-    Object *value = St_Eval(env, ST_CAR(ST_CDDR(form)));
-
-    Object *pair = St_LookupVariablePair(env, symbol);
-
-    if (pair == Nil)
-    {
-        St_Error("set!: unbound variable");
-    }
-
-    ST_CDR_SET(pair, value);
-
-    return value;
-}
-
-static bool nil_or_dotted_list_of_sybol(Object *obj)
-{
-    while (true) {
-        if (ST_NULLP(obj))
-        {
-            return true;
-        }
-
-        if (ST_SYMBOLP(obj))
-        {
-            return true;
-        }
-
-        if (ST_PAIRP(obj))
-        {
-            if (!ST_SYMBOLP(ST_CAR(obj)))
-            {
-                return false;
-            }
-            obj = ST_CDR(obj);
-            continue;
-        }
-
-        return false;
-    }
-}
-
-static Object *syntax_lambda(Object *env, Object *form)
-{
-    // (lambda <params> <body>)
-    // <params> ::= (<symbol> *)
-    // <body> ::<define> * <expr> +
-
-    int len = St_Length(ST_CDR(form));
-
-    if (len < 2)
-    {
-        St_Error("lambda: malformed lambda");
-    }
-
-    Object *params = ST_CADR(form);
-    Object *body = ST_CDDR(form);
-
-    if (!nil_or_dotted_list_of_sybol(params))
-    {
-        St_Error("lambda: params needs to be () or a list of symbols");
-    }
-
-    // TODO: validate body
-
-    Object *lambda = St_Alloc(TLAMBDA, sizeof(void*) * 3);
-    lambda->lambda.params = params;
-    lambda->lambda.env = env;
-    lambda->lambda.body = body;
-
-    return lambda;
-}
-
-static Object *syntax_call_cc(Object *env, Object *form)
-{
-    return Nil; // TODO
-}
-
-static Object *syntax_define_macro(Object *env, Object *form)
-{
-    int len = St_Length(ST_CDR(form));
-
-    if (len != 2)
-    {
-        St_Error("define-macro: malformed define-macro");
-    }
-
-    Object *sym = ST_CADR(form);
-    Object *proc = St_Eval(env, ST_CAR(ST_CDDR(form)));
-
-    if (!ST_SYMBOLP(sym))
-    {
-        St_Error("define-macro: needs a symbol");
-    }
-
-    if (!ST_LAMBDAP(proc))
-    {
-        St_Error("define-macro: needs a lambda");
-    }
-
-    Object *macro = St_Alloc(TMACRO, sizeof(void*) * 2);
-    macro->macro.proc = proc;
-    macro->macro.symbol = sym;
-
-    St_AddVariable(env, sym, macro);
-
-    return sym;
-}
-
-static Object *syntax_begin(Object *env, Object *args)
-{
-    Object *value = Nil;
-
-    ST_FOREACH(p, ST_CDR(args)) {
-        value = St_Eval(env, ST_CAR(p));
-    }
-
-    return value;
-}
-
-static Object *syntax_and(Object *env, Object *args)
-{
-    Object *value = True;
-
-    ST_FOREACH(p, ST_CDR(args)) {
-        value = St_Eval(env, ST_CAR(p));
-
-        if (ST_FALSEP(value))
-        {
-            break;
-        }
-    }
-
-    return value;
-}
-
-static Object *syntax_or(Object *env, Object *args)
-{
-    Object *value = False;
-
-    ST_FOREACH(p, ST_CDR(args)) {
-        value = St_Eval(env, ST_CAR(p));
-
-        if (!ST_FALSEP(value))
-        {
-            break;
-        }
-    }
-
-    return value;
-}
-
 void validate_bindings(Object *args)
 {
     if (ST_NULLP(args))
@@ -241,45 +19,6 @@ void validate_bindings(Object *args)
             St_Error("let: malformed binding");
         }
     }
-}
-
-static Object *syntax_let(Object *env, Object *args)
-{
-    // (let <bindings> <body>)
-    // <bindings> ::= ((sym <expr>)*)
-
-    if (St_Length(args) < 2)
-    {
-        St_Error("let: malformed let");
-    }
-
-    Object *bindings = ST_CADR(args);
-    Object *body = ST_CDDR(args);
-
-    validate_bindings(bindings);
-
-    Object *pshead = Nil;
-    Object *pstail = Nil;
-
-    ST_FOREACH(p, bindings) {
-        ST_APPEND1(pshead, pstail, ST_CAAR(p));
-    }
-
-    Object *ashead = Nil;
-    Object *astail = Nil;
-
-    ST_FOREACH(p, bindings) {
-        ST_APPEND1(ashead, astail, St_Eval(env, ST_CAR(ST_CDAR(p))));
-    }
-
-    Object *internal_env = St_PushEnv(env, pshead, ashead);
-    Object *value = Nil;
-
-    ST_FOREACH(p, body) {
-        value = St_Eval(internal_env, ST_CAR(p));
-    }
-
-    return value;
 }
 
 static Object *subr_plus(Object *env, Object *args)
@@ -642,35 +381,6 @@ static Object *subr_dotted_listp(Object *env, Object *args)
     return ST_BOOLEAN(St_DottedListP(o));
 }
 
-static Object *append_argument(Object *args)
-{
-    if (ST_NULLP(ST_CDR(args)))
-    {
-        if (!St_ListP(ST_CAR(args)))
-        {
-            St_Error("apply: proper list required.");
-        }
-        return ST_CAR(args);
-    }
-
-    return St_Cons(ST_CAR(args), append_argument(ST_CDR(args)));
-}
-
-static Object *subr_apply(Object *env, Object *args)
-{
-    int len = St_Length(args);
-
-    if (len < 2)
-    {
-        St_Error("apply: wrong number of arguments");
-    }
-
-    Object *proc = ST_CAR(args);
-    Object *real_args = append_argument(ST_CDR(args));
-
-    return St_Apply(env, proc, real_args);
-}
-
 static Object *subr_set_car(Object *env, Object *args)
 {
     ST_ARGS2("set-car!", args, pair, value);
@@ -888,17 +598,6 @@ static Object *subr_string_equalp(Object *env, Object *args)
 
 void St_InitPrimitives(Object *env)
 {
-    St_AddSyntax(env, "if", syntax_if);
-    St_AddSyntax(env, "define", syntax_define);
-    St_AddSyntax(env, "quote", syntax_quote);
-    St_AddSyntax(env, "set!", syntax_set);
-    St_AddSyntax(env, "lambda", syntax_lambda);
-    St_AddSyntax(env, "call/cc", syntax_call_cc);
-    St_AddSyntax(env, "define-macro", syntax_define_macro);
-    St_AddSyntax(env, "begin", syntax_begin);
-    St_AddSyntax(env, "and", syntax_and);
-    St_AddSyntax(env, "or", syntax_or);
-    St_AddSyntax(env, "let", syntax_let);
     St_AddSubr(env, "+", subr_plus);
     St_AddSubr(env, "-", subr_minus);
     St_AddSubr(env, "*", subr_mul);
@@ -931,7 +630,6 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "length", subr_length);
     St_AddSubr(env, "list?", subr_listp);
     St_AddSubr(env, "dotted-list?", subr_dotted_listp);
-    St_AddSubr(env, "apply", subr_apply);
     St_AddSubr(env, "set-car!", subr_set_car);
     St_AddSubr(env, "set-cdr!", subr_set_cdr);
     St_AddSubr(env, "vector?", subr_vectorp);

@@ -258,7 +258,6 @@ void St_InitModule(Object *env);
 
 bool St_EqvP(Object *lhs, Object *rhs);
 bool St_EqualP(Object *lhs, Object *rhs);
-Object *St_Apply(Object *env, Object *proc, Object *args);
 Object *St_Gensym();
 
 // Environment
@@ -283,7 +282,6 @@ void St_Print(Object *obj);
 
 // Evaluator
 
-Object *St_Eval(Object *env, Object *obj);
 Object *St_Eval_VM(Object *module, Object *env, Object *obj);
 Object *St__Eval_INSN(Object *module, Object *env, Object *insn);
 
