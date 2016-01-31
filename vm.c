@@ -322,7 +322,7 @@ static Object *vm(Object *m, Object *env, Object *insn)
                     ST_APPEND1(head, tail, index(s, i));
                 }
 
-                a = St_Apply(env, a, head);
+                a = a->subr.body(env, head);
 
                 // return
                 x = index(s, len + 0);
