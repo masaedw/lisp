@@ -259,6 +259,7 @@ void St_InitModule(Object *env);
 bool St_EqvP(Object *lhs, Object *rhs);
 bool St_EqualP(Object *lhs, Object *rhs);
 Object *St_Apply(Object *env, Object *proc, Object *args);
+Object *St_Gensym();
 
 // Environment
 

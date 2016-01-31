@@ -4,6 +4,17 @@
 
 Object *Symbols = NULL;
 
+static Object* push(const char* symbol_value)
+{
+    size_t len = strlen(symbol_value);
+    Object *symbol = St_Alloc(TSYMBOL, len);
+    strcpy(symbol->symbol.value, symbol_value);
+
+    Symbols = St_Cons(symbol, Symbols);
+
+    return symbol;
+}
+
 Object *St_Intern(const char *symbol_value)
 {
     Object *p = Symbols;
@@ -22,11 +33,17 @@ Object *St_Intern(const char *symbol_value)
         return ST_CAR(p);
     }
 
-    size_t len = strlen(symbol_value);
-    Object *symbol = St_Alloc(TSYMBOL, len);
-    strcpy(symbol->symbol.value, symbol_value);
+    return push(symbol_value);
+}
 
-    Symbols = St_Cons(symbol, Symbols);
+Object *St_Gensym()
+{
+    static int c = 0;
+    static const int buf_size = 30;
 
-    return symbol;
+    char buf[buf_size];
+
+    snprintf(buf, buf_size, "gensym_%d", c++);
+
+    return push(buf);
 }
