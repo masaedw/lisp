@@ -26,7 +26,7 @@ enum {
 };
 
 typedef struct Object Object;
-typedef Object *SyntaxFunction(Object *env, Object *form);
+typedef Object *SyntaxFunction(Object *form);
 typedef Object *SubrFunction(Object *env, Object *args);
 
 struct Object
@@ -271,6 +271,7 @@ Object *St_LookupVariablePair(Object *env, Object *key);
 Object *St_LookupVariable(Object *env, Object *key);
 
 void St_InitPrimitives(Object *env);
+void St_InitSyntax(Object *env);
 
 // Parser
 

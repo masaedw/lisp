@@ -1,26 +1,5 @@
 #include "lisp.h"
 
-void validate_bindings(Object *args)
-{
-    if (ST_NULLP(args))
-    {
-        return;
-    }
-
-    if (!St_ListP(args))
-    {
-        St_Error("let: malformed bindings");
-    }
-
-    ST_FOREACH(p, args) {
-        Object *b = ST_CAR(p);
-        if (!ST_PAIRP(b) || St_Length(b) != 2 || !ST_SYMBOLP(ST_CAR(b)))
-        {
-            St_Error("let: malformed binding");
-        }
-    }
-}
-
 static Object *subr_plus(Object *env, Object *args)
 {
     int value = 0;

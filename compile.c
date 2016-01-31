@@ -98,8 +98,38 @@ static Object *find_free(Object *x, Object *b)
         CASE(lambda) {
             Object *vars = ST_CADR(x);
             Object *body = ST_CDDR(x);
+            Object *nb = b;
 
-            return find_free(body, St_SetUnion(vars, b));
+            if (ST_SYMBOLP(vars))
+            {
+                nb = St_SetCons(vars, nb);
+            }
+            if (ST_PAIRP(vars))
+            {
+                Object *p;
+                for (p = vars; ST_PAIRP(p); p = ST_CDR(p)) {
+                    nb = St_SetCons(ST_CAR(p), b);
+                }
+                if (!ST_NULLP(p))
+                {
+                    nb = St_SetCons(p, b);
+                }
+            }
+            return find_free(body, nb);
+        }
+
+        CASE(let) {
+            Object *bindings = ST_CADR(x);
+            Object *body = ST_CDDR(x);
+            Object *f = Nil;
+            Object *nb = b;
+
+            ST_FOREACH(p, bindings) {
+                Object *bn = ST_CAR(p);
+                f = St_SetUnion(find_free(ST_CADR(bn), b), f);
+                nb = St_SetCons(ST_CAR(bn), nb);
+            }
+            return St_SetUnion(find_free(body, nb), f);
         }
 
         CASE(if) {
@@ -362,6 +392,10 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
                 Object *ne = St__Eval_INSN(m, Nil, i);
 
                 return compile(ne, m, e, s, next);
+            }
+            if (ST_SYNTAXP(o))
+            {
+                return compile(o->syntax.body(x), m, e, s, next);
             }
         }
 
