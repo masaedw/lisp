@@ -254,7 +254,7 @@ static Object *make_boxes(Object *sets, Object *vars, Object *next, int n)
 
 static int macro_arity(Object *m)
 {
-    return m->macro.proc->lambda_vm.arity;
+    return m->macro.proc->lambda.arity;
 }
 
 static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)

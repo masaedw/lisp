@@ -21,7 +21,6 @@ enum {
     TSYNTAX,
     TSUBR,
     TLAMBDA,
-    TLAMBDAVM,
     TMACRO,
 };
 
@@ -76,17 +75,10 @@ struct Object
 
         // lambda
         struct {
-            Object *params;
-            Object *body;
-            Object *env;
-        } lambda;
-
-        // lambda_vm
-        struct {
             Object *body;
             Object *free;
             int arity;
-        } lambda_vm;
+        } lambda;
 
         // macro
         struct {
@@ -119,7 +111,7 @@ Object *St_Alloc(int type, size_t size);
 #define ST_STRINGP(obj) ((obj)->type == TSTRING)
 #define ST_SYNTAXP(obj) ((obj)->type == TSYNTAX)
 #define ST_SUBRP(obj) ((obj)->type == TSUBR)
-#define ST_LAMBDAP(obj) ((obj)->type == TLAMBDA || (obj)->type == TLAMBDAVM)
+#define ST_LAMBDAP(obj) ((obj)->type == TLAMBDA)
 #define ST_MACROP(obj) ((obj)->type == TMACRO)
 #define ST_PROCEDUREP(obj) (ST_SUBRP(obj) || ST_LAMBDAP(obj))
 

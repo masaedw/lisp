@@ -20,12 +20,12 @@ static void index_set(int s, int i, Object *v)
 
 static Object *make_closure(Object *body, int arity, int n, int s)
 {
-    Object *c = St_Alloc(TLAMBDAVM, sizeof(Object *) * 2);
+    Object *c = St_Alloc(TLAMBDA, sizeof(Object *) * 2);
     Object *f = n == 0 ? Nil : St_MakeVector(n);
 
-    c->lambda_vm.body = body;
-    c->lambda_vm.free = f;
-    c->lambda_vm.arity = arity;
+    c->lambda.body = body;
+    c->lambda.free = f;
+    c->lambda.arity = arity;
 
     for (int i = 0; i < n; i++) {
         St_VectorSet(f, i, index(s, i));
@@ -36,17 +36,17 @@ static Object *make_closure(Object *body, int arity, int n, int s)
 
 static Object *closure_body(Object *c)
 {
-    return c->lambda_vm.body;
+    return c->lambda.body;
 }
 
 static int closure_arity(Object *c)
 {
-    return c->lambda_vm.arity;
+    return c->lambda.arity;
 }
 
 static Object *index_closure(Object *c, int n)
 {
-    return St_VectorRef(c->lambda_vm.free, n);
+    return St_VectorRef(c->lambda.free, n);
 }
 
 static Object *make_macro(Object *sym, Object *proc)

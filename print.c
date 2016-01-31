@@ -70,7 +70,6 @@ static void print(FILE *stream, Object *obj)
         CASE(TSYNTAX, "#<syntax %s>", obj->syntax.name);
         CASE(TSUBR, "#<subr %s>", obj->subr.name);
         CASE(TLAMBDA, "#<lambda>");
-        CASE(TLAMBDAVM, "#<lambda-vm>");
         CASE(TMACRO, "#<macro>");
         CASE(TUNBOUND, "#<unbound>");
 #undef CASE
