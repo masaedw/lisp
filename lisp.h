@@ -271,6 +271,7 @@ Object *St_Read(FILE *stream);
 
 // Printer
 
+void St_Display(Object *obj);
 void St_Print(Object *obj);
 
 // Evaluator

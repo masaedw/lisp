@@ -234,6 +234,15 @@ static Object *subr_evenp(Object *env, Object *args)
     return ST_BOOLEAN(o->integer.value % 2 == 0);
 }
 
+static Object *subr_display(Object *env, Object *args)
+{
+    ST_FOREACH(p, args) {
+        St_Display(ST_CAR(p));
+    }
+
+    return Nil;
+}
+
 static Object *subr_print(Object *env, Object *args)
 {
     ST_FOREACH(p, args) {
@@ -593,6 +602,7 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "negative?", subr_negativep);
     St_AddSubr(env, "odd?", subr_oddp);
     St_AddSubr(env, "even?", subr_evenp);
+    St_AddSubr(env, "display", subr_display);
     St_AddSubr(env, "print", subr_print);
     St_AddSubr(env, "newline", subr_newline);
     St_AddSubr(env, "eq?", subr_eqp);

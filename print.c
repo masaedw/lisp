@@ -81,8 +81,13 @@ static void print(FILE *stream, Object *obj)
     fflush(stream);
 }
 
+void St_Display(Object *obj)
+{
+    print(stdout, obj);
+}
 
 void St_Print(Object *obj)
 {
     print(stdout, obj);
+    fprintf(stdout, "\n");
 }
