@@ -2,30 +2,6 @@
 
 #define I(x) St_Intern(x)
 
-static Object *syntax_and(Object *expr)
-{
-    if (ST_NULLP(ST_CDR(expr)))
-    {
-        return True;
-    }
-
-    Object *vals = St_Reverse(ST_CDR(expr));
-
-    Object *ret = Nil;
-    Object *slet = I("let");
-    Object *sif = I("if");
-
-    ST_FOREACH(p, vals) {
-        Object *sym = St_Gensym();
-        Object *next = ST_NULLP(ret) ? sym : ret;
-
-        ret = ST_LIST3(slet, ST_LIST1(ST_LIST2(sym, ST_CAR(p))),
-                       ST_LIST4(sif, sym, next, False));
-    }
-
-    return ret;
-}
-
 static void validate_bindings(Object *args)
 {
     if (ST_NULLP(args))
@@ -46,7 +22,6 @@ static void validate_bindings(Object *args)
         }
     }
 }
-
 
 static Object *syntax_let(Object *expr)
 {
@@ -81,6 +56,5 @@ static Object *syntax_let(Object *expr)
 
 void St_InitSyntax(Object *env)
 {
-    St_AddSyntax(env, "and", syntax_and);
     St_AddSyntax(env, "let", syntax_let);
 }

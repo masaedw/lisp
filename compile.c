@@ -257,6 +257,21 @@ static int macro_arity(Object *m)
     return m->macro.proc->lambda.arity;
 }
 
+static Object *compile_and(Object *xs, Object *m, Object *e, Object *s, Object *next)
+{
+    if (ST_NULLP(xs))
+    {
+        return ST_LIST3(I("constant"), True, next);
+    }
+
+    if (ST_NULLP(ST_CDR(xs)))
+    {
+        return compile(ST_CAR(xs), m, e, s, next);
+    }
+
+    return compile(ST_CAR(xs), m, e, s, ST_LIST3(I("test"), compile_and(ST_CDR(xs), m, e, s, next), next));
+}
+
 static Object *compile_or(Object *xs, Object *m, Object *e, Object *s, Object *next)
 {
     if (ST_NULLP(xs))
@@ -380,6 +395,11 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
             Object *v = ST_CADDR(x);
 
             return compile(v, m, e, s, ST_LIST3(I("macro"), var, compile_assign(m, e, var, next)));
+        }
+
+        if (car == I("and"))
+        {
+            return compile_and(ST_CDR(x), m, e, s, next);
         }
 
         if (car == I("or"))
