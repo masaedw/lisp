@@ -109,9 +109,11 @@
 (assert 3 (and 1 2 3) 'and_2)
 (assert #f (and 1 #f (print 'failed_and_2)) 'and_3)
 
-;;(assert #f (or) 'or_0)
-;;(assert 1 (or #f #f 1) 'or_1)
-;;(assert 1 (or #f 1 (print 'failed_or_2)) 'or_2)
+(assert #f (or) 'or_0)
+(assert #f (or #f) 'or_1)
+(assert 1 (or 1) 'or_2)
+(assert 1 (or #f #f 1) 'or_3)
+(assert 1 (or #f 1 (print 'failed_or_4)) 'or_4)
 
 (assert 0 (let () 0) 'let_0)
 (assert 1 (let ((a 1)) a) 'let_1)
