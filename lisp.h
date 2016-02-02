@@ -264,6 +264,7 @@ Object *St_LookupVariable(Object *env, Object *key);
 
 void St_InitPrimitives(Object *env);
 void St_InitSyntax(Object *env);
+void St_InitVm();
 
 // Parser
 

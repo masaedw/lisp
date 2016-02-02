@@ -1,21 +1,53 @@
 #include "lisp.h"
 
-static Object *stack;
+typedef struct STVm
+{
+    Object *stack;
+    Object *a; // Accumulator
+    Object *x; // Next expression
+    int f;     // Current frame
+    int fp;    // Most inner frame
+    Object *c; // Current closure
+    int s;     // Current stack
+    Object *m; // Current module
+
+    // first argument               pushed by `argument`
+    // ...                          ...
+    // last argument                pushed by `argument`
+    // next expression              pushed by `frame`
+    // current frame                pushed by `frame`
+    // most inner frame             pushed by `frame`
+    // current closuer              pushed by `frame`
+
+} STVm;
+
+static STVm _Vm;
+static STVm *Vm = &_Vm;
+
+void St_InitVm()
+{
+    Vm->stack = St_MakeVector(1000);
+
+    Vm->a = Nil;
+    Vm->x = Nil;
+    Vm->c = Nil;
+    Vm->fp = Vm->f = Vm->s = 0;
+}
 
 static int push(Object *x, int s)
 {
-    St_VectorSet(stack, s, x);
+    St_VectorSet(Vm->stack, s, x);
     return s + 1;
 }
 
 static Object *index(int s, int i)
 {
-    return St_VectorRef(stack, s - i - 1);
+    return St_VectorRef(Vm->stack, s - i - 1);
 }
 
 static void index_set(int s, int i, Object *v)
 {
-    St_VectorSet(stack, s - i - 1, v);
+    St_VectorSet(Vm->stack, s - i - 1, v);
 }
 
 static Object *make_closure(Object *body, int arity, int n, int s)
@@ -60,14 +92,14 @@ static Object *make_macro(Object *sym, Object *proc)
 static Object *save_stack(int s)
 {
     Object *v = St_MakeVector(s);
-    St_CopyVector(v, stack, s);
+    St_CopyVector(v, Vm->stack, s);
     return v;
 }
 
 static int restore_stack(Object *v)
 {
     int s = St_VectorLength(v);
-    St_CopyVector(stack, v, s);
+    St_CopyVector(Vm->stack, v, s);
     return s;
 }
 
@@ -121,29 +153,6 @@ static int shift_args(int n, int m, int s)
 
 static Object *vm(Object *m, Object *env, Object *insn)
 {
-    // registers
-    Object *a; // Accumulator
-    Object *x; // Next expression
-    int f;     // Current frame
-    int fp;    // Most inner frame
-    Object *c; // Current closure
-    int s;     // Current stack
-
-    stack = St_MakeVector(1000);
-
-    a = Nil;
-    x = insn;
-    c = Nil;
-    fp = f = s = 0;
-
-    // first argument               pushed by `argument`
-    // ...                          ...
-    // last argument                pushed by `argument`
-    // next expression              pushed by `frame`
-    // current frame                pushed by `frame`
-    // most inner frame             pushed by `frame`
-    // current closuer              pushed by `frame`
-
     // insns
 #define INSN(x) Object *x = St_Intern(#x)
     INSN(halt);
@@ -168,173 +177,176 @@ static Object *vm(Object *m, Object *env, Object *insn)
     Object *rtn = St_Intern("return");
 #undef INSN
 
-#define CASE(x, insn) if (ST_CAR(x) == insn)
+#define CASE(insn) if (ST_CAR(Vm->x) == insn)
+
+    Vm->x = insn;
+    Vm->m = m;
 
     while (true) {
 
         /*
-        St_Print(ST_CAR(x));
-        if (St_Length(x) > 1)
+        St_Print(ST_CAR(Vm->x));
+        if (St_Length(Vm->x) > 1)
         {
             printf(" [");
-            St_Print(ST_CADR(x));
+            St_Print(ST_CADR(Vm->x));
             printf("]");
         }
         else
         {
             printf(" []");
         }
-        printf(" (f:%d s:%d) ", f, s);
-        St_Print(a);
+        printf(" (f:%d s:%d) ", Vm->f, Vm->s);
+        St_Print(Vm->a);
         printf("\n");
         //*/
 
-        CASE(x, halt) {
-            return a;
+        CASE(halt) {
+            return Vm->a;
         }
 
-        CASE(x, refer_local) {
-            ST_ARGS2("refer-local", ST_CDR(x), n, x2);
-            a = index(f, n->integer.value);
-            x = x2;
+        CASE(refer_local) {
+            ST_ARGS2("refer-local", ST_CDR(Vm->x), n, x);
+            Vm->a = index(Vm->f, n->integer.value);
+            Vm->x = x;
             continue;
         }
 
-        CASE(x, refer_free) {
-            ST_ARGS2("refer-free", ST_CDR(x), n, x2);
-            a = index_closure(c, n->integer.value);
-            x = x2;
+        CASE(refer_free) {
+            ST_ARGS2("refer-free", ST_CDR(Vm->x), n, x);
+            Vm->a = index_closure(Vm->c, n->integer.value);
+            Vm->x = x;
             continue;
         }
 
-        CASE(x, refer_module) {
-            ST_ARGS2("refer-module", ST_CDR(x), n, x2);
-            Object *pair = St_ModuleRef(m, n->integer.value);
+        CASE(refer_module) {
+            ST_ARGS2("refer-module", ST_CDR(Vm->x), n, x);
+            Object *pair = St_ModuleRef(Vm->m, n->integer.value);
             if (ST_UNBOUNDP(ST_CDR(pair)))
             {
                 St_Error("unbound variable %s", ST_CAR(pair)->symbol.value);
             }
-            a = ST_CDR(pair);
-            x = x2;
+            Vm->a = ST_CDR(pair);
+            Vm->x = x;
             continue;
         }
 
-        CASE(x, indirect) {
-            ST_ARGS1("indirect", ST_CDR(x), x2);
-            a = unbox(a);
-            x = x2;
+        CASE(indirect) {
+            ST_ARGS1("indirect", ST_CDR(Vm->x), x);
+            Vm->a = unbox(Vm->a);
+            Vm->x = x;
             continue;
         }
 
-        CASE(x, constant) {
-            ST_ARGS2("constant", ST_CDR(x), obj, x2);
-            a = obj;
-            x = x2;
+        CASE(constant) {
+            ST_ARGS2("constant", ST_CDR(Vm->x), obj, x);
+            Vm->a = obj;
+            Vm->x = x;
             continue;
         }
 
-        CASE(x, close) {
-            ST_ARGS4("close", ST_CDR(x), arity, n, body, x2);
-            a = make_closure(body, arity->integer.value, n->integer.value, s);
-            x = x2;
-            s = s - n->integer.value;
+        CASE(close) {
+            ST_ARGS4("close", ST_CDR(Vm->x), arity, n, body, x);
+            Vm->a = make_closure(body, arity->integer.value, n->integer.value, Vm->s);
+            Vm->x = x;
+            Vm->s = Vm->s - n->integer.value;
             continue;
         }
 
-        CASE(x, box) {
-            ST_ARGS2("box", ST_CDR(x), n, x2);
-            index_set(f, n->integer.value, make_box(index(f, n->integer.value)));
-            x = x2;
+        CASE(box) {
+            ST_ARGS2("box", ST_CDR(Vm->x), n, x);
+            index_set(Vm->f, n->integer.value, make_box(index(Vm->f, n->integer.value)));
+            Vm->x = x;
             continue;
         }
 
-        CASE(x, test) {
-            ST_ARGS2("test", ST_CDR(x), thenc, elsec);
-            x = a != False ? thenc : elsec;
+        CASE(test) {
+            ST_ARGS2("test", ST_CDR(Vm->x), thenc, elsec);
+            Vm->x = !ST_FALSEP(Vm->a) ? thenc : elsec;
             continue;
         }
 
-        CASE(x, assign_local) {
-            ST_ARGS2("assign-local", ST_CDR(x), n, x2);
-            set_box(index(f, n->integer.value), a);
-            x = x2;
+        CASE(assign_local) {
+            ST_ARGS2("assign-local", ST_CDR(Vm->x), n, x);
+            set_box(index(Vm->f, n->integer.value), Vm->a);
+            Vm->x = x;
             continue;
         }
 
-        CASE(x, assign_free) {
-            ST_ARGS2("assign-free", ST_CDR(x), n, x2);
-            set_box(index_closure(c, n->integer.value), a);
-            x = x2;
+        CASE(assign_free) {
+            ST_ARGS2("assign-free", ST_CDR(Vm->x), n, x);
+            set_box(index_closure(Vm->c, n->integer.value), Vm->a);
+            Vm->x = x;
             continue;
         }
 
-        CASE(x, assign_module) {
-            ST_ARGS2("assign-module", ST_CDR(x), n, x2);
-            St_ModuleSet(m, n->integer.value, a);
-            x = x2;
+        CASE(assign_module) {
+            ST_ARGS2("assign-module", ST_CDR(Vm->x), n, x);
+            St_ModuleSet(Vm->m, n->integer.value, Vm->a);
+            Vm->x = x;
             continue;
         }
 
-        CASE(x, conti) {
-            ST_ARGS1("conti", ST_CDR(x), x2);
-            a = make_continuation(s);
-            x = x2;
+        CASE(conti) {
+            ST_ARGS1("conti", ST_CDR(Vm->x), x);
+            Vm->a = make_continuation(Vm->s);
+            Vm->x = x;
             continue;
         }
 
-        CASE(x, nuate) {
-            ST_ARGS2("nuate", ST_CDR(x), st, x2);
-            x = x2;
-            s = restore_stack(st);
+        CASE(nuate) {
+            ST_ARGS2("nuate", ST_CDR(Vm->x), st, x);
+            Vm->x = x;
+            Vm->s = restore_stack(st);
             continue;
         }
 
-        CASE(x, frame) {
-            ST_ARGS2("frame", ST_CDR(x), ret, x2);
-            x = x2;
-            s = push(ret, push(St_Integer(f), push(St_Integer(fp), push(c, s))));
-            fp = s;
+        CASE(frame) {
+            ST_ARGS2("frame", ST_CDR(Vm->x), ret, x);
+            Vm->x = x;
+            Vm->s = push(ret, push(St_Integer(Vm->f), push(St_Integer(Vm->fp), push(Vm->c, Vm->s))));
+            Vm->fp = Vm->s;
             continue;
         }
 
-        CASE(x, argument) {
-            ST_ARGS1("argument", ST_CDR(x), x2);
-            x = x2;
-            s = push(a, s);
+        CASE(argument) {
+            ST_ARGS1("argument", ST_CDR(Vm->x), x);
+            Vm->x = x;
+            Vm->s = push(Vm->a, Vm->s);
             continue;
         }
 
-        CASE(x, shift) {
-            ST_ARGS3("shift", ST_CDR(x), n, m, x2);
-            x = x2;
-            s = shift_args(n->integer.value, m->integer.value, s);
+        CASE(shift) {
+            ST_ARGS3("shift", ST_CDR(Vm->x), n, m, x);
+            Vm->x = x;
+            Vm->s = shift_args(n->integer.value, m->integer.value, Vm->s);
         }
 
-        CASE(x, apply) {
-            if (ST_SUBRP(a))
+        CASE(apply) {
+            if (ST_SUBRP(Vm->a))
             {
                 // not supported higher order functions
-                int len = s - fp;
+                int len = Vm->s - Vm->fp;
                 Object *head = Nil;
                 Object *tail = Nil;
 
                 for (int i = 0; i < len; i++) {
-                    ST_APPEND1(head, tail, index(s, i));
+                    ST_APPEND1(head, tail, index(Vm->s, i));
                 }
 
-                a = a->subr.body(env, head);
+                Vm->a = Vm->a->subr.body(env, head);
 
                 // return
-                x = index(s, len + 0);
-                f = index(s, len + 1)->integer.value;
-                fp = index(s, len + 2)->integer.value;
-                c = index(s, len + 3);
-                s = s - len - 4;
+                Vm->x = index(Vm->s, len + 0);
+                Vm->f = index(Vm->s, len + 1)->integer.value;
+                Vm->fp = index(Vm->s, len + 2)->integer.value;
+                Vm->c = index(Vm->s, len + 3);
+                Vm->s = Vm->s - len - 4;
             }
             else
             {
-                int len = s - fp;
-                int arity = closure_arity(a);
+                int len = Vm->s - Vm->fp;
+                int arity = closure_arity(Vm->a);
 
                 if (arity >= 0)
                 {
@@ -357,36 +369,36 @@ static Object *vm(Object *m, Object *env, Object *insn)
                     Object *tail = Nil;
 
                     for (int i = 0 + required; i < listed + required; i++) {
-                        ST_APPEND1(head, tail, index(s, i));
+                        ST_APPEND1(head, tail, index(Vm->s, i));
                     }
 
-                    shift_args(required, listed - 1, s);
-                    index_set(s, listed + required - 1, head);
-                    s -= listed - 1;
+                    shift_args(required, listed - 1, Vm->s);
+                    index_set(Vm->s, listed + required - 1, head);
+                    Vm->s -= listed - 1;
                 }
 
-                x = closure_body(a);
-                f = s;
-                c = a;
+                Vm->x = closure_body(Vm->a);
+                Vm->f = Vm->s;
+                Vm->c = Vm->a;
             }
             continue;
         }
 
-        CASE(x, macro) {
-            ST_ARGS2("macro", ST_CDR(x), sym, x2);
-            a = make_macro(sym, a);
-            x = x2;
+        CASE(macro) {
+            ST_ARGS2("macro", ST_CDR(Vm->x), sym, x);
+            Vm->a = make_macro(sym, Vm->a);
+            Vm->x = x;
             continue;
         }
 
-        CASE(x, rtn) {
-            ST_ARGS1("return", ST_CDR(x), n);
-            int s2 = s - n->integer.value;
-            x = index(s2, 0);
-            f = index(s2, 1)->integer.value;
-            fp = index(s2, 2)->integer.value;
-            c = index(s2, 3);
-            s = s2 - 4;
+        CASE(rtn) {
+            ST_ARGS1("return", ST_CDR(Vm->x), n);
+            int s2 = Vm->s - n->integer.value;
+            Vm->x = index(s2, 0);
+            Vm->f = index(s2, 1)->integer.value;
+            Vm->fp = index(s2, 2)->integer.value;
+            Vm->c = index(s2, 3);
+            Vm->s = s2 - 4;
             continue;
         }
     }
