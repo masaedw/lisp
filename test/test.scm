@@ -157,3 +157,6 @@
 (assert "abcdefg" (string-append "ab" "cd" "efg") 'string-append_0)
 (assert #t (string=? "abc" "abc" "abc") 'string=?_0)
 (assert #f (string=? "abc" "abcdefg" "x") 'string=?_1)
+
+(assert 105 (+ 5 (call/cc (lambda (cont) (* 10 10)))) 'call/cc_0)
+(assert 25 (+ 5 (call/cc (lambda (cont) (* 10 10 (cont 20))))) 'call/cc_1)
