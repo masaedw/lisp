@@ -186,20 +186,19 @@ static Object *vm(Object *m, Object *env, Object *insn)
     while (true) {
 
         /*
-        St_Print(ST_CAR(Vm->x));
+        St_Display(ST_CAR(Vm->x));
         if (St_Length(Vm->x) > 1)
         {
             printf(" [");
-            St_Print(ST_CADR(Vm->x));
+            St_Display(ST_CADR(Vm->x));
             printf("]");
         }
         else
         {
             printf(" []");
         }
-        printf(" (f:%d s:%d) ", Vm->f, Vm->s);
+        printf(" (f:%d fp:%d s:%d) ", Vm->f, Vm->fp, Vm->s);
         St_Print(Vm->a);
-        printf("\n");
         //*/
 
         CASE(halt) {
