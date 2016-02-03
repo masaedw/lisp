@@ -413,23 +413,25 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
             if (ST_MACROP(o))
             {
                 int arity = macro_arity(o);
+                int len = St_Length(x) - 1;
 
-                if (St_Length(x) != arity + 1)
+                if (arity >= 0)
                 {
-                    St_Error("wrong number of arguments: %s", o->macro.symbol->symbol.value);
+                    if (arity != len)
+                    {
+                        St_Error("%s: wrong number of arguments: required %d but got %d", o->macro.symbol->symbol.value, arity, len);
+                    }
+                }
+                else
+                {
+                    int required = -arity - 1;
+                    if (required > len)
+                    {
+                        St_Error("%s: wrong number of arguments: required %d but got %d", o->macro.symbol->symbol.value, required, len);
+                    }
                 }
 
-                Object *i = ST_LIST3(I("constant"), o->macro.proc, ST_LIST1(I("apply")));
-
-                ST_FOREACH(p, ST_CDR(x)) {
-                    i = ST_LIST3(I("constant"), ST_CAR(p),
-                                 ST_LIST2(I("argument"),
-                                          i));
-                }
-
-                i = ST_LIST3(I("frame"), ST_LIST1(I("halt")), i);
-
-                Object *ne = St__Eval_INSN(m, Nil, i);
+                Object *ne = St_Apply(o->macro.proc, ST_CDR(x));
 
                 return compile(ne, m, e, s, next);
             }
