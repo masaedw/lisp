@@ -420,28 +420,9 @@ Object *St__Eval_INSN(Object *module, Object *env, Object *insn)
 
 Object *St_Apply(Object *proc, Object *args)
 {
-    args = St_Reverse(args);
-    if (!St_ListP(ST_CAR(args)))
-    {
-        St_Error("required proper list");
-    }
-
-    if (!ST_PROCEDUREP(proc))
-    {
-        St_Error("required procedure");
-    }
-
-    Object *x = Nil;
-    if (!ST_NULLP(args)) {
-        x = ST_CAR(args);
-        ST_FOREACH(p, ST_CDR(args)) {
-            x = St_Cons(ST_CAR(p), x);
-        }
-    }
-
     Object *i = ST_LIST3(I("constant"), proc, ST_LIST1(I("apply")));
 
-    ST_FOREACH(p, x) {
+    ST_FOREACH(p, args) {
         i = ST_LIST3(I("constant"), ST_CAR(p),
                      ST_LIST2(I("argument"),
                               i));

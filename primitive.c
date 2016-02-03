@@ -592,7 +592,29 @@ static Object *subr_apply(Object *env, Object *args)
         St_Error("apply: wrong number of arguments");
     }
 
-    return St_Apply(ST_CAR(args), ST_CDR(args));
+    Object *proc = ST_CAR(args);
+
+    if (!ST_PROCEDUREP(proc))
+    {
+        St_Error("required procedure");
+    }
+
+    args = St_Reverse(ST_CDR(args));
+
+    if (!St_ListP(ST_CAR(args)))
+    {
+        St_Error("required proper list");
+    }
+
+    Object *x = Nil;
+    if (!ST_NULLP(args)) {
+        x = ST_CAR(args);
+        ST_FOREACH(p, ST_CDR(args)) {
+            x = St_Cons(ST_CAR(p), x);
+        }
+    }
+
+    return St_Apply(proc, x);
 }
 
 void St_InitPrimitives(Object *env)
