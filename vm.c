@@ -179,6 +179,7 @@ static Object *vm(Object *m, Object *env, Object *insn)
 
 #define CASE(insn) if (ST_CAR(Vm->x) == insn)
 
+    Object *xo = Vm->x;
     Vm->x = insn;
     Vm->m = m;
 
@@ -202,6 +203,7 @@ static Object *vm(Object *m, Object *env, Object *insn)
         //*/
 
         CASE(halt) {
+            Vm->x = xo;
             return Vm->a;
         }
 
@@ -412,4 +414,40 @@ Object *St_Eval_VM(Object *module, Object *env, Object *obj)
 Object *St__Eval_INSN(Object *module, Object *env, Object *insn)
 {
     return vm(module, env, insn);
+}
+
+#define I(x) St_Intern(x)
+
+Object *St_Apply(Object *proc, Object *args)
+{
+    args = St_Reverse(args);
+    if (!St_ListP(ST_CAR(args)))
+    {
+        St_Error("required proper list");
+    }
+
+    if (!ST_PROCEDUREP(proc))
+    {
+        St_Error("required procedure");
+    }
+
+    Object *x = Nil;
+    if (!ST_NULLP(args)) {
+        x = ST_CAR(args);
+        ST_FOREACH(p, ST_CDR(args)) {
+            x = St_Cons(ST_CAR(p), x);
+        }
+    }
+
+    Object *i = ST_LIST3(I("constant"), proc, ST_LIST1(I("apply")));
+
+    ST_FOREACH(p, x) {
+        i = ST_LIST3(I("constant"), ST_CAR(p),
+                     ST_LIST2(I("argument"),
+                              i));
+    }
+
+    i = ST_LIST3(I("frame"), ST_LIST1(I("halt")), i);
+
+    return St__Eval_INSN(Vm->m, Nil, i);
 }

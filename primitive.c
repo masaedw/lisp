@@ -584,6 +584,17 @@ static Object *subr_string_equalp(Object *env, Object *args)
     return True;
 }
 
+static Object *subr_apply(Object *env, Object *args)
+{
+    int len = St_Length(args);
+    if (len < 2)
+    {
+        St_Error("apply: wrong number of arguments");
+    }
+
+    return St_Apply(ST_CAR(args), ST_CDR(args));
+}
+
 void St_InitPrimitives(Object *env)
 {
     St_AddSubr(env, "+", subr_plus);
@@ -638,4 +649,5 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "string-length", subr_string_length);
     St_AddSubr(env, "string-append", subr_string_append);
     St_AddSubr(env, "string=?", subr_string_equalp);
+    St_AddSubr(env, "apply", subr_apply);
 }
