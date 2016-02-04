@@ -617,6 +617,13 @@ static Object *subr_apply(Object *env, Object *args)
     return St_Apply(proc, x);
 }
 
+static Object *subr_macroexpand(Object *env, Object *args)
+{
+    ST_ARGS1("macroexpand", args, expr);
+
+    return St_MacroExpand(GlobalModule, expr);
+}
+
 void St_InitPrimitives(Object *env)
 {
     St_AddSubr(env, "+", subr_plus);
@@ -672,4 +679,5 @@ void St_InitPrimitives(Object *env)
     St_AddSubr(env, "string-append", subr_string_append);
     St_AddSubr(env, "string=?", subr_string_equalp);
     St_AddSubr(env, "apply", subr_apply);
+    St_AddSubr(env, "macroexpand", subr_macroexpand);
 }

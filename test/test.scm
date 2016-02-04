@@ -28,6 +28,9 @@
        (print 'success_my-if)
        (print 'failed_my-if))
 
+(assert ''macro (macroexpand '(m)) 'macroexpand_0)
+(assert '(if #t (if #f a b) 'macro) (macroexpand '(my-if #t (my-if #f a b) (m))) 'macroexpand_1)
+
 (assert #t (list? '(a)) 'list_0)
 (assert #t (list? '(a b c)) 'list_1)
 (assert #t (list? '()) 'list_2)

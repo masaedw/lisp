@@ -283,6 +283,7 @@ Object *St__Eval_INSN(Object *module, Object *env, Object *insn);
 
 // Compiler
 
+Object *St_MacroExpand(Object *module, Object *expr);
 Object *St_Compile(Object *expr, Object *module, Object *env, Object *next);
 
 #endif

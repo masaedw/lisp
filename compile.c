@@ -257,6 +257,69 @@ static int macro_arity(Object *m)
     return m->macro.proc->lambda.arity;
 }
 
+static Object *macroexpand(Object *m, Object *x)
+{
+    if (ST_PAIRP(x))
+    {
+        Object *car = ST_CAR(x);
+
+#define CASE(sym) if (car == I(#sym))
+
+        CASE(quote) {
+            return x;
+        }
+
+        if (ST_SYMBOLP(car))
+        {
+            Object *o = St_ModuleFind(m, car);
+            if (ST_MACROP(o))
+            {
+                int arity = macro_arity(o);
+                int len = St_Length(x) - 1;
+
+                if (arity >= 0)
+                {
+                    if (arity != len)
+                    {
+                        St_Error("%s: wrong number of arguments: required %d but got %d", o->macro.symbol->symbol.value, arity, len);
+                    }
+                }
+                else
+                {
+                    int required = -arity - 1;
+                    if (required > len)
+                    {
+                        St_Error("%s: wrong number of arguments: required %d but got %d", o->macro.symbol->symbol.value, required, len);
+                    }
+                }
+
+                Object *nx = St_Apply(o->macro.proc, ST_CDR(x));
+                return macroexpand(m, nx);
+            }
+        }
+
+        Object *p, *h = Nil, *t = Nil;
+
+        for (p = x; ST_PAIRP(p); p = ST_CDR(p)) {
+            Object *nx = macroexpand(m, ST_CAR(p));
+            ST_APPEND1(h, t, nx);
+        }
+
+        if (!ST_NULLP(p))
+        {
+            Object *nx = macroexpand(m, p);
+            ST_CDR_SET(t, nx);
+        }
+
+        return h;
+
+#undef CASE
+
+    }
+
+    return x;
+}
+
 static Object *compile_and(Object *xs, Object *m, Object *e, Object *s, Object *next)
 {
     if (ST_NULLP(xs))
@@ -459,4 +522,9 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
 Object *St_Compile(Object *expr, Object *module, Object *env, Object *next)
 {
     return compile(expr, module, St_Cons(Nil, Nil), Nil, next);
+}
+
+Object *St_MacroExpand(Object *module, Object *expr)
+{
+    return macroexpand(module, expr);
 }
