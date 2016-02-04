@@ -473,31 +473,7 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
         if (ST_SYMBOLP(car))
         {
             Object *o = St_ModuleFind(m, car);
-            if (ST_MACROP(o))
-            {
-                int arity = macro_arity(o);
-                int len = St_Length(x) - 1;
 
-                if (arity >= 0)
-                {
-                    if (arity != len)
-                    {
-                        St_Error("%s: wrong number of arguments: required %d but got %d", o->macro.symbol->symbol.value, arity, len);
-                    }
-                }
-                else
-                {
-                    int required = -arity - 1;
-                    if (required > len)
-                    {
-                        St_Error("%s: wrong number of arguments: required %d but got %d", o->macro.symbol->symbol.value, required, len);
-                    }
-                }
-
-                Object *ne = St_Apply(o->macro.proc, ST_CDR(x));
-
-                return compile(ne, m, e, s, next);
-            }
             if (ST_SYNTAXP(o))
             {
                 return compile(o->syntax.body(x), m, e, s, next);
@@ -521,7 +497,7 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
 
 Object *St_Compile(Object *expr, Object *module, Object *env, Object *next)
 {
-    return compile(expr, module, St_Cons(Nil, Nil), Nil, next);
+    return compile(macroexpand(module, expr), module, St_Cons(Nil, Nil), Nil, next);
 }
 
 Object *St_MacroExpand(Object *module, Object *expr)
