@@ -62,7 +62,7 @@ static void print(FILE *stream, Object *obj)
             fprintf(stream, __VA_ARGS__);       \
             break
 
-        CASE(TINT, "%d", obj->integer.value);
+        CASE(TINT, "%d", ST_INT_VALUE(obj));
         CASE(TNIL, "()");
         CASE(TTRUE, "#t");
         CASE(TFALSE, "#f");

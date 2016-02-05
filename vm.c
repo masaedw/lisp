@@ -208,21 +208,21 @@ static Object *vm(Object *m, Object *env, Object *insn)
 
         CASE(refer_local) {
             ST_ARGS2("refer-local", ST_CDR(Vm->x), n, x);
-            Vm->a = index(Vm->f, n->integer.value);
+            Vm->a = index(Vm->f, ST_INT_VALUE(n));
             Vm->x = x;
             continue;
         }
 
         CASE(refer_free) {
             ST_ARGS2("refer-free", ST_CDR(Vm->x), n, x);
-            Vm->a = index_closure(Vm->c, n->integer.value);
+            Vm->a = index_closure(Vm->c, ST_INT_VALUE(n));
             Vm->x = x;
             continue;
         }
 
         CASE(refer_module) {
             ST_ARGS2("refer-module", ST_CDR(Vm->x), n, x);
-            Object *pair = St_ModuleRef(Vm->m, n->integer.value);
+            Object *pair = St_ModuleRef(Vm->m, ST_INT_VALUE(n));
             if (ST_UNBOUNDP(ST_CDR(pair)))
             {
                 St_Error("unbound variable %s", ST_CAR(pair)->symbol.value);
@@ -248,15 +248,15 @@ static Object *vm(Object *m, Object *env, Object *insn)
 
         CASE(close) {
             ST_ARGS4("close", ST_CDR(Vm->x), arity, n, body, x);
-            Vm->a = make_closure(body, arity->integer.value, n->integer.value, Vm->s);
+            Vm->a = make_closure(body, ST_INT_VALUE(arity), ST_INT_VALUE(n), Vm->s);
             Vm->x = x;
-            Vm->s = Vm->s - n->integer.value;
+            Vm->s = Vm->s - ST_INT_VALUE(n);
             continue;
         }
 
         CASE(box) {
             ST_ARGS2("box", ST_CDR(Vm->x), n, x);
-            index_set(Vm->f, n->integer.value, make_box(index(Vm->f, n->integer.value)));
+            index_set(Vm->f, ST_INT_VALUE(n), make_box(index(Vm->f, ST_INT_VALUE(n))));
             Vm->x = x;
             continue;
         }
@@ -269,21 +269,21 @@ static Object *vm(Object *m, Object *env, Object *insn)
 
         CASE(assign_local) {
             ST_ARGS2("assign-local", ST_CDR(Vm->x), n, x);
-            set_box(index(Vm->f, n->integer.value), Vm->a);
+            set_box(index(Vm->f, ST_INT_VALUE(n)), Vm->a);
             Vm->x = x;
             continue;
         }
 
         CASE(assign_free) {
             ST_ARGS2("assign-free", ST_CDR(Vm->x), n, x);
-            set_box(index_closure(Vm->c, n->integer.value), Vm->a);
+            set_box(index_closure(Vm->c, ST_INT_VALUE(n)), Vm->a);
             Vm->x = x;
             continue;
         }
 
         CASE(assign_module) {
             ST_ARGS2("assign-module", ST_CDR(Vm->x), n, x);
-            St_ModuleSet(Vm->m, n->integer.value, Vm->a);
+            St_ModuleSet(Vm->m, ST_INT_VALUE(n), Vm->a);
             Vm->x = x;
             continue;
         }
@@ -320,7 +320,7 @@ static Object *vm(Object *m, Object *env, Object *insn)
         CASE(shift) {
             ST_ARGS3("shift", ST_CDR(Vm->x), n, m, x);
             Vm->x = x;
-            Vm->s = shift_args(n->integer.value, m->integer.value, Vm->s);
+            Vm->s = shift_args(ST_INT_VALUE(n), ST_INT_VALUE(m), Vm->s);
         }
 
         CASE(apply) {
@@ -339,8 +339,8 @@ static Object *vm(Object *m, Object *env, Object *insn)
 
                 // return
                 Vm->x = index(Vm->s, len + 0);
-                Vm->f = index(Vm->s, len + 1)->integer.value;
-                Vm->fp = index(Vm->s, len + 2)->integer.value;
+                Vm->f = ST_INT_VALUE(index(Vm->s, len + 1));
+                Vm->fp = ST_INT_VALUE(index(Vm->s, len + 2));
                 Vm->c = index(Vm->s, len + 3);
                 Vm->s = Vm->s - len - 4;
             }
@@ -394,10 +394,10 @@ static Object *vm(Object *m, Object *env, Object *insn)
 
         CASE(rtn) {
             ST_ARGS1("return", ST_CDR(Vm->x), n);
-            int s2 = Vm->s - n->integer.value;
+            int s2 = Vm->s - ST_INT_VALUE(n);
             Vm->x = index(s2, 0);
-            Vm->f = index(s2, 1)->integer.value;
-            Vm->fp = index(s2, 2)->integer.value;
+            Vm->f = ST_INT_VALUE(index(s2, 1));
+            Vm->fp = ST_INT_VALUE(index(s2, 2));
             Vm->c = index(s2, 3);
             Vm->s = s2 - 4;
             continue;

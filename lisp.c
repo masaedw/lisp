@@ -168,7 +168,7 @@ bool St_EqvP(Object *lhs, Object *rhs)
 {
     if (ST_INTP(lhs) && ST_INTP(rhs))
     {
-        return lhs->integer.value == rhs->integer.value;
+        return ST_INT_VALUE(lhs) == ST_INT_VALUE(rhs);
     }
 
     return lhs == rhs;
@@ -328,7 +328,7 @@ void St_DVectorSet(Object *vector, int idx, Object *obj)
 
 int St_DVectorLength(Object *vector)
 {
-    return ST_CAR(vector)->integer.value;
+    return ST_INT_VALUE(ST_CAR(vector));
 }
 
 Object *St_DVectorData(Object *vector)

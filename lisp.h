@@ -204,10 +204,11 @@ Object *St_Intern(const char *symbol_string);
     Object *(a3) = ST_CADDR(args);                      \
     Object *(a4) = ST_CADDDR(args)
 
-// Constructors
+// Coercers
 
 #define ST_BOOLEAN(b) ((b) ? True : False)
 Object *St_Integer(int value);
+#define ST_INT_VALUE(x) (x)->integer.value
 
 // String
 

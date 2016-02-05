@@ -10,7 +10,7 @@ static Object *subr_plus(Object *env, Object *args)
             St_Error("+: invalid type");
         }
 
-        value += ST_CAR(p)->integer.value;
+        value += ST_INT_VALUE(ST_CAR(p));
     }
 
     return St_Integer(value);
@@ -33,7 +33,7 @@ static Object *subr_minus(Object *env, Object *args)
             St_Error("-: invalid type");
         }
 
-        return St_Integer(-operand->integer.value);
+        return St_Integer(-ST_INT_VALUE(operand));
     }
 
     // 2 <= len
@@ -42,7 +42,7 @@ static Object *subr_minus(Object *env, Object *args)
         St_Error("-: invalid type");
     }
 
-    int value = ST_CAR(args)->integer.value;
+    int value = ST_INT_VALUE(ST_CAR(args));
 
     ST_FOREACH(p, ST_CDR(args)) {
         if (!ST_INTP(ST_CAR(p)))
@@ -50,7 +50,7 @@ static Object *subr_minus(Object *env, Object *args)
             St_Error("-: invalid type");
         }
 
-        value -= ST_CAR(p)->integer.value;
+        value -= ST_INT_VALUE(ST_CAR(p));
     }
 
     return St_Integer(value);
@@ -66,7 +66,7 @@ static Object *subr_mul(Object *env, Object *args)
             St_Error("*: invalid type");
         }
 
-        value *= ST_CAR(p)->integer.value;
+        value *= ST_INT_VALUE(ST_CAR(p));
     }
 
     return St_Integer(value);
@@ -89,12 +89,12 @@ static Object *subr_div(Object *env, Object *args)
             St_Error("/: invalid type");
         }
 
-        if (operand->integer.value == 0)
+        if (ST_INT_VALUE(operand) == 0)
         {
             St_Error("division by zero");
         }
 
-        return St_Integer(1 / operand->integer.value);
+        return St_Integer(1 / ST_INT_VALUE(operand));
     }
 
     // 2 <= len
@@ -103,7 +103,7 @@ static Object *subr_div(Object *env, Object *args)
         St_Error("/: invalid type");
     }
 
-    int value = ST_CAR(args)->integer.value;
+    int value = ST_INT_VALUE(ST_CAR(args));
 
     ST_FOREACH(p, ST_CDR(args)) {
         if (!ST_INTP(ST_CAR(p)))
@@ -111,12 +111,12 @@ static Object *subr_div(Object *env, Object *args)
             St_Error("-: invalid type");
         }
 
-        if (ST_CAR(p)->integer.value == 0)
+        if (ST_INT_VALUE(ST_CAR(p)) == 0)
         {
             St_Error("division by zero");
         }
 
-        value /= ST_CAR(p)->integer.value;
+        value /= ST_INT_VALUE(ST_CAR(p));
     }
 
     return St_Integer(value);
@@ -138,17 +138,17 @@ static Object *subr_div(Object *env, Object *args)
             St_Error(#sym ": invalid type");                            \
         }                                                               \
                                                                         \
-        bool r = fst->integer.value op snd->integer.value;              \
+        bool r = ST_INT_VALUE(fst) op ST_INT_VALUE(snd);                \
         int last;                                                       \
         Object *p;                                                      \
                                                                         \
-        for (p = ST_CDDR(args), last = snd->integer.value; r && !ST_NULLP(p); last = ST_CAR(p)->integer.value, p = ST_CDR(p)) { \
+        for (p = ST_CDDR(args), last = ST_INT_VALUE(snd); r && !ST_NULLP(p); last = ST_INT_VALUE(ST_CAR(p)), p = ST_CDR(p)) { \
             if (!ST_INTP(ST_CAR(p)))                                    \
             {                                                           \
                 St_Error(#sym ": invalid type");                        \
             }                                                           \
                                                                         \
-            r = last op ST_CAR(p)->integer.value;                       \
+            r = last op ST_INT_VALUE(ST_CAR(p));                        \
         }                                                               \
                                                                         \
         return ST_BOOLEAN(r);                                           \
@@ -183,7 +183,7 @@ static Object *subr_zerop(Object *env, Object *args)
         St_Error("zero?: invalid type");
     }
 
-    return ST_BOOLEAN(o->integer.value == 0);
+    return ST_BOOLEAN(ST_INT_VALUE(o) == 0);
 }
 
 static Object *subr_positivep(Object *env, Object *args)
@@ -195,7 +195,7 @@ static Object *subr_positivep(Object *env, Object *args)
         St_Error("positive?: invalid type");
     }
 
-    return ST_BOOLEAN(o->integer.value > 0); 
+    return ST_BOOLEAN(ST_INT_VALUE(o) > 0);
 }
 
 static Object *subr_negativep(Object *env, Object *args)
@@ -207,7 +207,7 @@ static Object *subr_negativep(Object *env, Object *args)
         St_Error("negative?: invalid type");
     }
 
-    return ST_BOOLEAN(o->integer.value < 0);
+    return ST_BOOLEAN(ST_INT_VALUE(o) < 0);
 }
 
 static Object *subr_oddp(Object *env, Object *args)
@@ -219,7 +219,7 @@ static Object *subr_oddp(Object *env, Object *args)
         St_Error("odd?: invalid type");
     }
 
-    return ST_BOOLEAN(o->integer.value % 2 != 0);
+    return ST_BOOLEAN(ST_INT_VALUE(o) % 2 != 0);
 }
 
 static Object *subr_evenp(Object *env, Object *args)
@@ -231,7 +231,7 @@ static Object *subr_evenp(Object *env, Object *args)
         St_Error("even?: invalid type");
     }
 
-    return ST_BOOLEAN(o->integer.value % 2 == 0);
+    return ST_BOOLEAN(ST_INT_VALUE(o) % 2 == 0);
 }
 
 static Object *subr_display(Object *env, Object *args)
@@ -408,11 +408,11 @@ static Object *subr_make_vector(Object *env, Object *args)
 {
     ST_ARGS1("make-vector", args, size);
 
-    if (!ST_INTP(size) || size->integer.value < 0) {
+    if (!ST_INTP(size) || ST_INT_VALUE(size) < 0) {
         St_Error("make-vector: size must be a positive integer");
     }
 
-    return St_MakeVector(size->integer.value);
+    return St_MakeVector(ST_INT_VALUE(size));
 }
 
 static Object *subr_vector_ref(Object *env, Object *args)
@@ -429,7 +429,7 @@ static Object *subr_vector_ref(Object *env, Object *args)
         St_Error("vector-ref: integer required.");
     }
 
-    return St_VectorRef(v, idx->integer.value);
+    return St_VectorRef(v, ST_INT_VALUE(idx));
 }
 
 static Object *subr_vector_set(Object *env, Object *args)
@@ -446,7 +446,7 @@ static Object *subr_vector_set(Object *env, Object *args)
         St_Error("vector-set!: integer required.");
     }
 
-    St_VectorSet(v, idx->integer.value, obj);
+    St_VectorSet(v, ST_INT_VALUE(idx), obj);
 
     return obj;
 }
@@ -528,7 +528,7 @@ static Object *subr_make_string(Object *env, Object *args)
         St_Error("integer required");
     }
 
-    return St_MakeEmptyString(len->integer.value);
+    return St_MakeEmptyString(ST_INT_VALUE(len));
 }
 
 static Object *subr_string_length(Object *env, Object *args)
