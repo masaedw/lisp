@@ -2,14 +2,14 @@
 
 typedef struct STVm
 {
-    Object *stack;
-    Object *a; // Accumulator
-    Object *x; // Next expression
+    StObject stack;
+    StObject a; // Accumulator
+    StObject x; // Next expression
     int f;     // Current frame
     int fp;    // Most inner frame
-    Object *c; // Current closure
+    StObject c; // Current closure
     int s;     // Current stack
-    Object *m; // Current module
+    StObject m; // Current module
 
     // first argument               pushed by `argument`
     // ...                          ...
@@ -34,26 +34,26 @@ void St_InitVm()
     Vm->fp = Vm->f = Vm->s = 0;
 }
 
-static int push(Object *x, int s)
+static int push(StObject x, int s)
 {
     St_VectorSet(Vm->stack, s, x);
     return s + 1;
 }
 
-static Object *index(int s, int i)
+static StObject index(int s, int i)
 {
     return St_VectorRef(Vm->stack, s - i - 1);
 }
 
-static void index_set(int s, int i, Object *v)
+static void index_set(int s, int i, StObject v)
 {
     St_VectorSet(Vm->stack, s - i - 1, v);
 }
 
-static Object *make_closure(Object *body, int arity, int n, int s)
+static StObject make_closure(StObject body, int arity, int n, int s)
 {
-    Object *c = St_Alloc(TLAMBDA, sizeof(Object *) * 2);
-    Object *f = n == 0 ? Nil : St_MakeVector(n);
+    StObject c = St_Alloc(TLAMBDA, sizeof(StObject ) * 2);
+    StObject f = n == 0 ? Nil : St_MakeVector(n);
 
     c->lambda.body = body;
     c->lambda.free = f;
@@ -66,44 +66,44 @@ static Object *make_closure(Object *body, int arity, int n, int s)
     return c;
 }
 
-static Object *closure_body(Object *c)
+static StObject closure_body(StObject c)
 {
     return c->lambda.body;
 }
 
-static int closure_arity(Object *c)
+static int closure_arity(StObject c)
 {
     return c->lambda.arity;
 }
 
-static Object *index_closure(Object *c, int n)
+static StObject index_closure(StObject c, int n)
 {
     return St_VectorRef(c->lambda.free, n);
 }
 
-static Object *make_macro(Object *sym, Object *proc)
+static StObject make_macro(StObject sym, StObject proc)
 {
-    Object *macro = St_Alloc(TMACRO, sizeof(void*) * 2);
+    StObject macro = St_Alloc(TMACRO, sizeof(void*) * 2);
     macro->macro.proc = proc;
     macro->macro.symbol = sym;
     return macro;
 }
 
-static Object *save_stack(int s)
+static StObject save_stack(int s)
 {
-    Object *v = St_MakeVector(s);
+    StObject v = St_MakeVector(s);
     St_CopyVector(v, Vm->stack, s);
     return v;
 }
 
-static int restore_stack(Object *v)
+static int restore_stack(StObject v)
 {
     int s = St_VectorLength(v);
     St_CopyVector(Vm->stack, v, s);
     return s;
 }
 
-static Object *make_continuation(int s)
+static StObject make_continuation(int s)
 {
     return make_closure(ST_LIST3(St_Intern("refer-local"),
                                  St_Integer(0),
@@ -115,21 +115,21 @@ static Object *make_continuation(int s)
                         s);
 }
 
-static Object *make_box(Object *obj)
+static StObject make_box(StObject obj)
 {
-    Object *v = St_MakeVector(1);
+    StObject v = St_MakeVector(1);
 
     St_VectorSet(v, 0, obj);
 
     return v;
 }
 
-static Object *unbox(Object *v)
+static StObject unbox(StObject v)
 {
     return St_VectorRef(v, 0);
 }
 
-static void set_box(Object *box, Object *obj)
+static void set_box(StObject box, StObject obj)
 {
     St_VectorSet(box, 0, obj);
 }
@@ -151,22 +151,22 @@ static int shift_args(int n, int m, int s)
     return s - m;
 }
 
-static Object *vm(Object *m, Object *env, Object *insn)
+static StObject vm(StObject m, StObject env, StObject insn)
 {
     // insns
-#define INSN(x) Object *x = St_Intern(#x)
+#define INSN(x) StObject x = St_Intern(#x)
     INSN(halt);
-    Object *refer_local  = St_Intern("refer-local");
-    Object *refer_free   = St_Intern("refer-free");
-    Object *refer_module = St_Intern("refer-module");
+    StObject refer_local  = St_Intern("refer-local");
+    StObject refer_free   = St_Intern("refer-free");
+    StObject refer_module = St_Intern("refer-module");
     INSN(indirect);
     INSN(constant);
     INSN(close);
     INSN(box);
     INSN(test);
-    Object *assign_local  = St_Intern("assign-local");
-    Object *assign_free   = St_Intern("assign-free");
-    Object *assign_module = St_Intern("assign-module");
+    StObject assign_local  = St_Intern("assign-local");
+    StObject assign_free   = St_Intern("assign-free");
+    StObject assign_module = St_Intern("assign-module");
     INSN(conti);
     INSN(nuate);
     INSN(frame);
@@ -174,12 +174,12 @@ static Object *vm(Object *m, Object *env, Object *insn)
     INSN(shift);
     INSN(apply);
     INSN(macro);
-    Object *rtn = St_Intern("return");
+    StObject rtn = St_Intern("return");
 #undef INSN
 
 #define CASE(insn) if (ST_CAR(Vm->x) == insn)
 
-    Object *xo = Vm->x;
+    StObject xo = Vm->x;
     Vm->x = insn;
     Vm->m = m;
 
@@ -222,7 +222,7 @@ static Object *vm(Object *m, Object *env, Object *insn)
 
         CASE(refer_module) {
             ST_ARGS2("refer-module", ST_CDR(Vm->x), n, x);
-            Object *pair = St_ModuleRef(Vm->m, ST_INT_VALUE(n));
+            StObject pair = St_ModuleRef(Vm->m, ST_INT_VALUE(n));
             if (ST_UNBOUNDP(ST_CDR(pair)))
             {
                 St_Error("unbound variable %s", ST_CAR(pair)->symbol.value);
@@ -328,8 +328,8 @@ static Object *vm(Object *m, Object *env, Object *insn)
             {
                 // not supported higher order functions
                 int len = Vm->s - Vm->fp;
-                Object *head = Nil;
-                Object *tail = Nil;
+                StObject head = Nil;
+                StObject tail = Nil;
 
                 for (int i = 0; i < len; i++) {
                     ST_APPEND1(head, tail, index(Vm->s, i));
@@ -366,8 +366,8 @@ static Object *vm(Object *m, Object *env, Object *insn)
 
                     int listed = len - required;
 
-                    Object *head = Nil;
-                    Object *tail = Nil;
+                    StObject head = Nil;
+                    StObject tail = Nil;
 
                     for (int i = 0 + required; i < listed + required; i++) {
                         ST_APPEND1(head, tail, index(Vm->s, i));
@@ -405,21 +405,21 @@ static Object *vm(Object *m, Object *env, Object *insn)
     }
 }
 
-Object *St_Eval_VM(Object *module, Object *env, Object *obj)
+StObject St_Eval_VM(StObject module, StObject env, StObject obj)
 {
     return vm(module, env, St_Compile(obj, module, env, ST_LIST1(St_Intern("halt"))));
 }
 
-Object *St__Eval_INSN(Object *module, Object *env, Object *insn)
+StObject St__Eval_INSN(StObject module, StObject env, StObject insn)
 {
     return vm(module, env, insn);
 }
 
 #define I(x) St_Intern(x)
 
-Object *St_Apply(Object *proc, Object *args)
+StObject St_Apply(StObject proc, StObject args)
 {
-    Object *i = ST_LIST3(I("constant"), proc, ST_LIST1(I("apply")));
+    StObject i = ST_LIST3(I("constant"), proc, ST_LIST1(I("apply")));
 
     ST_FOREACH(p, args) {
         i = ST_LIST3(I("constant"), ST_CAR(p),

@@ -2,7 +2,7 @@
 
 #include "lisp.h"
 
-static void print(FILE *stream, Object *obj)
+static void print(FILE *stream, StObject obj)
 {
     if (obj == NULL)
     {
@@ -81,12 +81,12 @@ static void print(FILE *stream, Object *obj)
     fflush(stream);
 }
 
-void St_Display(Object *obj)
+void St_Display(StObject obj)
 {
     print(stdout, obj);
 }
 
-void St_Print(Object *obj)
+void St_Print(StObject obj)
 {
     print(stdout, obj);
     fprintf(stdout, "\n");

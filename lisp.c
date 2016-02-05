@@ -5,11 +5,11 @@
 #include "lisp.h"
 
 static Object _Nil = { TNIL };
-Object *Nil = &_Nil;
-Object *True = &(Object) { TTRUE };
-Object *False = &(Object) { TFALSE };
-Object *Unbound = &(Object) { TUNBOUND };
-Object *GlobalModule = &_Nil;
+StObject Nil = &_Nil;
+StObject True = &(Object) { TTRUE };
+StObject False = &(Object) { TFALSE };
+StObject Unbound = &(Object) { TUNBOUND };
+StObject GlobalModule = &_Nil;
 
 void St_Error(const char *fmt, ...)
 {
@@ -21,18 +21,18 @@ void St_Error(const char *fmt, ...)
     exit(1);
 }
 
-Object *St_Alloc(int type, size_t size)
+StObject St_Alloc(int type, size_t size)
 {
-    Object *obj = (Object *)St_Malloc(offsetof(Object, integer.value) + size);
+    StObject obj = (StObject)St_Malloc(offsetof(Object, integer.value) + size);
 
     obj->type = type;
 
     return obj;
 }
 
-Object *St_Cons(Object *car, Object *cdr)
+StObject St_Cons(StObject car, StObject cdr)
 {
-    Object *cell = St_Alloc(TCELL, sizeof(void*) * 2);
+    StObject cell = St_Alloc(TCELL, sizeof(void*) * 2);
 
     ST_CAR_SET(cell, car);
     ST_CDR_SET(cell, cdr);
@@ -40,12 +40,12 @@ Object *St_Cons(Object *car, Object *cdr)
     return cell;
 }
 
-Object *St_Acons(Object *key, Object *val, Object *cdr)
+StObject St_Acons(StObject key, StObject val, StObject cdr)
 {
     return St_Cons(St_Cons(key, val), cdr);
 }
 
-int St_Length(Object *list)
+int St_Length(StObject list)
 {
     int length = 0;
 
@@ -56,15 +56,15 @@ int St_Length(Object *list)
     return length;
 }
 
-Object *St_Reverse(Object *list)
+StObject St_Reverse(StObject list)
 {
     if (!ST_PAIRP(list))
     {
         return Nil;
     }
 
-    Object *p = list;
-    Object *r = St_Cons(ST_CAR(list), Nil);
+    StObject p = list;
+    StObject r = St_Cons(ST_CAR(list), Nil);
 
     while (ST_PAIRP(ST_CDR(p))) {
         p = ST_CDR(p);
@@ -74,7 +74,7 @@ Object *St_Reverse(Object *list)
     return r;
 }
 
-bool St_ListP(Object *maybe_list)
+bool St_ListP(StObject maybe_list)
 {
     if (ST_NULLP(maybe_list))
     {
@@ -86,7 +86,7 @@ bool St_ListP(Object *maybe_list)
         return false;
     }
 
-    Object *p = maybe_list;
+    StObject p = maybe_list;
 
     while (ST_PAIRP(ST_CDR(p)))
     {
@@ -96,7 +96,7 @@ bool St_ListP(Object *maybe_list)
     return ST_NULLP(ST_CDR(p));
 }
 
-bool St_DottedListP(Object *maybe_list)
+bool St_DottedListP(StObject maybe_list)
 {
     if (ST_NULLP(maybe_list))
     {
@@ -108,7 +108,7 @@ bool St_DottedListP(Object *maybe_list)
         return true;
     }
 
-    Object *p = maybe_list;
+    StObject p = maybe_list;
 
     while (ST_PAIRP(ST_CDR(p))) {
         p = ST_CDR(p);
@@ -117,7 +117,7 @@ bool St_DottedListP(Object *maybe_list)
     return !ST_NULLP(ST_CDR(p));
 }
 
-bool St_SetMemberP(Object *obj, Object *s)
+bool St_SetMemberP(StObject obj, StObject s)
 {
     ST_FOREACH(p, s) {
         if (obj == ST_CAR(p))
@@ -128,14 +128,14 @@ bool St_SetMemberP(Object *obj, Object *s)
     return false;
 }
 
-Object *St_SetCons(Object *obj, Object *s)
+StObject St_SetCons(StObject obj, StObject s)
 {
     return St_SetMemberP(obj, s)
         ? s
         : St_Cons(obj, s);
 }
 
-Object *St_SetUnion(Object *s1, Object *s2)
+StObject St_SetUnion(StObject s1, StObject s2)
 {
     ST_FOREACH(p, s1) {
         s2 = St_SetCons(ST_CAR(p), s2);
@@ -143,7 +143,7 @@ Object *St_SetUnion(Object *s1, Object *s2)
     return s2;
 }
 
-Object *St_SetMinus(Object *s1, Object *s2)
+StObject St_SetMinus(StObject s1, StObject s2)
 {
     ST_FOREACH(p, s1) {
         if (!St_SetMemberP(ST_CAR(p), s2))
@@ -154,7 +154,7 @@ Object *St_SetMinus(Object *s1, Object *s2)
     return Nil;
 }
 
-Object *St_SetIntersect(Object *s1, Object *s2)
+StObject St_SetIntersect(StObject s1, StObject s2)
 {
     ST_FOREACH(p, s1) {
         if (St_SetMemberP(ST_CAR(p), s2)) {
@@ -164,7 +164,7 @@ Object *St_SetIntersect(Object *s1, Object *s2)
     return Nil;
 }
 
-bool St_EqvP(Object *lhs, Object *rhs)
+bool St_EqvP(StObject lhs, StObject rhs)
 {
     if (ST_INTP(lhs) && ST_INTP(rhs))
     {
@@ -174,7 +174,7 @@ bool St_EqvP(Object *lhs, Object *rhs)
     return lhs == rhs;
 }
 
-bool St_EqualP(Object *lhs, Object *rhs)
+bool St_EqualP(StObject lhs, StObject rhs)
 {
     if (ST_PAIRP(lhs) && ST_PAIRP(rhs))
     {
@@ -190,35 +190,35 @@ bool St_EqualP(Object *lhs, Object *rhs)
     return St_EqvP(lhs, rhs);
 }
 
-Object *St_Integer(int value)
+StObject St_Integer(int value)
 {
-    Object *o = St_Alloc(TINT, sizeof(int));
+    StObject o = St_Alloc(TINT, sizeof(int));
     o->integer.value = value;
     return o;
 }
 
-Object *St_MakeEmptyString(int len)
+StObject St_MakeEmptyString(int len)
 {
-    Object *o = St_Alloc(TSTRING, offsetof(Object, string.value) - offsetof(Object, integer.value) + len);
+    StObject o = St_Alloc(TSTRING, offsetof(Object, string.value) - offsetof(Object, integer.value) + len);
     o->string.len = len;
 
     return o;
 }
 
-Object *St_MakeString(int len, char *buf)
+StObject St_MakeString(int len, char *buf)
 {
-    Object *o = St_MakeEmptyString(len);
+    StObject o = St_MakeEmptyString(len);
     memcpy(o->string.value, buf, len);
 
     return o;
 }
 
-int St_StringLength(Object *s)
+int St_StringLength(StObject s)
 {
     return s->string.len;
 }
 
-bool St_StringEqualP(Object *s1, Object *s2)
+bool St_StringEqualP(StObject s1, StObject s2)
 {
     if (St_StringLength(s1) != St_StringLength(s2))
     {
@@ -230,7 +230,7 @@ bool St_StringEqualP(Object *s1, Object *s2)
     return memcmp(s1->string.value, s2->string.value, len) == 0;
 }
 
-Object *St_StringAppend(Object *list)
+StObject St_StringAppend(StObject list)
 {
     int newlen = 0;
 
@@ -238,7 +238,7 @@ Object *St_StringAppend(Object *list)
         newlen += St_StringLength(ST_CAR(p));
     }
 
-    Object *o = St_MakeEmptyString(newlen);
+    StObject o = St_MakeEmptyString(newlen);
     int offset = 0;
 
     ST_FOREACH(p, list) {
@@ -250,14 +250,14 @@ Object *St_StringAppend(Object *list)
     return o;
 }
 
-Object *St_MakeVector(int size)
+StObject St_MakeVector(int size)
 {
     if (size < 0)
     {
         St_Error("make-vector: size must be a positive integer");
     }
 
-    Object *o = St_Alloc(TVECTOR, sizeof(void*) * (size + 1));
+    StObject o = St_Alloc(TVECTOR, sizeof(void*) * (size + 1));
     o->vector.size = size;
 
     for (int i = 0; i < size; i++) {
@@ -267,12 +267,12 @@ Object *St_MakeVector(int size)
     return o;
 }
 
-void St_CopyVector(Object *dst, Object *src, int size)
+void St_CopyVector(StObject dst, StObject src, int size)
 {
     memcpy(dst->vector.data, src->vector.data, sizeof(Object*) * size);
 }
 
-Object *St_VectorRef(Object *v, int idx)
+StObject St_VectorRef(StObject v, int idx)
 {
     if (idx < 0 || v->vector.size <= idx)
     {
@@ -282,7 +282,7 @@ Object *St_VectorRef(Object *v, int idx)
     return v->vector.data[idx];
 }
 
-void St_VectorSet(Object *v, int idx, Object *obj)
+void St_VectorSet(StObject v, int idx, StObject obj)
 {
     if (idx < 0 || v->vector.size <= idx)
     {
@@ -292,19 +292,19 @@ void St_VectorSet(Object *v, int idx, Object *obj)
     v->vector.data[idx] = obj;
 }
 
-int St_VectorLength(Object *v)
+int St_VectorLength(StObject v)
 {
     return v->vector.size;
 }
 
 // dynamic array
 
-Object *St_MakeDVector(int size, int capa)
+StObject St_MakeDVector(int size, int capa)
 {
     return St_Cons(St_Integer(size), St_MakeVector(capa));
 }
 
-Object *St_DVectorRef(Object *vector, int idx)
+StObject St_DVectorRef(StObject vector, int idx)
 {
     int len = St_DVectorLength(vector);
     if (idx < 0 || len <= idx)
@@ -315,7 +315,7 @@ Object *St_DVectorRef(Object *vector, int idx)
     return St_VectorRef(St_DVectorData(vector), idx);
 }
 
-void St_DVectorSet(Object *vector, int idx, Object *obj)
+void St_DVectorSet(StObject vector, int idx, StObject obj)
 {
     int len = St_DVectorLength(vector);
     if (idx < 0 || len <= idx)
@@ -326,29 +326,29 @@ void St_DVectorSet(Object *vector, int idx, Object *obj)
     St_VectorSet(St_DVectorData(vector), idx, obj);
 }
 
-int St_DVectorLength(Object *vector)
+int St_DVectorLength(StObject vector)
 {
     return ST_INT_VALUE(ST_CAR(vector));
 }
 
-Object *St_DVectorData(Object *vector)
+StObject St_DVectorData(StObject vector)
 {
    return ST_CDR(vector);
 }
 
-int St_DVectorCapacity(Object *vector)
+int St_DVectorCapacity(StObject vector)
 {
     return St_VectorLength(St_DVectorData(vector));
 }
 
-int St_DVectorPush(Object *vector, Object *obj)
+int St_DVectorPush(StObject vector, StObject obj)
 {
     int len = St_DVectorLength(vector);
     int capa = St_DVectorCapacity(vector);
 
     if (len == capa)
     {
-        Object *data = St_MakeVector(capa * 1.4);
+        StObject data = St_MakeVector(capa * 1.4);
         St_CopyVector(data, ST_CDR(vector), capa);
         ST_CDR_SET(vector, data);
     }
@@ -359,10 +359,10 @@ int St_DVectorPush(Object *vector, Object *obj)
     return len;
 }
 
-Object *St_MakeModule(Object *alist)
+StObject St_MakeModule(StObject alist)
 {
     int size = St_Length(alist);
-    Object *v = St_MakeDVector(size, size);
+    StObject v = St_MakeDVector(size, size);
 
     int i = 0;
     ST_FOREACH(p, alist) {
@@ -374,11 +374,11 @@ Object *St_MakeModule(Object *alist)
 
 #define NOT_FOUND (-1)
 
-static int module_contains(Object *m, Object *sym)
+static int module_contains(StObject m, StObject sym)
 {
     int size = St_DVectorLength(m);
     for (int i = 0; i < size; i++) {
-        Object *pair = St_DVectorRef(m, i);
+        StObject pair = St_DVectorRef(m, i);
         if (ST_CAR(pair) == sym)
         {
             return i;
@@ -387,7 +387,7 @@ static int module_contains(Object *m, Object *sym)
     return NOT_FOUND;
 }
 
-Object *St_ModuleFind(Object *m, Object *sym)
+StObject St_ModuleFind(StObject m, StObject sym)
 {
     int i = module_contains(m, sym);
     return i == NOT_FOUND
@@ -395,7 +395,7 @@ Object *St_ModuleFind(Object *m, Object *sym)
         : ST_CDR(St_DVectorRef(m, i));
 }
 
-int St_ModuleFindOrInitialize(Object *m, Object *sym, Object *init)
+int St_ModuleFindOrInitialize(StObject m, StObject sym, StObject init)
 {
     int i = module_contains(m, sym);
     return i == NOT_FOUND
@@ -403,20 +403,20 @@ int St_ModuleFindOrInitialize(Object *m, Object *sym, Object *init)
         : i;
 }
 
-void St_ModuleSet(Object *m, int idx, Object *val)
+void St_ModuleSet(StObject m, int idx, StObject val)
 {
     ST_CDR_SET(St_DVectorRef(m, idx), val);
 }
 
-Object *St_ModuleRef(Object *m, int i)
+StObject St_ModuleRef(StObject m, int i)
 {
     return St_DVectorRef(m, i);
 }
 
-Object *St_ModuleSymbols(Object *m)
+StObject St_ModuleSymbols(StObject m)
 {
     int len = St_DVectorLength(m);
-    Object *syms = Nil;
+    StObject syms = Nil;
 
     for (int i = 0; i < len; i++) {
         syms = St_Cons(ST_CAR(St_DVectorRef(m, i)), syms);
@@ -425,12 +425,12 @@ Object *St_ModuleSymbols(Object *m)
     return syms;
 }
 
-void St_InitModule(Object *env)
+void St_InitModule(StObject env)
 {
-    Object *head = Nil;
-    Object *tail = Nil;
+    StObject head = Nil;
+    StObject tail = Nil;
 
-    for (Object *p = env; !ST_NULLP(p); p = ST_CAR(p)) {
+    for (StObject p = env; !ST_NULLP(p); p = ST_CAR(p)) {
         ST_FOREACH(q, ST_CADR(p)) {
             ST_APPEND1(head, tail, ST_CAR(q));
         }
@@ -441,15 +441,15 @@ void St_InitModule(Object *env)
 // Environment structure
 // (<upper level env> <variable alist> . <tail cell of variable alist>)
 
-Object *St_InitEnv()
+StObject St_InitEnv()
 {
     return St_Cons(Nil, St_Cons(Nil, Nil));
 }
 
-void St_AddVariable(Object *env, Object *key, Object *value)
+void St_AddVariable(StObject env, StObject key, StObject value)
 {
-    Object *head = ST_CADR(env);
-    Object *tail = ST_CDDR(env);
+    StObject head = ST_CADR(env);
+    StObject tail = ST_CDDR(env);
 
     ST_FOREACH(p, head) {
         if (ST_CAAR(p) == key)
@@ -465,30 +465,30 @@ void St_AddVariable(Object *env, Object *key, Object *value)
     ST_CDR_SET(ST_CDR(env), tail);
 }
 
-void St_AddSyntax(Object *env, const char *key, SyntaxFunction *syntax)
+void St_AddSyntax(StObject env, const char *key, SyntaxFunction *syntax)
 {
-    Object *s = St_Alloc(TSYNTAX, sizeof(void*) * 2);
+    StObject s = St_Alloc(TSYNTAX, sizeof(void*) * 2);
     s->syntax.body = syntax;
     s->syntax.name = key;
 
     St_AddVariable(env, St_Intern(key), s);
 }
 
-void St_AddSubr(Object *env, const char *key, SubrFunction *subr)
+void St_AddSubr(StObject env, const char *key, SubrFunction *subr)
 {
-    Object *s = St_Alloc(TSUBR, sizeof(void*) * 2);
+    StObject s = St_Alloc(TSUBR, sizeof(void*) * 2);
     s->subr.body = subr;
     s->subr.name = key;
 
     St_AddVariable(env, St_Intern(key), s);
 }
 
-Object *St_PushEnv(Object *env, Object *keys, Object *values)
+StObject St_PushEnv(StObject env, StObject keys, StObject values)
 {
-    Object *new_env = St_Cons(env, St_Cons(Nil, Nil));
+    StObject new_env = St_Cons(env, St_Cons(Nil, Nil));
 
-    Object *p = keys;
-    Object *v = values;
+    StObject p = keys;
+    StObject v = values;
 
     if (ST_SYMBOLP(p))
     {
@@ -510,7 +510,7 @@ Object *St_PushEnv(Object *env, Object *keys, Object *values)
     return new_env;
 }
 
-Object *St_LookupVariablePair(Object *env, Object *key)
+StObject St_LookupVariablePair(StObject env, StObject key)
 {
     if (ST_NULLP(env))
     {
@@ -518,7 +518,7 @@ Object *St_LookupVariablePair(Object *env, Object *key)
     }
 
     ST_FOREACH(p, ST_CADR(env)) {
-        Object *symbol = ST_CAAR(p);
+        StObject symbol = ST_CAAR(p);
 
         if (symbol == key)
         {
@@ -530,9 +530,9 @@ Object *St_LookupVariablePair(Object *env, Object *key)
     return St_LookupVariablePair(ST_CAR(env), key);
 }
 
-Object *St_LookupVariable(Object *env, Object *key)
+StObject St_LookupVariable(StObject env, StObject key)
 {
-    Object *pair = St_LookupVariablePair(env, key);
+    StObject pair = St_LookupVariablePair(env, key);
 
     if (ST_NULLP(pair))
     {

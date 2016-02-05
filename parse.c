@@ -4,13 +4,13 @@
 
 #include "lisp.h"
 
-static Object *read_list(FILE *stream);
-static Object *read_quote(FILE *stream);
-static Object *read_integer(FILE *stream, int first_digit);
-static Object *read_hash(FILE *stream);
+static StObject read_list(FILE *stream);
+static StObject read_quote(FILE *stream);
+static StObject read_integer(FILE *stream, int first_digit);
+static StObject read_hash(FILE *stream);
 static void read_comment(FILE *stream);
-static Object *read_symbol(FILE *stream, char first_char);
-static Object *read_string(FILE *stream);
+static StObject read_symbol(FILE *stream, char first_char);
+static StObject read_string(FILE *stream);
 
 #define SYMBOL_LENGTH 50
 #define STRING_LENGTH 5000
@@ -29,7 +29,7 @@ static void skip_space(FILE *stream)
     }
 }
 
-static Object *read_expr(FILE* stream)
+static StObject read_expr(FILE* stream)
 {
     skip_space(stream);
 
@@ -62,10 +62,10 @@ static Object *read_expr(FILE* stream)
     }
 }
 
-static Object *read_list(FILE* stream)
+static StObject read_list(FILE* stream)
 {
-    Object *head = Nil;
-    Object *tail = Nil;
+    StObject head = Nil;
+    StObject tail = Nil;
     bool is_next_last = false;
     bool is_next_end = false;
 
@@ -95,7 +95,7 @@ static Object *read_list(FILE* stream)
             St_Error("read: elapsed expression after dot");
         }
 
-        Object *i = read_expr(stream);
+        StObject i = read_expr(stream);
 
         if (i == NULL)
         {
@@ -130,9 +130,9 @@ static Object *read_list(FILE* stream)
     }
 }
 
-static Object *read_quote(FILE *stream)
+static StObject read_quote(FILE *stream)
 {
-    Object *expr = read_expr(stream);
+    StObject expr = read_expr(stream);
 
     if (!expr)
     {
@@ -142,7 +142,7 @@ static Object *read_quote(FILE *stream)
     return St_Cons(St_Intern("quote"), St_Cons(expr, Nil));
 }
 
-static Object *read_integer(FILE *stream, int first_digit)
+static StObject read_integer(FILE *stream, int first_digit)
 {
     int value = first_digit;
 
@@ -154,7 +154,7 @@ static Object *read_integer(FILE *stream, int first_digit)
     return St_Integer(value);
 }
 
-static Object *read_hash(FILE *stream)
+static StObject read_hash(FILE *stream)
 {
     skip_space(stream);
 
@@ -200,7 +200,7 @@ static bool word_char(int c)
     return true; // TODO: more strict
 }
 
-static Object *read_symbol(FILE *stream, char first_char)
+static StObject read_symbol(FILE *stream, char first_char)
 {
     char buf[SYMBOL_LENGTH + 1] = { first_char };
     int p = 1;
@@ -215,7 +215,7 @@ static Object *read_symbol(FILE *stream, char first_char)
     return St_Intern(buf);
 }
 
-static Object *read_string(FILE *stream)
+static StObject read_string(FILE *stream)
 {
     char buf[STRING_LENGTH + 1];
     bool backslash = false;
@@ -284,7 +284,7 @@ static Object *read_string(FILE *stream)
     return St_MakeString(p, buf);
 }
 
-Object *St_Read(FILE* stream)
+StObject St_Read(FILE* stream)
 {
     return read_expr(stream);
 }

@@ -25,8 +25,9 @@ enum {
 };
 
 typedef struct Object Object;
-typedef Object *SyntaxFunction(Object *form);
-typedef Object *SubrFunction(Object *env, Object *args);
+typedef Object * StObject;
+typedef StObject SyntaxFunction(StObject form);
+typedef StObject SubrFunction(StObject env, StObject args);
 
 struct Object
 {
@@ -39,8 +40,8 @@ struct Object
 
         // cell
         struct {
-            Object *car;
-            Object *cdr;
+            StObject car;
+            StObject cdr;
         } cell;
 
         struct {
@@ -58,7 +59,7 @@ struct Object
 
         struct {
             int size;
-            Object *data[1];
+            StObject data[1];
         } vector;
 
         // syntax
@@ -75,29 +76,29 @@ struct Object
 
         // lambda
         struct {
-            Object *body;
-            Object *free;
+            StObject body;
+            StObject free;
             int arity;
         } lambda;
 
         // macro
         struct {
-            Object *proc;
-            Object *symbol;
+            StObject proc;
+            StObject symbol;
         } macro;
     };
 };
 
-extern Object *Nil;
-extern Object *True;
-extern Object *False;
-extern Object *Unbound;
+extern StObject Nil;
+extern StObject True;
+extern StObject False;
+extern StObject Unbound;
 
 void St_Error(const char *fmt, ...) __attribute__((noreturn));
 
 #define St_Malloc GC_MALLOC
 
-Object *St_Alloc(int type, size_t size);
+StObject St_Alloc(int type, size_t size);
 
 #define ST_NULLP(obj) ((obj) == Nil)
 #define ST_TRUEP(obj) ((obj) == True)
@@ -117,12 +118,12 @@ Object *St_Alloc(int type, size_t size);
 
 // List and Pair
 
-Object *St_Cons(Object *car, Object *cdr);
-Object *St_Acons(Object *key, Object *val, Object *cdr);
-Object *St_Reverse(Object *list);
-int St_Length(Object *list);
-bool St_ListP(Object *maybe_list);
-bool St_DottedListP(Object *maybe_list);
+StObject St_Cons(StObject car, StObject cdr);
+StObject St_Acons(StObject key, StObject val, StObject cdr);
+StObject St_Reverse(StObject list);
+int St_Length(StObject list);
+bool St_ListP(StObject maybe_list);
+bool St_DottedListP(StObject maybe_list);
 
 #define ST_LIST1(a0)                 St_Cons((a0), Nil)
 #define ST_LIST2(a0, a1)             St_Cons((a0), ST_LIST1((a1)))
@@ -155,20 +156,20 @@ bool St_DottedListP(Object *maybe_list);
         }                                               \
     } while (0)
 
-#define ST_FOREACH(p, list) for (Object *p = (list); !ST_NULLP(p); p = ST_CDR(p))
+#define ST_FOREACH(p, list) for (StObject p = (list); !ST_NULLP(p); p = ST_CDR(p))
 
 // List as Set
 
-bool St_SetMemberP(Object *obj, Object *s);
-Object *St_SetCons(Object *obj, Object *s);
-Object *St_SetUnion(Object *s1, Object *s2);
-Object *St_SetMinus(Object *s1, Object *s2);
-Object *St_SetIntersect(Object *s1, Object *s2);
+bool St_SetMemberP(StObject obj, StObject s);
+StObject St_SetCons(StObject obj, StObject s);
+StObject St_SetUnion(StObject s1, StObject s2);
+StObject St_SetMinus(StObject s1, StObject s2);
+StObject St_SetIntersect(StObject s1, StObject s2);
 
 // Symbol
 
-extern Object *Symbols;
-Object *St_Intern(const char *symbol_string);
+extern StObject Symbols;
+StObject St_Intern(const char *symbol_string);
 
 // Primitive utilities
 
@@ -184,107 +185,108 @@ Object *St_Intern(const char *symbol_string);
 
 #define ST_ARGS1(name, args, a1)                        \
     ST_CHECK_ARG_LEN(name, args, 1);                    \
-    Object *(a1) = ST_CAR(args)
+    StObject (a1) = ST_CAR(args)
 
 #define ST_ARGS2(name, args, a1, a2)                    \
     ST_CHECK_ARG_LEN(name, args, 2);                    \
-    Object *(a1) = ST_CAR(args);                        \
-    Object *(a2) = ST_CADR(args)
+    StObject (a1) = ST_CAR(args);                        \
+    StObject (a2) = ST_CADR(args)
 
 #define ST_ARGS3(name, args, a1, a2, a3)                \
     ST_CHECK_ARG_LEN(name, args, 3);                    \
-    Object *(a1) = ST_CAR(args);                        \
-    Object *(a2) = ST_CADR(args);                       \
-    Object *(a3) = ST_CADDR(args)
+    StObject (a1) = ST_CAR(args);                        \
+    StObject (a2) = ST_CADR(args);                       \
+    StObject (a3) = ST_CADDR(args)
 
 #define ST_ARGS4(name, args, a1, a2, a3, a4)            \
     ST_CHECK_ARG_LEN(name, args, 4);                    \
-    Object *(a1) = ST_CAR(args);                        \
-    Object *(a2) = ST_CADR(args);                       \
-    Object *(a3) = ST_CADDR(args);                      \
-    Object *(a4) = ST_CADDDR(args)
+    StObject (a1) = ST_CAR(args);                        \
+    StObject (a2) = ST_CADR(args);                       \
+    StObject (a3) = ST_CADDR(args);                      \
+    StObject (a4) = ST_CADDDR(args)
 
 // Coercers
 
 #define ST_BOOLEAN(b) ((b) ? True : False)
-Object *St_Integer(int value);
+StObject St_Integer(int value);
 #define ST_INT_VALUE(x) (x)->integer.value
+#define ST_OBJECT(x) ((StObject)(x))
 
 // String
 
-Object *St_MakeEmptyString(int len);
-Object *St_MakeString(int len, char* buf);
-int St_StringLength(Object *s);
-bool St_StringEqualP(Object *s1, Object *s2);
-Object *St_StringAppend(Object *list);
+StObject St_MakeEmptyString(int len);
+StObject St_MakeString(int len, char* buf);
+int St_StringLength(StObject s);
+bool St_StringEqualP(StObject s1, StObject s2);
+StObject St_StringAppend(StObject list);
 
 // Vector
 
-Object *St_MakeVector(int size);
-Object *St_VectorRef(Object *vector, int idx);
-void St_CopyVector(Object *dst, Object *src, int size);
-void St_VectorSet(Object *vector, int idx, Object *obj);
-int St_VectorLength(Object *vector);
+StObject St_MakeVector(int size);
+StObject St_VectorRef(StObject vector, int idx);
+void St_CopyVector(StObject dst, StObject src, int size);
+void St_VectorSet(StObject vector, int idx, StObject obj);
+int St_VectorLength(StObject vector);
 
 // Dynamic Vector (complex type)
 
-Object *St_MakeDVector(int size, int capa);
-Object *St_DVectorRef(Object *vector, int idx);
-void St_DVectorSet(Object *vector, int idx, Object *obj);
-int St_DVectorLength(Object *vector);
-Object *St_DVectorData(Object *vector);
-int St_DVectorCapacity(Object *vector);
-int St_DVectorPush(Object *vector, Object *obj);
+StObject St_MakeDVector(int size, int capa);
+StObject St_DVectorRef(StObject vector, int idx);
+void St_DVectorSet(StObject vector, int idx, StObject obj);
+int St_DVectorLength(StObject vector);
+StObject St_DVectorData(StObject vector);
+int St_DVectorCapacity(StObject vector);
+int St_DVectorPush(StObject vector, StObject obj);
 
 // Module
 
-extern Object *GlobalModule;
-Object *St_MakeModule(Object *alist);
-Object *St_ModuleFind(Object *module, Object *sym);
-int St_ModuleFindOrInitialize(Object *module, Object *sym, Object *init);
-void St_ModuleSet(Object *module, int idx, Object *val);
-Object *St_ModuleRef(Object *module, int idx);
-Object *St_ModuleSymbols(Object *module);
-void St_InitModule(Object *env);
+extern StObject GlobalModule;
+StObject St_MakeModule(StObject alist);
+StObject St_ModuleFind(StObject module, StObject sym);
+int St_ModuleFindOrInitialize(StObject module, StObject sym, StObject init);
+void St_ModuleSet(StObject module, int idx, StObject val);
+StObject St_ModuleRef(StObject module, int idx);
+StObject St_ModuleSymbols(StObject module);
+void St_InitModule(StObject env);
 
 // Basic functions
 
-bool St_EqvP(Object *lhs, Object *rhs);
-bool St_EqualP(Object *lhs, Object *rhs);
-Object *St_Gensym();
-Object *St_Apply(Object *proc, Object *args);
+bool St_EqvP(StObject lhs, StObject rhs);
+bool St_EqualP(StObject lhs, StObject rhs);
+StObject St_Gensym();
+StObject St_Apply(StObject proc, StObject args);
 
 // Environment
 
-Object *St_InitEnv();
-void St_AddVariable(Object *env, Object *key, Object *value);
-void St_AddSyntax(Object *env, const char *key, SyntaxFunction *syntax);
-void St_AddSubr(Object *env, const char *key, SubrFunction *subr);
-Object *St_PushEnv(Object *env, Object *keys, Object *values);
-Object *St_LookupVariablePair(Object *env, Object *key);
-Object *St_LookupVariable(Object *env, Object *key);
+StObject St_InitEnv();
+void St_AddVariable(StObject env, StObject key, StObject value);
+void St_AddSyntax(StObject env, const char *key, SyntaxFunction *syntax);
+void St_AddSubr(StObject env, const char *key, SubrFunction *subr);
+StObject St_PushEnv(StObject env, StObject keys, StObject values);
+StObject St_LookupVariablePair(StObject env, StObject key);
+StObject St_LookupVariable(StObject env, StObject key);
 
-void St_InitPrimitives(Object *env);
-void St_InitSyntax(Object *env);
+void St_InitPrimitives(StObject env);
+void St_InitSyntax(StObject env);
 void St_InitVm();
 
 // Parser
 
-Object *St_Read(FILE *stream);
+StObject St_Read(FILE *stream);
 
 // Printer
 
-void St_Display(Object *obj);
-void St_Print(Object *obj);
+void St_Display(StObject obj);
+void St_Print(StObject obj);
 
 // Evaluator
 
-Object *St_Eval_VM(Object *module, Object *env, Object *obj);
-Object *St__Eval_INSN(Object *module, Object *env, Object *insn);
+StObject St_Eval_VM(StObject module, StObject env, StObject obj);
+StObject St__Eval_INSN(StObject module, StObject env, StObject insn);
 
 // Compiler
 
-Object *St_MacroExpand(Object *module, Object *expr);
-Object *St_Compile(Object *expr, Object *module, Object *env, Object *next);
+StObject St_MacroExpand(StObject module, StObject expr);
+StObject St_Compile(StObject expr, StObject module, StObject env, StObject next);
 
 #endif

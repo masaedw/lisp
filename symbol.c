@@ -2,12 +2,12 @@
 
 #include "lisp.h"
 
-Object *Symbols = NULL;
+StObject Symbols = NULL;
 
 static Object* push(const char* symbol_value)
 {
     size_t len = strlen(symbol_value);
-    Object *symbol = St_Alloc(TSYMBOL, len);
+    StObject symbol = St_Alloc(TSYMBOL, len);
     strcpy(symbol->symbol.value, symbol_value);
 
     Symbols = St_Cons(symbol, Symbols);
@@ -15,9 +15,9 @@ static Object* push(const char* symbol_value)
     return symbol;
 }
 
-Object *St_Intern(const char *symbol_value)
+StObject St_Intern(const char *symbol_value)
 {
-    Object *p = Symbols;
+    StObject p = Symbols;
 
     if (!p)
     {
@@ -36,7 +36,7 @@ Object *St_Intern(const char *symbol_value)
     return push(symbol_value);
 }
 
-Object *St_Gensym()
+StObject St_Gensym()
 {
     static int c = 0;
     static const int buf_size = 30;

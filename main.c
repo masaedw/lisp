@@ -13,9 +13,9 @@ void test_print()
     St_Print(False);
     printf("\n");
 
-    Object *one = St_Integer(1);
+    StObject one = St_Integer(1);
 
-    Object *two = St_Integer(2);
+    StObject two = St_Integer(2);
 
     St_Print(St_Cons(one, two));
     printf("\n");
@@ -23,12 +23,12 @@ void test_print()
     St_Print(St_Cons(one, St_Cons(two, Nil)));
     printf("\n");
 
-    Object *sym1 = St_Intern("sym1");
+    StObject sym1 = St_Intern("sym1");
 
     St_Print(sym1);
     printf("\n");
 
-    Object *sym2 = St_Intern("sym2");
+    StObject sym2 = St_Intern("sym2");
 
     St_Print(St_Cons(sym1, sym2));
     printf("\n");
@@ -38,12 +38,12 @@ void test_print()
                      St_Cons(sym1, St_Cons(sym2, St_Cons(Nil, sym1)))));
     printf("\n");
 
-    Object *str = St_Alloc(TSTRING, 5);
+    StObject str = St_Alloc(TSTRING, 5);
     memcpy(str->string.value, "hoge", 5);
     St_Print(str);
     printf("\n");
 
-    Object *v = St_MakeVector(3);
+    StObject v = St_MakeVector(3);
     St_VectorSet(v, 0, one);
     St_VectorSet(v, 1, sym1);
     St_VectorSet(v, 2, True);
@@ -54,13 +54,13 @@ int main(int argc, char** argv)
 {
     GC_INIT();
 
-    Object *env = St_InitEnv();
+    StObject env = St_InitEnv();
     St_InitPrimitives(env);
     St_InitSyntax(env);
     St_InitModule(env);
     St_InitVm();
 
-    Object *expr;
+    StObject expr;
 
     bool interactive_mode = false;
 
@@ -82,7 +82,7 @@ int main(int argc, char** argv)
             return 0;
         }
 
-        Object *value = St_Eval_VM(GlobalModule, env, expr);
+        StObject value = St_Eval_VM(GlobalModule, env, expr);
 
         if (interactive_mode)
         {

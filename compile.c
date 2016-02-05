@@ -5,19 +5,19 @@
 
 #define I(x) St_Intern(x)
 
-static int module_add(Object *m, Object *sym)
+static int module_add(StObject m, StObject sym)
 {
     return St_ModuleFindOrInitialize(m, sym, Unbound);
 }
 
-static bool tailP(Object *next)
+static bool tailP(StObject next)
 {
     return ST_CAR(next) == I("return");
 }
 
-static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next);
+static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject next);
 
-static Object *compile_body(Object *body, Object *m, Object *e, Object *s, Object *next)
+static StObject compile_body(StObject body, StObject m, StObject e, StObject s, StObject next)
 {
     if (ST_NULLP(body))
     {
@@ -27,7 +27,7 @@ static Object *compile_body(Object *body, Object *m, Object *e, Object *s, Objec
     return compile(ST_CAR(body), m, e, s, compile_body(ST_CDR(body), m, e, s, next));
 }
 
-static Object *compile_lookup(Object *module, Object *env, Object *x, Object *next, const char* insn)
+static StObject compile_lookup(StObject module, StObject env, StObject x, StObject next, const char* insn)
 {
     char buf[strlen(insn) + 9];
     strcpy(buf, insn);
@@ -58,17 +58,17 @@ static Object *compile_lookup(Object *module, Object *env, Object *x, Object *ne
     return ST_LIST3(I(buf), St_Integer(nm), next);
 }
 
-static Object *compile_refer(Object *module, Object *env, Object *x, Object *next)
+static StObject compile_refer(StObject module, StObject env, StObject x, StObject next)
 {
     return compile_lookup(module, env, x, next, "refer");
 }
 
-static Object *compile_assign(Object *module, Object *env, Object *x, Object *next)
+static StObject compile_assign(StObject module, StObject env, StObject x, StObject next)
 {
     return compile_lookup(module, env, x, next, "assign");
 }
 
-static Object *collect_free(Object *module, Object *env, Object *vars, Object *next)
+static StObject collect_free(StObject module, StObject env, StObject vars, StObject next)
 {
     ST_FOREACH(p, vars) {
         next = compile_refer(module, env, ST_CAR(p), ST_LIST2(I("argument"), next));
@@ -76,7 +76,7 @@ static Object *collect_free(Object *module, Object *env, Object *vars, Object *n
     return next;
 }
 
-static Object *find_free(Object *x, Object *b)
+static StObject find_free(StObject x, StObject b)
 {
     if (ST_SYMBOLP(x))
     {
@@ -87,7 +87,7 @@ static Object *find_free(Object *x, Object *b)
 
     if (ST_PAIRP(x))
     {
-        Object *car = ST_CAR(x);
+        StObject car = ST_CAR(x);
 
 #define CASE(sym) if (car == I(#sym))
 
@@ -96,9 +96,9 @@ static Object *find_free(Object *x, Object *b)
         }
 
         CASE(lambda) {
-            Object *vars = ST_CADR(x);
-            Object *body = ST_CDDR(x);
-            Object *nb = b;
+            StObject vars = ST_CADR(x);
+            StObject body = ST_CDDR(x);
+            StObject nb = b;
 
             if (ST_SYMBOLP(vars))
             {
@@ -106,7 +106,7 @@ static Object *find_free(Object *x, Object *b)
             }
             if (ST_PAIRP(vars))
             {
-                Object *p;
+                StObject p;
                 for (p = vars; ST_PAIRP(p); p = ST_CDR(p)) {
                     nb = St_SetCons(ST_CAR(p), b);
                 }
@@ -119,13 +119,13 @@ static Object *find_free(Object *x, Object *b)
         }
 
         CASE(let) {
-            Object *bindings = ST_CADR(x);
-            Object *body = ST_CDDR(x);
-            Object *f = Nil;
-            Object *nb = b;
+            StObject bindings = ST_CADR(x);
+            StObject body = ST_CDDR(x);
+            StObject f = Nil;
+            StObject nb = b;
 
             ST_FOREACH(p, bindings) {
-                Object *bn = ST_CAR(p);
+                StObject bn = ST_CAR(p);
                 f = St_SetUnion(find_free(ST_CADR(bn), b), f);
                 nb = St_SetCons(ST_CAR(bn), nb);
             }
@@ -133,9 +133,9 @@ static Object *find_free(Object *x, Object *b)
         }
 
         CASE(if) {
-            Object *testc = ST_CADR(x);
-            Object *thenc = ST_CADDR(x);
-            Object *elsec = ST_CDR(ST_CDDR(x));
+            StObject testc = ST_CADR(x);
+            StObject thenc = ST_CADDR(x);
+            StObject elsec = ST_CDR(ST_CDDR(x));
 
             return St_SetUnion(find_free(testc, b),
                                St_SetUnion(find_free(thenc, b),
@@ -143,21 +143,21 @@ static Object *find_free(Object *x, Object *b)
         }
 
         CASE(set!) {
-            Object *var = ST_CADR(x);
-            Object *exp = ST_CADDR(x);
+            StObject var = ST_CADR(x);
+            StObject exp = ST_CADDR(x);
 
             return St_SetUnion(St_SetMemberP(var, b) ? Nil : ST_LIST1(var),
                                find_free(exp, b));
         }
 
         CASE(call/cc) {
-            Object *exp = ST_CADR(x);
+            StObject exp = ST_CADR(x);
 
             return find_free(exp, b);
         }
 
         else {
-            Object *r = Nil;
+            StObject r = Nil;
 
             ST_FOREACH(p, x) {
                 r = St_SetUnion(find_free(ST_CAR(p), b), r);
@@ -173,7 +173,7 @@ static Object *find_free(Object *x, Object *b)
     return Nil;
 }
 
-static Object *find_sets(Object *x, Object *v)
+static StObject find_sets(StObject x, StObject v)
 {
     if (ST_SYMBOLP(x))
     {
@@ -182,7 +182,7 @@ static Object *find_sets(Object *x, Object *v)
 
     if (ST_PAIRP(x))
     {
-        Object *car = ST_CAR(x);
+        StObject car = ST_CAR(x);
 
 #define CASE(sym) if (car == I(#sym))
 
@@ -191,16 +191,16 @@ static Object *find_sets(Object *x, Object *v)
         }
 
         CASE(lambda) {
-            Object *vars = ST_CADR(x);
-            Object *body = ST_CDDR(x);
+            StObject vars = ST_CADR(x);
+            StObject body = ST_CDDR(x);
 
             return find_sets(body, St_SetMinus(v, vars));
         }
 
         CASE(if) {
-            Object *testc = ST_CADR(x);
-            Object *thenc = ST_CADDR(x);
-            Object *elsec = ST_CDR(ST_CDDR(x));
+            StObject testc = ST_CADR(x);
+            StObject thenc = ST_CADDR(x);
+            StObject elsec = ST_CDR(ST_CDDR(x));
 
             return St_SetUnion(find_sets(testc, v),
                                St_SetUnion(find_sets(thenc, v),
@@ -208,21 +208,21 @@ static Object *find_sets(Object *x, Object *v)
         }
 
         CASE(set!) {
-            Object *var = ST_CADR(x);
-            Object *x2 = ST_CADDR(x);
+            StObject var = ST_CADR(x);
+            StObject x2 = ST_CADDR(x);
 
             return St_SetUnion(St_SetMemberP(var, v) ? ST_LIST1(var) : Nil,
                                find_sets(x2, v));
         }
 
         CASE(call/cc) {
-            Object *exp = ST_CADR(x);
+            StObject exp = ST_CADR(x);
 
             return find_sets(exp, v);
         }
 
         else {
-            Object *r = Nil;
+            StObject r = Nil;
 
             ST_FOREACH(p, x) {
                 r = St_SetUnion(find_sets(ST_CAR(p), v), r);
@@ -238,30 +238,30 @@ static Object *find_sets(Object *x, Object *v)
     return Nil;
 }
 
-static Object *make_boxes(Object *sets, Object *vars, Object *next, int n)
+static StObject make_boxes(StObject sets, StObject vars, StObject next, int n)
 {
     if (ST_NULLP(vars))
     {
         return next;
     }
 
-    Object *next2 = make_boxes(sets, ST_CDR(vars), next, n + 1);
+    StObject next2 = make_boxes(sets, ST_CDR(vars), next, n + 1);
 
     return St_SetMemberP(ST_CAR(vars), sets)
         ? ST_LIST3(I("box"), St_Integer(n), next2)
         : next2;
 }
 
-static int macro_arity(Object *m)
+static int macro_arity(StObject m)
 {
     return m->macro.proc->lambda.arity;
 }
 
-static Object *macroexpand(Object *m, Object *x)
+static StObject macroexpand(StObject m, StObject x)
 {
     if (ST_PAIRP(x))
     {
-        Object *car = ST_CAR(x);
+        StObject car = ST_CAR(x);
 
 #define CASE(sym) if (car == I(#sym))
 
@@ -271,7 +271,7 @@ static Object *macroexpand(Object *m, Object *x)
 
         if (ST_SYMBOLP(car))
         {
-            Object *o = St_ModuleFind(m, car);
+            StObject o = St_ModuleFind(m, car);
             if (ST_MACROP(o))
             {
                 int arity = macro_arity(o);
@@ -293,21 +293,21 @@ static Object *macroexpand(Object *m, Object *x)
                     }
                 }
 
-                Object *nx = St_Apply(o->macro.proc, ST_CDR(x));
+                StObject nx = St_Apply(o->macro.proc, ST_CDR(x));
                 return macroexpand(m, nx);
             }
         }
 
-        Object *p, *h = Nil, *t = Nil;
+        StObject p, h = Nil, t = Nil;
 
         for (p = x; ST_PAIRP(p); p = ST_CDR(p)) {
-            Object *nx = macroexpand(m, ST_CAR(p));
+            StObject nx = macroexpand(m, ST_CAR(p));
             ST_APPEND1(h, t, nx);
         }
 
         if (!ST_NULLP(p))
         {
-            Object *nx = macroexpand(m, p);
+            StObject nx = macroexpand(m, p);
             ST_CDR_SET(t, nx);
         }
 
@@ -320,7 +320,7 @@ static Object *macroexpand(Object *m, Object *x)
     return x;
 }
 
-static Object *compile_and(Object *xs, Object *m, Object *e, Object *s, Object *next)
+static StObject compile_and(StObject xs, StObject m, StObject e, StObject s, StObject next)
 {
     if (ST_NULLP(xs))
     {
@@ -335,7 +335,7 @@ static Object *compile_and(Object *xs, Object *m, Object *e, Object *s, Object *
     return compile(ST_CAR(xs), m, e, s, ST_LIST3(I("test"), compile_and(ST_CDR(xs), m, e, s, next), next));
 }
 
-static Object *compile_or(Object *xs, Object *m, Object *e, Object *s, Object *next)
+static StObject compile_or(StObject xs, StObject m, StObject e, StObject s, StObject next)
 {
     if (ST_NULLP(xs))
     {
@@ -350,7 +350,7 @@ static Object *compile_or(Object *xs, Object *m, Object *e, Object *s, Object *n
     return compile(ST_CAR(xs), m, e, s, ST_LIST3(I("test"), next, compile_or(ST_CDR(xs), m, e, s, next)));
 }
 
-static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
+static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject next)
 {
     if (ST_SYMBOLP(x))
     {
@@ -359,25 +359,25 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
 
     if (ST_PAIRP(x))
     {
-        Object *car = ST_CAR(x);
+        StObject car = ST_CAR(x);
 
         if (car == I("quote"))
         {
-            Object *obj = ST_CADR(x);
+            StObject obj = ST_CADR(x);
 
             return ST_LIST3(I("constant"), obj, next);
         }
 
         if (car == I("lambda"))
         {
-            Object *params = ST_CADR(x);
-            Object *body = ST_CDDR(x);
-            Object *module_vars = St_ModuleSymbols(m);
+            StObject params = ST_CADR(x);
+            StObject body = ST_CDDR(x);
+            StObject module_vars = St_ModuleSymbols(m);
 
-            Object *p;
+            StObject p;
             int arity = 0;
-            Object *vars = Nil;
-            Object *tail = Nil;
+            StObject vars = Nil;
+            StObject tail = Nil;
 
             for (p = params; ST_PAIRP(p); p = ST_CDR(p))
             {
@@ -391,8 +391,8 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
                 ST_APPEND1(vars, tail, p);
             }
 
-            Object *free = find_free(body, St_SetUnion(vars, module_vars));
-            Object *sets = find_sets(body, vars);
+            StObject free = find_free(body, St_SetUnion(vars, module_vars));
+            StObject sets = find_sets(body, vars);
 
             return collect_free(m,
                                 e,
@@ -409,12 +409,12 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
 
         if (car == I("if"))
         {
-            Object *testE = ST_CADR(x);
-            Object *thenE = ST_CADDR(x);
-            Object *elseE = ST_CDR(ST_CDDR(x));
+            StObject testE = ST_CADR(x);
+            StObject thenE = ST_CADDR(x);
+            StObject elseE = ST_CDR(ST_CDDR(x));
 
-            Object *thenC = compile(thenE, m, e, s, next);
-            Object *elseC = next;
+            StObject thenC = compile(thenE, m, e, s, next);
+            StObject elseC = next;
 
             if (!ST_NULLP(elseE))
             {
@@ -426,15 +426,15 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
 
         if (car == I("set!"))
         {
-            Object *var = ST_CADR(x);
-            Object *x2 = ST_CADDR(x);
+            StObject var = ST_CADR(x);
+            StObject x2 = ST_CADDR(x);
 
             return compile(x2, m, e, s, compile_assign(m, e, var, next));
         }
 
         if (car == I("call/cc"))
         {
-            Object *x2 = ST_CADR(x);
+            StObject x2 = ST_CADR(x);
             return ST_LIST3(I("frame"),
                             next,
                             ST_LIST2(I("conti"),
@@ -446,16 +446,16 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
 
         if (car == I("define")) // not internal define for now
         {
-            Object *var = ST_CADR(x);
-            Object *v = ST_CADDR(x);
+            StObject var = ST_CADR(x);
+            StObject v = ST_CADDR(x);
 
             return compile(v, m, e, s, compile_assign(m, e, var, next));
         }
 
         if (car == I("define-macro"))
         {
-            Object *var = ST_CADR(x);
-            Object *v = ST_CADDR(x);
+            StObject var = ST_CADR(x);
+            StObject v = ST_CADDR(x);
 
             return compile(v, m, e, s, ST_LIST3(I("macro"), var, compile_assign(m, e, var, next)));
         }
@@ -472,7 +472,7 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
 
         if (ST_SYMBOLP(car))
         {
-            Object *o = St_ModuleFind(m, car);
+            StObject o = St_ModuleFind(m, car);
 
             if (ST_SYNTAXP(o))
             {
@@ -481,7 +481,7 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
         }
 
         // else clause
-        for (Object *args = ST_CDR(x), *c = compile(ST_CAR(x), m, e, s, tailP(next) ? ST_LIST4(I("shift"), St_Integer(St_Length(ST_CDR(x))), ST_CADR(next), ST_LIST1(I("apply"))) : ST_LIST1(I("apply")));
+        for (StObject args = ST_CDR(x), c = compile(ST_CAR(x), m, e, s, tailP(next) ? ST_LIST4(I("shift"), St_Integer(St_Length(ST_CDR(x))), ST_CADR(next), ST_LIST1(I("apply"))) : ST_LIST1(I("apply")));
              ;
              c = compile(ST_CAR(args), m, e, s, ST_LIST2(I("argument"), c)), args = ST_CDR(args))
         {
@@ -495,12 +495,12 @@ static Object *compile(Object *x, Object *m, Object *e, Object *s, Object *next)
     return ST_LIST3(I("constant"), x, next);
 }
 
-Object *St_Compile(Object *expr, Object *module, Object *env, Object *next)
+StObject St_Compile(StObject expr, StObject module, StObject env, StObject next)
 {
     return compile(macroexpand(module, expr), module, St_Cons(Nil, Nil), Nil, next);
 }
 
-Object *St_MacroExpand(Object *module, Object *expr)
+StObject St_MacroExpand(StObject module, StObject expr)
 {
     return macroexpand(module, expr);
 }

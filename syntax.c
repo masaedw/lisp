@@ -2,7 +2,7 @@
 
 #define I(x) St_Intern(x)
 
-static void validate_bindings(Object *args)
+static void validate_bindings(StObject args)
 {
     if (ST_NULLP(args))
     {
@@ -15,7 +15,7 @@ static void validate_bindings(Object *args)
     }
 
     ST_FOREACH(p, args) {
-        Object *b = ST_CAR(p);
+        StObject b = ST_CAR(p);
         if (!ST_PAIRP(b) || St_Length(b) != 2 || !ST_SYMBOLP(ST_CAR(b)))
         {
             St_Error("let: malformed binding");
@@ -23,7 +23,7 @@ static void validate_bindings(Object *args)
     }
 }
 
-static Object *syntax_let(Object *expr)
+static StObject syntax_let(StObject expr)
 {
     // (let <bindings> <body>)
     // <bindings> ::= ((sym <expr>)*)
@@ -35,26 +35,26 @@ static Object *syntax_let(Object *expr)
         St_Error("let: malformed let");
     }
 
-    Object *bindings = ST_CADR(expr);
-    Object *body = ST_CDDR(expr);
+    StObject bindings = ST_CADR(expr);
+    StObject body = ST_CDDR(expr);
 
     validate_bindings(bindings);
 
-    Object *syms = Nil, *symst = Nil;
-    Object *vals = Nil, *valst = Nil;
+    StObject syms = Nil, symst = Nil;
+    StObject vals = Nil, valst = Nil;
 
     ST_FOREACH(p, bindings) {
         ST_APPEND1(syms, symst, ST_CAAR(p));
         ST_APPEND1(vals, valst, ST_CADR(ST_CAR(p)));
     }
 
-    Object *lambda = St_Cons(I("lambda"), St_Cons(syms, body));
-    Object *ret = St_Cons(lambda, vals);
+    StObject lambda = St_Cons(I("lambda"), St_Cons(syms, body));
+    StObject ret = St_Cons(lambda, vals);
 
     return ret;
 }
 
-void St_InitSyntax(Object *env)
+void St_InitSyntax(StObject env)
 {
     St_AddSyntax(env, "let", syntax_let);
 }
