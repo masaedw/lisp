@@ -17,15 +17,11 @@ static StObject push(const char* symbol_value)
 
 StObject St_Intern(const char *symbol_value)
 {
-    StObject p = Symbols;
-
-    while (!ST_NULLP(p) && strcmp(symbol_value, ST_CAR(p)->symbol.value) != 0) {
-        p = ST_CDR(p);
-    }
-
-    if (ST_PAIRP(p))
-    {
-        return ST_CAR(p);
+    ST_FOREACH(p, Symbols) {
+        if (strcmp(symbol_value, ST_CAR(p)->symbol.value) == 0)
+        {
+            return ST_CAR(p);
+        }
     }
 
     return push(symbol_value);
