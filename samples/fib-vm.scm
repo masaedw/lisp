@@ -33,6 +33,11 @@
 ;; ./lisp < samples/fib-vm.scm  3.57s user 0.42s system 104% cpu 3.813 total
 ;;
 ;;
+;; stack based vm with embed integer with optimization
+;;
+;; ./lisp < samples/fib-vm.scm  1.47s user 0.42s system 117% cpu 1.609 total
+;;
+;;
 ;; naive interpreter version
 ;;
 ;; $ time ./lisp < samples/fib.scm
