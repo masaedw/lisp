@@ -2,6 +2,7 @@
 #define LISP_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <gc.h>
