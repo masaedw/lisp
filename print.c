@@ -16,6 +16,22 @@ static void print(FILE *stream, StObject obj)
         return;
     }
 
+    switch ((intptr_t)obj)
+    {
+#define CASE(type, ...)                         \
+        case type:                              \
+            fprintf(stream, __VA_ARGS__);       \
+            return
+
+        CASE((intptr_t)Nil, "()");
+        CASE((intptr_t)True, "#t");
+        CASE((intptr_t)False, "#f");
+        CASE((intptr_t)Unbound, "#<unbound>");
+
+#undef CASE
+    }
+
+
     switch (obj->type)
     {
     case TCELL:
@@ -64,20 +80,18 @@ static void print(FILE *stream, StObject obj)
         break;
     }
 
+
 #define CASE(type, ...)                         \
         case type:                              \
             fprintf(stream, __VA_ARGS__);       \
             break
 
-        CASE(TNIL, "()");
-        CASE(TTRUE, "#t");
-        CASE(TFALSE, "#f");
         CASE(TSYMBOL, "%s", obj->symbol.value);
         CASE(TSYNTAX, "#<syntax %s>", obj->syntax.name);
         CASE(TSUBR, "#<subr %s>", obj->subr.name);
         CASE(TLAMBDA, "#<lambda>");
         CASE(TMACRO, "#<macro>");
-        CASE(TUNBOUND, "#<unbound>");
+
 #undef CASE
 
     default:

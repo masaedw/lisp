@@ -27,6 +27,7 @@ typedef struct Object Object;
 typedef Object * StObject;
 typedef StObject SyntaxFunction(StObject form);
 typedef StObject SubrFunction(StObject env, StObject args);
+#define ST_OBJECT(x) ((StObject)(x))
 
 struct Object
 {
@@ -104,10 +105,10 @@ struct Object
 #define ST_INT_TAG      0b01
 #define ST_POINTER_TAG(x) ((intptr_t)(x) & ST_TAG_MASK)
 
-extern StObject Nil;
-extern StObject True;
-extern StObject False;
-extern StObject Unbound;
+#define Nil     ST_OBJECT(0b0010)
+#define True    ST_OBJECT(0b0110)
+#define False   ST_OBJECT(0b1010)
+#define Unbound ST_OBJECT(0b1110)
 
 void St_Error(const char *fmt, ...) __attribute__((noreturn));
 
@@ -227,7 +228,6 @@ StObject St_Intern(const char *symbol_string);
 // TODO overflow check
 #define St_Integer(value) ST_OBJECT(((intptr_t)(value) << 2) | 1)
 #define ST_INT_VALUE(x) (((intptr_t)(x) >> 2))
-#define ST_OBJECT(x) ((StObject)(x))
 
 // String
 

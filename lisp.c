@@ -4,12 +4,7 @@
 
 #include "lisp.h"
 
-static Object _Nil = { TNIL };
-StObject Nil = &_Nil;
-StObject True = &(Object) { TTRUE };
-StObject False = &(Object) { TFALSE };
-StObject Unbound = &(Object) { TUNBOUND };
-StObject GlobalModule = &_Nil;
+StObject GlobalModule = Nil;
 
 void St_Error(const char *fmt, ...)
 {
