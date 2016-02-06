@@ -1,3 +1,7 @@
+machine:
+  environment:
+    CC: clang
+    CXX: clang++
 dependencies:
   pre:
     - sudo apt-get update; sudo apt-get install libgc-dev
