@@ -7,7 +7,7 @@ StObject Symbols = Nil;
 static StObject push(const char* symbol_value)
 {
     size_t len = strlen(symbol_value);
-    StObject symbol = St_Alloc(TSYMBOL, len);
+    StObject symbol = St_Alloc(TSYMBOL, len + 1);
     strcpy(symbol->symbol.value, symbol_value);
 
     Symbols = St_Cons(symbol, Symbols);
