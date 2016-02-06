@@ -2,9 +2,9 @@
 
 #include "lisp.h"
 
-StObject Symbols = NULL;
+StObject Symbols = Nil;
 
-static Object* push(const char* symbol_value)
+static StObject push(const char* symbol_value)
 {
     size_t len = strlen(symbol_value);
     StObject symbol = St_Alloc(TSYMBOL, len);
@@ -18,11 +18,6 @@ static Object* push(const char* symbol_value)
 StObject St_Intern(const char *symbol_value)
 {
     StObject p = Symbols;
-
-    if (!p)
-    {
-        p = Symbols = Nil;
-    }
 
     while (!ST_NULLP(p) && strcmp(symbol_value, ST_CAR(p)->symbol.value) != 0) {
         p = ST_CDR(p);
