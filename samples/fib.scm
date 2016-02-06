@@ -6,5 +6,5 @@
         1
         (+ (fib (- n 1)) (fib (- n 2)))))))
 
-(print (fib 40))
+(print (fib 30))
 (newline)
