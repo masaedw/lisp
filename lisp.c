@@ -23,7 +23,7 @@ void St_Error(const char *fmt, ...)
 
 StObject St_Alloc(int type, size_t size)
 {
-    StObject obj = (StObject)St_Malloc(offsetof(Object, integer.value) + size);
+    StObject obj = (StObject)St_Malloc(offsetof(Object, dummy) + size);
 
     obj->type = type;
 
@@ -190,16 +190,9 @@ bool St_EqualP(StObject lhs, StObject rhs)
     return St_EqvP(lhs, rhs);
 }
 
-StObject St_Integer(int value)
-{
-    StObject o = St_Alloc(TINT, sizeof(int));
-    o->integer.value = value;
-    return o;
-}
-
 StObject St_MakeEmptyString(int len)
 {
-    StObject o = St_Alloc(TSTRING, offsetof(Object, string.value) - offsetof(Object, integer.value) + len);
+    StObject o = St_Alloc(TSTRING, offsetof(Object, string.value) - offsetof(Object, dummy) + len);
     o->string.len = len;
 
     return o;

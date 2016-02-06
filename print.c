@@ -9,6 +9,13 @@ static void print(FILE *stream, StObject obj)
         St_Error("print: NULL");
     }
 
+    if (ST_INTP(obj))
+    {
+        fprintf(stream, "%ld", ST_INT_VALUE(obj));
+        fflush(stream);
+        return;
+    }
+
     switch (obj->type)
     {
     case TCELL:
@@ -62,7 +69,6 @@ static void print(FILE *stream, StObject obj)
             fprintf(stream, __VA_ARGS__);       \
             break
 
-        CASE(TINT, "%d", ST_INT_VALUE(obj));
         CASE(TNIL, "()");
         CASE(TTRUE, "#t");
         CASE(TFALSE, "#f");

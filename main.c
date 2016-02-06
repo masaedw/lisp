@@ -5,43 +5,33 @@
 void test_print()
 {
     St_Print(Nil);
-    printf("\n");
 
     St_Print(True);
-    printf("\n");
 
     St_Print(False);
-    printf("\n");
 
     StObject one = St_Integer(1);
 
     StObject two = St_Integer(2);
 
     St_Print(St_Cons(one, two));
-    printf("\n");
 
     St_Print(St_Cons(one, St_Cons(two, Nil)));
-    printf("\n");
 
     StObject sym1 = St_Intern("sym1");
 
     St_Print(sym1);
-    printf("\n");
 
     StObject sym2 = St_Intern("sym2");
 
     St_Print(St_Cons(sym1, sym2));
-    printf("\n");
 
 
     St_Print(St_Cons(St_Cons(one, St_Cons(two, Nil)),
                      St_Cons(sym1, St_Cons(sym2, St_Cons(Nil, sym1)))));
-    printf("\n");
 
-    StObject str = St_Alloc(TSTRING, 5);
-    memcpy(str->string.value, "hoge", 5);
+    StObject str = St_MakeString(4, "hoge");
     St_Print(str);
-    printf("\n");
 
     StObject v = St_MakeVector(3);
     St_VectorSet(v, 0, one);

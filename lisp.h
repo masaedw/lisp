@@ -8,8 +8,7 @@
 
 // type tag
 enum {
-    TINT = 1,
-    TCELL,
+    TCELL = 1,
     TNIL,
     TTRUE,
     TFALSE,
@@ -34,9 +33,7 @@ struct Object
     int type;
 
     union {
-        struct {
-            int value;
-        } integer;
+        int dummy;
 
         // cell
         struct {
@@ -89,6 +86,24 @@ struct Object
     };
 };
 
+// Tagged pointer structure
+//
+// name       lower bits  value
+// ---------  ----------  -----
+// type tag   _____11
+// object     _____00
+// integer    _____01
+// singleton  ___0010     Nil
+// singleton  ___0110     True
+// singleton  ___1010     False
+// singleton  ___1110     Unbound
+
+#define ST_TAG_BITS     2
+#define ST_TAG_MASK     0b11
+#define ST_OBJECT_TAG   0b00
+#define ST_INT_TAG      0b01
+#define ST_POINTER_TAG(x) ((intptr_t)(x) & ST_TAG_MASK)
+
 extern StObject Nil;
 extern StObject True;
 extern StObject False;
@@ -100,20 +115,21 @@ void St_Error(const char *fmt, ...) __attribute__((noreturn));
 
 StObject St_Alloc(int type, size_t size);
 
-#define ST_NULLP(obj) ((obj) == Nil)
-#define ST_TRUEP(obj) ((obj) == True)
-#define ST_FALSEP(obj) ((obj) == False)
-#define ST_UNBOUNDP(obj) ((obj) == Unbound)
-#define ST_PAIRP(obj) ((obj)->type == TCELL)
-#define ST_INTP(obj) ((obj)->type == TINT)
-#define ST_SYMBOLP(obj) ((obj)->type == TSYMBOL)
-#define ST_VECTORP(obj) ((obj)->type == TVECTOR)
-#define ST_CHARP(obj) ((obj)->type == TCHAR)
-#define ST_STRINGP(obj) ((obj)->type == TSTRING)
-#define ST_SYNTAXP(obj) ((obj)->type == TSYNTAX)
-#define ST_SUBRP(obj) ((obj)->type == TSUBR)
-#define ST_LAMBDAP(obj) ((obj)->type == TLAMBDA)
-#define ST_MACROP(obj) ((obj)->type == TMACRO)
+#define ST_OBJECTP(obj)    (ST_POINTER_TAG(obj) == ST_OBJECT_TAG)
+#define ST_NULLP(obj)      ((obj) == Nil)
+#define ST_TRUEP(obj)      ((obj) == True)
+#define ST_FALSEP(obj)     ((obj) == False)
+#define ST_UNBOUNDP(obj)   ((obj) == Unbound)
+#define ST_PAIRP(obj)      (ST_OBJECTP(obj) && (obj)->type == TCELL)
+#define ST_INTP(obj)       (ST_POINTER_TAG(obj) == ST_INT_TAG)
+#define ST_SYMBOLP(obj)    (ST_OBJECTP(obj) && (obj)->type == TSYMBOL)
+#define ST_VECTORP(obj)    (ST_OBJECTP(obj) && (obj)->type == TVECTOR)
+#define ST_CHARP(obj)      (ST_OBJECTP(obj) && (obj)->type == TCHAR)
+#define ST_STRINGP(obj)    (ST_OBJECTP(obj) && (obj)->type == TSTRING)
+#define ST_SYNTAXP(obj)    (ST_OBJECTP(obj) && (obj)->type == TSYNTAX)
+#define ST_SUBRP(obj)      (ST_OBJECTP(obj) && (obj)->type == TSUBR)
+#define ST_LAMBDAP(obj)    (ST_OBJECTP(obj) && (obj)->type == TLAMBDA)
+#define ST_MACROP(obj)     (ST_OBJECTP(obj) && (obj)->type == TMACRO)
 #define ST_PROCEDUREP(obj) (ST_SUBRP(obj) || ST_LAMBDAP(obj))
 
 // List and Pair
@@ -208,8 +224,9 @@ StObject St_Intern(const char *symbol_string);
 // Coercers
 
 #define ST_BOOLEAN(b) ((b) ? True : False)
-StObject St_Integer(int value);
-#define ST_INT_VALUE(x) (x)->integer.value
+// TODO overflow check
+#define St_Integer(value) ST_OBJECT(((intptr_t)(value) << 2) | 1)
+#define ST_INT_VALUE(x) (((intptr_t)(x) >> 2))
 #define ST_OBJECT(x) ((StObject)(x))
 
 // String
