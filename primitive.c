@@ -1,6 +1,6 @@
 #include "lisp.h"
 
-static StObject subr_plus(StObject env, StObject args)
+static StObject subr_plus(StObject args)
 {
     int value = 0;
 
@@ -16,7 +16,7 @@ static StObject subr_plus(StObject env, StObject args)
     return St_Integer(value);
 }
 
-static StObject subr_minus(StObject env, StObject args)
+static StObject subr_minus(StObject args)
 {
     int len = St_Length(args);
 
@@ -56,7 +56,7 @@ static StObject subr_minus(StObject env, StObject args)
     return St_Integer(value);
 }
 
-static StObject subr_mul(StObject env, StObject args)
+static StObject subr_mul(StObject args)
 {
     int value = 1;
 
@@ -72,7 +72,7 @@ static StObject subr_mul(StObject env, StObject args)
     return St_Integer(value);
 }
 
-static StObject subr_div(StObject env, StObject args)
+static StObject subr_div(StObject args)
 {
     int len = St_Length(args);
 
@@ -123,15 +123,15 @@ static StObject subr_div(StObject env, StObject args)
 }
 
 #define DEFINE_NUMERIC_COMPARISON(fname, op, sym)                       \
-    static StObject subr_##fname(StObject env, StObject args)              \
+    static StObject subr_##fname(StObject args)                         \
     {                                                                   \
         if (St_Length(args) < 2)                                        \
         {                                                               \
             St_Error(#sym ": wrong number of arguments");               \
         }                                                               \
                                                                         \
-        StObject fst = ST_CAR(args);                                     \
-        StObject snd = ST_CADR(args);                                    \
+        StObject fst = ST_CAR(args);                                    \
+        StObject snd = ST_CADR(args);                                   \
                                                                         \
         if (!ST_INTP(fst) || !ST_INTP(snd))                             \
         {                                                               \
@@ -140,7 +140,7 @@ static StObject subr_div(StObject env, StObject args)
                                                                         \
         bool r = ST_INT_VALUE(fst) op ST_INT_VALUE(snd);                \
         int last;                                                       \
-        StObject p;                                                      \
+        StObject p;                                                     \
                                                                         \
         for (p = ST_CDDR(args), last = ST_INT_VALUE(snd); r && !ST_NULLP(p); last = ST_INT_VALUE(ST_CAR(p)), p = ST_CDR(p)) { \
             if (!ST_INTP(ST_CAR(p)))                                    \
@@ -160,21 +160,21 @@ DEFINE_NUMERIC_COMPARISON(gt, >, >)
 DEFINE_NUMERIC_COMPARISON(ge, >=, >=)
 DEFINE_NUMERIC_COMPARISON(numeric_eq, ==, =)
 
-static StObject subr_numberp(StObject env, StObject args)
+static StObject subr_numberp(StObject args)
 {
     ST_ARGS1("number?", args, o);
 
     return ST_BOOLEAN(ST_INTP(o));
 }
 
-static StObject subr_integerp(StObject env, StObject args)
+static StObject subr_integerp(StObject args)
 {
     ST_ARGS1("integer?", args, o);
 
     return ST_BOOLEAN(ST_INTP(o));
 }
 
-static StObject subr_zerop(StObject env, StObject args)
+static StObject subr_zerop(StObject args)
 {
     ST_ARGS1("zero?", args, o);
 
@@ -186,7 +186,7 @@ static StObject subr_zerop(StObject env, StObject args)
     return ST_BOOLEAN(ST_INT_VALUE(o) == 0);
 }
 
-static StObject subr_positivep(StObject env, StObject args)
+static StObject subr_positivep(StObject args)
 {
     ST_ARGS1("positive?", args, o);
 
@@ -198,7 +198,7 @@ static StObject subr_positivep(StObject env, StObject args)
     return ST_BOOLEAN(ST_INT_VALUE(o) > 0);
 }
 
-static StObject subr_negativep(StObject env, StObject args)
+static StObject subr_negativep(StObject args)
 {
     ST_ARGS1("negative?", args, o);
 
@@ -210,7 +210,7 @@ static StObject subr_negativep(StObject env, StObject args)
     return ST_BOOLEAN(ST_INT_VALUE(o) < 0);
 }
 
-static StObject subr_oddp(StObject env, StObject args)
+static StObject subr_oddp(StObject args)
 {
     ST_ARGS1("odd?", args, o);
 
@@ -222,7 +222,7 @@ static StObject subr_oddp(StObject env, StObject args)
     return ST_BOOLEAN(ST_INT_VALUE(o) % 2 != 0);
 }
 
-static StObject subr_evenp(StObject env, StObject args)
+static StObject subr_evenp(StObject args)
 {
     ST_ARGS1("even?", args, o);
 
@@ -234,7 +234,7 @@ static StObject subr_evenp(StObject env, StObject args)
     return ST_BOOLEAN(ST_INT_VALUE(o) % 2 == 0);
 }
 
-static StObject subr_display(StObject env, StObject args)
+static StObject subr_display(StObject args)
 {
     ST_FOREACH(p, args) {
         St_Display(ST_CAR(p));
@@ -243,7 +243,7 @@ static StObject subr_display(StObject env, StObject args)
     return Nil;
 }
 
-static StObject subr_print(StObject env, StObject args)
+static StObject subr_print(StObject args)
 {
     ST_FOREACH(p, args) {
         St_Print(ST_CAR(p));
@@ -252,69 +252,69 @@ static StObject subr_print(StObject env, StObject args)
     return Nil;
 }
 
-static StObject subr_newline(StObject env, StObject args)
+static StObject subr_newline(StObject args)
 {
     fprintf(stdout, "\n");
     return Nil;
 }
 
-static StObject subr_eqp(StObject env, StObject args)
+static StObject subr_eqp(StObject args)
 {
     ST_ARGS2("eq?", args, lhs, rhs);
 
     return ST_BOOLEAN(lhs == rhs);
 }
 
-static StObject subr_eqvp(StObject env, StObject args)
+static StObject subr_eqvp(StObject args)
 {
     ST_ARGS2("eqv?", args, lhs, rhs);
 
     return ST_BOOLEAN(St_EqvP(lhs, rhs));
 }
 
-static StObject subr_equalp(StObject env, StObject args)
+static StObject subr_equalp(StObject args)
 {
     ST_ARGS2("equal?", args, lhs, rhs);
 
     return ST_BOOLEAN(St_EqualP(lhs, rhs));
 }
 
-static StObject subr_nullp(StObject env, StObject args)
+static StObject subr_nullp(StObject args)
 {
     ST_ARGS1("null?", args, o);
 
     return ST_BOOLEAN(ST_NULLP(o));
 }
 
-static StObject subr_pairp(StObject env, StObject args)
+static StObject subr_pairp(StObject args)
 {
     ST_ARGS1("pair?", args, o);
 
     return ST_BOOLEAN(ST_PAIRP(o));
 }
 
-static StObject subr_symbolp(StObject env, StObject args)
+static StObject subr_symbolp(StObject args)
 {
     ST_ARGS1("symbol?", args, o);
 
     return ST_BOOLEAN(ST_SYMBOLP(o));
 }
 
-static StObject subr_not(StObject env, StObject args)
+static StObject subr_not(StObject args)
 {
     ST_ARGS1("not", args, o);
 
     return ST_BOOLEAN(ST_FALSEP(o));
 }
 
-static StObject subr_cons(StObject env, StObject args)
+static StObject subr_cons(StObject args)
 {
     ST_ARGS2("cons", args, car, cdr);
 
     return St_Cons(car, cdr);
 }
 
-static StObject subr_car(StObject env, StObject args)
+static StObject subr_car(StObject args)
 {
     ST_ARGS1("car", args, cell);
 
@@ -326,7 +326,7 @@ static StObject subr_car(StObject env, StObject args)
     return ST_CAR(cell);
 }
 
-static StObject subr_cdr(StObject env, StObject args)
+static StObject subr_cdr(StObject args)
 {
     ST_ARGS1("cdr", args, cell);
 
@@ -338,12 +338,12 @@ static StObject subr_cdr(StObject env, StObject args)
     return ST_CDR(cell);
 }
 
-static StObject subr_list(StObject env, StObject args)
+static StObject subr_list(StObject args)
 {
     return args;
 }
 
-static StObject subr_length(StObject env, StObject args)
+static StObject subr_length(StObject args)
 {
     ST_ARGS1("length", args, list);
 
@@ -355,21 +355,21 @@ static StObject subr_length(StObject env, StObject args)
     return St_Integer(St_Length(list));
 }
 
-static StObject subr_listp(StObject env, StObject args)
+static StObject subr_listp(StObject args)
 {
     ST_ARGS1("list?", args, o);
 
     return ST_BOOLEAN(St_ListP(o));
 }
 
-static StObject subr_dotted_listp(StObject env, StObject args)
+static StObject subr_dotted_listp(StObject args)
 {
     ST_ARGS1("dotted-list?", args, o);
 
     return ST_BOOLEAN(St_DottedListP(o));
 }
 
-static StObject subr_set_car(StObject env, StObject args)
+static StObject subr_set_car(StObject args)
 {
     ST_ARGS2("set-car!", args, pair, value);
 
@@ -383,7 +383,7 @@ static StObject subr_set_car(StObject env, StObject args)
     return value;
 }
 
-static StObject subr_set_cdr(StObject env, StObject args)
+static StObject subr_set_cdr(StObject args)
 {
     ST_ARGS2("set-cdr!", args, pair, value);
 
@@ -397,14 +397,14 @@ static StObject subr_set_cdr(StObject env, StObject args)
     return value;
 }
 
-static StObject subr_vectorp(StObject env, StObject args)
+static StObject subr_vectorp(StObject args)
 {
     ST_ARGS1("vector?", args, v);
 
     return ST_BOOLEAN(ST_VECTORP(v));
 }
 
-static StObject subr_make_vector(StObject env, StObject args)
+static StObject subr_make_vector(StObject args)
 {
     ST_ARGS1("make-vector", args, size);
 
@@ -415,7 +415,7 @@ static StObject subr_make_vector(StObject env, StObject args)
     return St_MakeVector(ST_INT_VALUE(size));
 }
 
-static StObject subr_vector_ref(StObject env, StObject args)
+static StObject subr_vector_ref(StObject args)
 {
     ST_ARGS2("vector-ref", args, v, idx);
 
@@ -432,7 +432,7 @@ static StObject subr_vector_ref(StObject env, StObject args)
     return St_VectorRef(v, ST_INT_VALUE(idx));
 }
 
-static StObject subr_vector_set(StObject env, StObject args)
+static StObject subr_vector_set(StObject args)
 {
     ST_ARGS3("vector-set!", args, v, idx, obj);
 
@@ -451,7 +451,7 @@ static StObject subr_vector_set(StObject env, StObject args)
     return obj;
 }
 
-static StObject subr_vector_length(StObject env, StObject args)
+static StObject subr_vector_length(StObject args)
 {
     ST_ARGS1("vector-length", args, v);
 
@@ -463,63 +463,63 @@ static StObject subr_vector_length(StObject env, StObject args)
     return St_Integer(St_VectorLength(v));
 }
 
-static StObject subr_compile(StObject env, StObject args)
+static StObject subr_compile(StObject args)
 {
     ST_ARGS2("compile", args, expr, next);
 
-    return St_Compile(expr, GlobalModule, env, next);
+    return St_Compile(expr, GlobalModule, next);
 }
 
-static StObject subr_eval_vm(StObject env, StObject args)
+static StObject subr_eval_vm(StObject args)
 {
     ST_ARGS1("eval-vm", args, expr);
 
-    return St_Eval_VM(GlobalModule, env, expr);
+    return St_Eval_VM(GlobalModule, expr);
 }
 
-static StObject subr_set_memberp(StObject env, StObject args)
+static StObject subr_set_memberp(StObject args)
 {
     ST_ARGS2("set-member?", args, obj, set);
 
     return ST_BOOLEAN(St_SetMemberP(obj, set));
 }
 
-static StObject subr_set_cons(StObject env, StObject args)
+static StObject subr_set_cons(StObject args)
 {
     ST_ARGS2("set-cons", args, obj, set);
 
     return St_SetCons(obj, set);
 }
 
-static StObject subr_set_union(StObject env, StObject args)
+static StObject subr_set_union(StObject args)
 {
     ST_ARGS2("set-union", args, s1, s2);
 
     return St_SetUnion(s1, s2);
 }
 
-static StObject subr_set_minus(StObject env, StObject args)
+static StObject subr_set_minus(StObject args)
 {
     ST_ARGS2("set-minus", args, s1, s2);
 
     return St_SetMinus(s1, s2);
 }
 
-static StObject subr_set_intersect(StObject env, StObject args)
+static StObject subr_set_intersect(StObject args)
 {
     ST_ARGS2("set-intersect", args, s1, s2);
 
     return St_SetIntersect(s1, s2);
 }
 
-static StObject subr_stringp(StObject env, StObject args)
+static StObject subr_stringp(StObject args)
 {
     ST_ARGS1("string?", args, o);
 
     return ST_BOOLEAN(ST_STRINGP(o));
 }
 
-static StObject subr_make_string(StObject env, StObject args)
+static StObject subr_make_string(StObject args)
 {
     ST_ARGS1("make-string", args, len);
 
@@ -531,7 +531,7 @@ static StObject subr_make_string(StObject env, StObject args)
     return St_MakeEmptyString(ST_INT_VALUE(len));
 }
 
-static StObject subr_string_length(StObject env, StObject args)
+static StObject subr_string_length(StObject args)
 {
     ST_ARGS1("string-length", args, s);
 
@@ -543,7 +543,7 @@ static StObject subr_string_length(StObject env, StObject args)
     return St_Integer(St_StringLength(s));
 }
 
-static StObject subr_string_append(StObject env, StObject args)
+static StObject subr_string_append(StObject args)
 {
     ST_FOREACH(p, args) {
         if (!ST_STRINGP(ST_CAR(p)))
@@ -555,7 +555,7 @@ static StObject subr_string_append(StObject env, StObject args)
     return St_StringAppend(args);
 }
 
-static StObject subr_string_equalp(StObject env, StObject args)
+static StObject subr_string_equalp(StObject args)
 {
     int len = 0;
 
@@ -584,7 +584,7 @@ static StObject subr_string_equalp(StObject env, StObject args)
     return True;
 }
 
-static StObject subr_apply(StObject env, StObject args)
+static StObject subr_apply(StObject args)
 {
     int len = St_Length(args);
     if (len < 2)
@@ -617,7 +617,7 @@ static StObject subr_apply(StObject env, StObject args)
     return St_Apply(proc, x);
 }
 
-static StObject subr_macroexpand(StObject env, StObject args)
+static StObject subr_macroexpand(StObject args)
 {
     ST_ARGS1("macroexpand", args, expr);
 

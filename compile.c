@@ -495,7 +495,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
     return ST_LIST3(I("constant"), x, next);
 }
 
-StObject St_Compile(StObject expr, StObject module, StObject env, StObject next)
+StObject St_Compile(StObject expr, StObject module, StObject next)
 {
     return compile(macroexpand(module, expr), module, St_Cons(Nil, Nil), Nil, next);
 }

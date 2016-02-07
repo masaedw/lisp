@@ -27,7 +27,7 @@ enum {
 typedef struct Object Object;
 typedef Object * StObject;
 typedef StObject SyntaxFunction(StObject form);
-typedef StObject SubrFunction(StObject env, StObject args);
+typedef StObject SubrFunction(StObject args);
 #define ST_OBJECT(x) ((StObject)(x))
 
 struct Object
@@ -295,12 +295,12 @@ void St_Print(StObject obj);
 
 // Evaluator
 
-StObject St_Eval_VM(StObject module, StObject env, StObject obj);
-StObject St__Eval_INSN(StObject module, StObject env, StObject insn);
+StObject St_Eval_VM(StObject module, StObject obj);
+StObject St__Eval_INSN(StObject module, StObject insn);
 
 // Compiler
 
 StObject St_MacroExpand(StObject module, StObject expr);
-StObject St_Compile(StObject expr, StObject module, StObject env, StObject next);
+StObject St_Compile(StObject expr, StObject module, StObject next);
 
 #endif

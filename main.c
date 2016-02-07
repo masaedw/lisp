@@ -71,7 +71,7 @@ int main(int argc, char** argv)
             return 0;
         }
 
-        StObject value = St_Eval_VM(GlobalModule, Nil, expr);
+        StObject value = St_Eval_VM(GlobalModule, expr);
 
         if (interactive_mode)
         {

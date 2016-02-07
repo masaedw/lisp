@@ -151,7 +151,7 @@ static int shift_args(int n, int m, int s)
     return s - m;
 }
 
-static StObject vm(StObject m, StObject env, StObject insn)
+static StObject vm(StObject m, StObject insn)
 {
     // insns
 #define INSN(x) StObject x = St_Intern(#x)
@@ -335,7 +335,7 @@ static StObject vm(StObject m, StObject env, StObject insn)
                     ST_APPEND1(head, tail, index(Vm->s, i));
                 }
 
-                Vm->a = Vm->a->subr.body(env, head);
+                Vm->a = Vm->a->subr.body(head);
 
                 // return
                 Vm->x = index(Vm->s, len + 0);
@@ -405,14 +405,14 @@ static StObject vm(StObject m, StObject env, StObject insn)
     }
 }
 
-StObject St_Eval_VM(StObject module, StObject env, StObject obj)
+StObject St_Eval_VM(StObject module, StObject obj)
 {
-    return vm(module, env, St_Compile(obj, module, env, ST_LIST1(St_Intern("halt"))));
+    return vm(module, St_Compile(obj, module, ST_LIST1(St_Intern("halt"))));
 }
 
-StObject St__Eval_INSN(StObject module, StObject env, StObject insn)
+StObject St__Eval_INSN(StObject module, StObject insn)
 {
-    return vm(module, env, insn);
+    return vm(module, insn);
 }
 
 #define I(x) St_Intern(x)
@@ -429,5 +429,5 @@ StObject St_Apply(StObject proc, StObject args)
 
     i = ST_LIST3(I("frame"), ST_LIST1(I("halt")), i);
 
-    return St__Eval_INSN(Vm->m, Nil, i);
+    return St__Eval_INSN(Vm->m, i);
 }
