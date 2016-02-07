@@ -262,10 +262,11 @@ extern StObject GlobalModule;
 StObject St_MakeModule(StObject alist);
 StObject St_ModuleFind(StObject module, StObject sym);
 int St_ModuleFindOrInitialize(StObject module, StObject sym, StObject init);
+void St_ModulePush(StObject module, StObject sym, StObject value);
 void St_ModuleSet(StObject module, int idx, StObject val);
 StObject St_ModuleRef(StObject module, int idx);
 StObject St_ModuleSymbols(StObject module);
-void St_InitModule(StObject env);
+void St_InitModule();
 
 // Basic functions
 
@@ -276,16 +277,11 @@ StObject St_Apply(StObject proc, StObject args);
 
 // Environment
 
-StObject St_InitEnv();
-void St_AddVariable(StObject env, StObject key, StObject value);
-void St_AddSyntax(StObject env, const char *key, SyntaxFunction *syntax);
-void St_AddSubr(StObject env, const char *key, SubrFunction *subr);
-StObject St_PushEnv(StObject env, StObject keys, StObject values);
-StObject St_LookupVariablePair(StObject env, StObject key);
-StObject St_LookupVariable(StObject env, StObject key);
+void St_AddSyntax(StObject module, const char *key, SyntaxFunction *syntax);
+void St_AddSubr(StObject module, const char *key, SubrFunction *subr);
 
-void St_InitPrimitives(StObject env);
-void St_InitSyntax(StObject env);
+void St_InitPrimitives();
+void St_InitSyntax();
 void St_InitVm();
 
 // Parser

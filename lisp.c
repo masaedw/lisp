@@ -289,6 +289,10 @@ int St_VectorLength(StObject v)
 
 StObject St_MakeDVector(int size, int capa)
 {
+    if (capa <= 0)
+    {
+        capa = 4;
+    }
     return St_Cons(St_Integer(size), St_MakeVector(capa));
 }
 
@@ -391,6 +395,11 @@ int St_ModuleFindOrInitialize(StObject m, StObject sym, StObject init)
         : i;
 }
 
+void St_ModulePush(StObject m, StObject sym, StObject value)
+{
+    St_DVectorPush(m, St_Cons(sym, value));
+}
+
 void St_ModuleSet(StObject m, int idx, StObject val)
 {
     ST_CDR_SET(St_DVectorRef(m, idx), val);
@@ -413,119 +422,25 @@ StObject St_ModuleSymbols(StObject m)
     return syms;
 }
 
-void St_InitModule(StObject env)
+void St_InitModule()
 {
-    StObject head = Nil;
-    StObject tail = Nil;
-
-    for (StObject p = env; !ST_NULLP(p); p = ST_CAR(p)) {
-        ST_FOREACH(q, ST_CADR(p)) {
-            ST_APPEND1(head, tail, ST_CAR(q));
-        }
-    }
-    GlobalModule = St_MakeModule(head);
+    GlobalModule = St_MakeModule(Nil);
 }
 
-// Environment structure
-// (<upper level env> <variable alist> . <tail cell of variable alist>)
-
-StObject St_InitEnv()
-{
-    return St_Cons(Nil, St_Cons(Nil, Nil));
-}
-
-void St_AddVariable(StObject env, StObject key, StObject value)
-{
-    StObject head = ST_CADR(env);
-    StObject tail = ST_CDDR(env);
-
-    ST_FOREACH(p, head) {
-        if (ST_CAAR(p) == key)
-        {
-            ST_CDR_SET(ST_CAR(p), value);
-            return;
-        }
-    }
-
-    ST_APPEND1(head, tail, St_Cons(key, value));
-
-    ST_CAR_SET(ST_CDR(env), head);
-    ST_CDR_SET(ST_CDR(env), tail);
-}
-
-void St_AddSyntax(StObject env, const char *key, SyntaxFunction *syntax)
+void St_AddSyntax(StObject module, const char *key, SyntaxFunction *syntax)
 {
     StObject s = St_Alloc(TSYNTAX, sizeof(void*) * 2);
     s->syntax.body = syntax;
     s->syntax.name = key;
 
-    St_AddVariable(env, St_Intern(key), s);
+    St_ModulePush(module, St_Intern(key), s);
 }
 
-void St_AddSubr(StObject env, const char *key, SubrFunction *subr)
+void St_AddSubr(StObject module, const char *key, SubrFunction *subr)
 {
     StObject s = St_Alloc(TSUBR, sizeof(void*) * 2);
     s->subr.body = subr;
     s->subr.name = key;
 
-    St_AddVariable(env, St_Intern(key), s);
-}
-
-StObject St_PushEnv(StObject env, StObject keys, StObject values)
-{
-    StObject new_env = St_Cons(env, St_Cons(Nil, Nil));
-
-    StObject p = keys;
-    StObject v = values;
-
-    if (ST_SYMBOLP(p))
-    {
-        St_AddVariable(new_env, p, values);
-        return new_env;
-    }
-
-    for (; !ST_NULLP(p) && !ST_NULLP(v); p = ST_CDR(p), v = ST_CDR(v))
-    {
-        St_AddVariable(new_env, ST_CAR(p), ST_CAR(v));
-
-        if (!ST_PAIRP(ST_CDR(p)) && !ST_NULLP(ST_CDR(p)))
-        {
-            St_AddVariable(new_env, ST_CDR(p), ST_CDR(v));
-            break;
-        }
-    }
-
-    return new_env;
-}
-
-StObject St_LookupVariablePair(StObject env, StObject key)
-{
-    if (ST_NULLP(env))
-    {
-        return Nil;
-    }
-
-    ST_FOREACH(p, ST_CADR(env)) {
-        StObject symbol = ST_CAAR(p);
-
-        if (symbol == key)
-        {
-            return ST_CAR(p);
-        }
-    }
-
-    // go to upper level
-    return St_LookupVariablePair(ST_CAR(env), key);
-}
-
-StObject St_LookupVariable(StObject env, StObject key)
-{
-    StObject pair = St_LookupVariablePair(env, key);
-
-    if (ST_NULLP(pair))
-    {
-        St_Error("unbound variable: %s", key->symbol.value);
-    }
-
-    return ST_CDR(pair);
+    St_ModulePush(module, St_Intern(key), s);
 }

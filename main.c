@@ -44,10 +44,9 @@ int main(int argc, char** argv)
 {
     GC_INIT();
 
-    StObject env = St_InitEnv();
-    St_InitPrimitives(env);
-    St_InitSyntax(env);
-    St_InitModule(env);
+    St_InitModule();
+    St_InitPrimitives();
+    St_InitSyntax();
     St_InitVm();
 
     StObject expr;
@@ -72,7 +71,7 @@ int main(int argc, char** argv)
             return 0;
         }
 
-        StObject value = St_Eval_VM(GlobalModule, env, expr);
+        StObject value = St_Eval_VM(GlobalModule, Nil, expr);
 
         if (interactive_mode)
         {

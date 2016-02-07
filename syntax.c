@@ -54,7 +54,9 @@ static StObject syntax_let(StObject expr)
     return ret;
 }
 
-void St_InitSyntax(StObject env)
+void St_InitSyntax()
 {
-    St_AddSyntax(env, "let", syntax_let);
+    StObject m = GlobalModule;
+
+    St_AddSyntax(m, "let", syntax_let);
 }
