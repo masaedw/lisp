@@ -26,6 +26,7 @@ static void print(FILE *stream, StObject obj)
         CASE((intptr_t)Nil, "()");
         CASE((intptr_t)True, "#t");
         CASE((intptr_t)False, "#f");
+        CASE((intptr_t)Eof, "#<eof-object>");
         CASE((intptr_t)Unbound, "#<unbound>");
 
 #undef CASE
