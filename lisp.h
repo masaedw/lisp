@@ -190,36 +190,40 @@ StObject St_Intern(const char *symbol_string);
 
 // Primitive utilities
 
-#define ST_CHECK_ARG_LEN(name, args, len)                       \
-    do {                                                        \
-        int _len = St_Length(args);                             \
-                                                                \
-        if (_len != (len))                                      \
-        {                                                       \
-            St_Error(name ": wrong number of arguments");       \
-        }                                                       \
+#define ST_CHECK_ARG_LEN(name, args, len)                   \
+    do {                                                    \
+        int _len = St_Length(args);                         \
+                                                            \
+        if (_len != (len))                                  \
+        {                                                   \
+            St_Error(name ": wrong number of arguments");   \
+        }                                                   \
     } while (0)
 
-#define ST_ARGS1(name, args, a1)                        \
-    ST_CHECK_ARG_LEN(name, args, 1);                    \
+#define ST_ARGS0(name, args)                    \
+    ST_CHECK_ARG_LEN(name, args, 0)
+
+
+#define ST_ARGS1(name, args, a1)                \
+    ST_CHECK_ARG_LEN(name, args, 1);            \
     StObject (a1) = ST_CAR(args)
 
-#define ST_ARGS2(name, args, a1, a2)                    \
-    ST_CHECK_ARG_LEN(name, args, 2);                    \
-    StObject (a1) = ST_CAR(args);                        \
+#define ST_ARGS2(name, args, a1, a2)            \
+    ST_CHECK_ARG_LEN(name, args, 2);            \
+    StObject (a1) = ST_CAR(args);               \
     StObject (a2) = ST_CADR(args)
 
-#define ST_ARGS3(name, args, a1, a2, a3)                \
-    ST_CHECK_ARG_LEN(name, args, 3);                    \
-    StObject (a1) = ST_CAR(args);                        \
-    StObject (a2) = ST_CADR(args);                       \
+#define ST_ARGS3(name, args, a1, a2, a3)        \
+    ST_CHECK_ARG_LEN(name, args, 3);            \
+    StObject (a1) = ST_CAR(args);               \
+    StObject (a2) = ST_CADR(args);              \
     StObject (a3) = ST_CADDR(args)
 
-#define ST_ARGS4(name, args, a1, a2, a3, a4)            \
-    ST_CHECK_ARG_LEN(name, args, 4);                    \
-    StObject (a1) = ST_CAR(args);                        \
-    StObject (a2) = ST_CADR(args);                       \
-    StObject (a3) = ST_CADDR(args);                      \
+#define ST_ARGS4(name, args, a1, a2, a3, a4)    \
+    ST_CHECK_ARG_LEN(name, args, 4);            \
+    StObject (a1) = ST_CAR(args);               \
+    StObject (a2) = ST_CADR(args);              \
+    StObject (a3) = ST_CADDR(args);             \
     StObject (a4) = ST_CADDDR(args)
 
 // Coercers
