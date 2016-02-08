@@ -638,6 +638,20 @@ static StObject subr_load(StObject args)
     return True;
 }
 
+static StObject subr_eof_object(StObject args)
+{
+    ST_ARGS0("eof-object", args);
+
+    return Eof;
+}
+
+static StObject subr_eof_objectp(StObject args)
+{
+    ST_ARGS1("eof-object?", args, o);
+
+    return ST_BOOLEAN(ST_EOFP(o));
+}
+
 void St_InitPrimitives()
 {
     StObject m = GlobalModule;
@@ -697,4 +711,6 @@ void St_InitPrimitives()
     St_AddSubr(m, "apply", subr_apply);
     St_AddSubr(m, "macroexpand", subr_macroexpand);
     St_AddSubr(m, "load", subr_load);
+    St_AddSubr(m, "eof-object", subr_eof_object);
+    St_AddSubr(m, "eof-object?", subr_eof_objectp);
 }

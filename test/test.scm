@@ -166,3 +166,6 @@
 
 (load "./test/test_sub.scm")
 (assert 12345 test-sub 'load_0)
+
+(assert #f (eof-object? #t) 'eof_0)
+(assert #t (eof-object? (eof-object)) 'eof_1)
