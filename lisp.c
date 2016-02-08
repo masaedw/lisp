@@ -185,6 +185,26 @@ bool St_EqualP(StObject lhs, StObject rhs)
     return St_EqvP(lhs, rhs);
 }
 
+void St_Load(const char* filename)
+{
+    StObject expr = Nil;
+    FILE *input = fopen(filename, "r");
+
+    if (input == NULL)
+    {
+        St_Error("can't open: %s", filename);
+    }
+
+    while (true) {
+        expr = St_Read(input);
+        if (ST_EOFP(expr))
+        {
+            return;
+        }
+        St_Eval_VM(GlobalModule, expr);
+    }
+}
+
 StObject St_MakeEmptyString(int len)
 {
     StObject o = St_Alloc(TSTRING, offsetof(Object, string.value) - offsetof(Object, dummy) + len);
@@ -236,6 +256,15 @@ StObject St_StringAppend(StObject list)
     }
 
     return o;
+}
+
+char *St_StringGetCString(StObject string)
+{
+    int len = string->string.len;
+    char *buf = St_Malloc(len + 1);
+    memcpy(buf, string->string.value, len);
+    buf[len] = 0;
+    return buf;
 }
 
 StObject St_MakeVector(int size)

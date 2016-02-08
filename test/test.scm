@@ -163,3 +163,6 @@
 
 (assert 105 (+ 5 (call/cc (lambda (cont) (* 10 10)))) 'call/cc_0)
 (assert 25 (+ 5 (call/cc (lambda (cont) (* 10 10 (cont 20))))) 'call/cc_1)
+
+(load "./test/test_sub.scm")
+(assert 12345 test-sub 'load_0)

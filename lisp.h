@@ -236,6 +236,7 @@ StObject St_MakeString(int len, char* buf);
 int St_StringLength(StObject s);
 bool St_StringEqualP(StObject s1, StObject s2);
 StObject St_StringAppend(StObject list);
+char *St_StringGetCString(StObject string);
 
 // Vector
 
@@ -273,6 +274,7 @@ bool St_EqvP(StObject lhs, StObject rhs);
 bool St_EqualP(StObject lhs, StObject rhs);
 StObject St_Gensym();
 StObject St_Apply(StObject proc, StObject args);
+void St_Load(const char *filename);
 
 // Environment
 

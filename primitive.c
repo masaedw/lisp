@@ -624,6 +624,20 @@ static StObject subr_macroexpand(StObject args)
     return St_MacroExpand(GlobalModule, expr);
 }
 
+static StObject subr_load(StObject args)
+{
+    ST_ARGS1("load", args, file);
+
+    if (!ST_STRINGP(file))
+    {
+        St_Error("required string");
+    }
+
+    St_Load(St_StringGetCString(file));
+
+    return True;
+}
+
 void St_InitPrimitives()
 {
     StObject m = GlobalModule;
@@ -682,4 +696,5 @@ void St_InitPrimitives()
     St_AddSubr(m, "string=?", subr_string_equalp);
     St_AddSubr(m, "apply", subr_apply);
     St_AddSubr(m, "macroexpand", subr_macroexpand);
+    St_AddSubr(m, "load", subr_load);
 }
