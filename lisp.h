@@ -91,10 +91,11 @@ struct Object
 // type tag   _____11
 // object     _____00
 // integer    _____01
-// singleton  ___0010     Nil
-// singleton  ___0110     True
-// singleton  ___1010     False
-// singleton  ___1110     Unbound
+// singleton  __00010     Nil
+// singleton  __00110     True
+// singleton  __01010     False
+// singleton  __01110     Unbound
+// singleton  __10010     Eof
 
 #define ST_TAG_BITS     2
 #define ST_TAG_MASK     0b11
@@ -102,10 +103,11 @@ struct Object
 #define ST_INT_TAG      0b01
 #define ST_POINTER_TAG(x) ((intptr_t)(x) & ST_TAG_MASK)
 
-#define Nil     ST_OBJECT(0b0010)
-#define True    ST_OBJECT(0b0110)
-#define False   ST_OBJECT(0b1010)
-#define Unbound ST_OBJECT(0b1110)
+#define Nil     ST_OBJECT(0b00010)
+#define True    ST_OBJECT(0b00110)
+#define False   ST_OBJECT(0b01010)
+#define Unbound ST_OBJECT(0b01110)
+#define Eof     ST_OBJECT(0b10010)
 
 void St_Error(const char *fmt, ...) __attribute__((noreturn));
 
@@ -118,6 +120,7 @@ StObject St_Alloc(int type, size_t size);
 #define ST_TRUEP(obj)      ((obj) == True)
 #define ST_FALSEP(obj)     ((obj) == False)
 #define ST_UNBOUNDP(obj)   ((obj) == Unbound)
+#define ST_EOFP(obj)       ((obj) == Eof)
 #define ST_PAIRP(obj)      (ST_OBJECTP(obj) && (obj)->type == TCELL)
 #define ST_INTP(obj)       (ST_POINTER_TAG(obj) == ST_INT_TAG)
 #define ST_SYMBOLP(obj)    (ST_OBJECTP(obj) && (obj)->type == TSYMBOL)
