@@ -10,10 +10,6 @@
 // type tag
 enum {
     TCELL = 1,
-    TNIL,
-    TTRUE,
-    TFALSE,
-    TUNBOUND,
     TSYMBOL,
     TCHAR,
     TSTRING,
