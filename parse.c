@@ -37,7 +37,7 @@ static StObject read_expr(FILE* stream)
 
     switch (c) {
     case EOF:
-        return NULL;
+        return Eof;
     case '(':
         if (peek(stream) == ')')
         {

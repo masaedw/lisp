@@ -92,7 +92,7 @@ int main(int argc, char** argv)
 
     while (true) {
         expr = St_Read(input);
-        if (!expr)
+        if (ST_EOFP(expr))
         {
             return 0;
         }
