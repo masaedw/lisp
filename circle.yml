@@ -10,4 +10,4 @@ dependencies:
     - make
 test:
   override:
-    - ./lisp < test/test.scm
+    - ./lisp test/test.scm

@@ -40,6 +40,16 @@ void test_print()
     St_Print(v);
 }
 
+static FILE *input;
+
+void finalizer()
+{
+    if (input != stdin)
+    {
+        fclose(input);
+    }
+}
+
 int main(int argc, char** argv)
 {
     GC_INIT();
@@ -52,10 +62,12 @@ int main(int argc, char** argv)
     StObject expr;
 
     bool interactive_mode = false;
+    int pargs = 1;
 
     if (argc >= 2 && strcmp(argv[1], "-i") == 0)
     {
         interactive_mode = true;
+        pargs++;
     }
 
     if (argc >=2 && strcmp(argv[1], "-p") == 0)
@@ -64,8 +76,22 @@ int main(int argc, char** argv)
         return 0;
     }
 
+    input = stdin;
+    atexit(finalizer);
+
+    if (argc >= pargs + 1)
+    {
+        FILE *f = fopen(argv[pargs], "r");
+        if (f == NULL)
+        {
+            St_Error("can't open: %s", argv[pargs]);
+        }
+
+        input = f;
+    }
+
     while (true) {
-        expr = St_Read(stdin);
+        expr = St_Read(input);
         if (!expr)
         {
             return 0;
