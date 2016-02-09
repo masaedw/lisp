@@ -112,6 +112,38 @@ bool St_DottedListP(StObject maybe_list)
     return !ST_NULLP(ST_CDR(p));
 }
 
+StObject St_Assq(StObject obj, StObject alist)
+{
+    ST_FOREACH(p, alist) {
+        StObject pair = ST_CAR(p);
+        if (!ST_PAIRP(pair))
+        {
+            return False;
+        }
+        if (ST_CAR(pair) == obj)
+        {
+            return pair;
+        }
+    }
+    return False;
+}
+
+StObject St_Assv(StObject obj, StObject alist)
+{
+    ST_FOREACH(p, alist) {
+        StObject pair = ST_CAR(p);
+        if (!ST_PAIRP(pair))
+        {
+            return False;
+        }
+        if (St_EqvP(ST_CAR(pair), obj))
+        {
+            return pair;
+        }
+    }
+    return False;
+}
+
 bool St_SetMemberP(StObject obj, StObject s)
 {
     ST_FOREACH(p, s) {

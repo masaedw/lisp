@@ -169,3 +169,8 @@
 
 (assert #f (eof-object? #t) 'eof_0)
 (assert #t (eof-object? (eof-object)) 'eof_1)
+
+(assert #f (assq 'd '((a . a) (b . b) (c . c))) 'assq_0)
+(assert '(a . a) (assq 'a '((a . a) (b . b) (c . c))) 'assq_1)
+(assert #f (assv 'd '((a . a) (b . b) (c . c))) 'assv_0)
+(assert '(a . a) (assv 'a '((a . a) (b . b) (c . c))) 'assv_1)
