@@ -14,6 +14,7 @@ enum {
     TCHAR,
     TSTRING,
     TVECTOR,
+    TBYTEVECTOR,
     TSYNTAX,
     TSUBR,
     TLAMBDA,
@@ -56,6 +57,11 @@ struct Object
             int size;
             StObject data[1];
         } vector;
+
+        struct StBytevector {
+            int size;
+            uint8_t data[1];
+        } bytevector;
 
         // syntax
         struct {
@@ -115,23 +121,24 @@ void St_Error(const char *fmt, ...) __attribute__((noreturn));
 
 StObject St_Alloc(int type, size_t size);
 
-#define ST_OBJECTP(obj)    (ST_POINTER_TAG(obj) == ST_OBJECT_TAG)
-#define ST_NULLP(obj)      ((obj) == Nil)
-#define ST_TRUEP(obj)      ((obj) == True)
-#define ST_FALSEP(obj)     ((obj) == False)
-#define ST_UNBOUNDP(obj)   ((obj) == Unbound)
-#define ST_EOFP(obj)       ((obj) == Eof)
-#define ST_PAIRP(obj)      (ST_OBJECTP(obj) && (obj)->type == TCELL)
-#define ST_INTP(obj)       (ST_POINTER_TAG(obj) == ST_INT_TAG)
-#define ST_SYMBOLP(obj)    (ST_OBJECTP(obj) && (obj)->type == TSYMBOL)
-#define ST_VECTORP(obj)    (ST_OBJECTP(obj) && (obj)->type == TVECTOR)
-#define ST_CHARP(obj)      (ST_OBJECTP(obj) && (obj)->type == TCHAR)
-#define ST_STRINGP(obj)    (ST_OBJECTP(obj) && (obj)->type == TSTRING)
-#define ST_SYNTAXP(obj)    (ST_OBJECTP(obj) && (obj)->type == TSYNTAX)
-#define ST_SUBRP(obj)      (ST_OBJECTP(obj) && (obj)->type == TSUBR)
-#define ST_LAMBDAP(obj)    (ST_OBJECTP(obj) && (obj)->type == TLAMBDA)
-#define ST_MACROP(obj)     (ST_OBJECTP(obj) && (obj)->type == TMACRO)
-#define ST_PROCEDUREP(obj) (ST_SUBRP(obj) || ST_LAMBDAP(obj))
+#define ST_OBJECTP(obj)     (ST_POINTER_TAG(obj) == ST_OBJECT_TAG)
+#define ST_NULLP(obj)       ((obj) == Nil)
+#define ST_TRUEP(obj)       ((obj) == True)
+#define ST_FALSEP(obj)      ((obj) == False)
+#define ST_UNBOUNDP(obj)    ((obj) == Unbound)
+#define ST_EOFP(obj)        ((obj) == Eof)
+#define ST_PAIRP(obj)       (ST_OBJECTP(obj) && (obj)->type == TCELL)
+#define ST_INTP(obj)        (ST_POINTER_TAG(obj) == ST_INT_TAG)
+#define ST_SYMBOLP(obj)     (ST_OBJECTP(obj) && (obj)->type == TSYMBOL)
+#define ST_VECTORP(obj)     (ST_OBJECTP(obj) && (obj)->type == TVECTOR)
+#define ST_BYTEVECTORP(obj) (ST_OBJECTP(obj) && (obj)->type == TBYTEVECTOR)
+#define ST_CHARP(obj)       (ST_OBJECTP(obj) && (obj)->type == TCHAR)
+#define ST_STRINGP(obj)     (ST_OBJECTP(obj) && (obj)->type == TSTRING)
+#define ST_SYNTAXP(obj)     (ST_OBJECTP(obj) && (obj)->type == TSYNTAX)
+#define ST_SUBRP(obj)       (ST_OBJECTP(obj) && (obj)->type == TSUBR)
+#define ST_LAMBDAP(obj)     (ST_OBJECTP(obj) && (obj)->type == TLAMBDA)
+#define ST_MACROP(obj)      (ST_OBJECTP(obj) && (obj)->type == TMACRO)
+#define ST_PROCEDUREP(obj)  (ST_SUBRP(obj) || ST_LAMBDAP(obj))
 
 // List and Pair
 
@@ -251,6 +258,18 @@ StObject St_VectorRef(StObject vector, int idx);
 void St_CopyVector(StObject dst, StObject src, int size);
 void St_VectorSet(StObject vector, int idx, StObject obj);
 int St_VectorLength(StObject vector);
+
+// Bytevector
+
+StObject St_MakeBytevector(int size);
+StObject St_MakeBytevector2(int size, uint8_t byte);
+int St_BytevectorLength(StObject bytevector);
+uint8_t St_BytevectorU8Ref(StObject bytevector, int k);
+void St_BytevectorU8Set(StObject bytevector, int k, uint8_t byte);
+StObject St_MakeBytevectorFrom(StObject bytevector, int start, int end);
+void St_BytevectorCopy(StObject to, int at, StObject from, int start, int end);
+StObject St_BytevectorAppend(StObject vectors);
+
 
 // Dynamic Vector (complex type)
 

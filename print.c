@@ -73,6 +73,24 @@ static void print(FILE *stream, StObject obj)
         break;
     }
 
+    case TBYTEVECTOR: {
+        fprintf(stream, "#u8(");
+        int len = St_BytevectorLength(obj);
+
+        for (int i = 0; i < len; i++) {
+            fprintf(stream, "%d", St_BytevectorU8Ref(obj, i));
+
+            if (i < len - 1)
+            {
+                fprintf(stream, " ");
+            }
+        }
+
+        fprintf(stream, ")");
+
+        break;
+    }
+
     case TSTRING: {
         for (int i = 0; i < obj->string.len; i++) {
             fprintf(stream, "%c", obj->string.value[i]);
