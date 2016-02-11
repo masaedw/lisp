@@ -154,6 +154,26 @@ static StObject read_integer(FILE *stream, int first_digit)
     return St_Integer(value);
 }
 
+static StObject read_bytevector(FILE *stream)
+{
+    skip_space(stream);
+    int c = getc(stream);
+
+    if (c == ')')
+    {
+        return Nil;
+    }
+
+    if (!isdigit(c))
+    {
+        St_Error("read: unexpected in bytevector");
+    }
+
+    StObject i = read_integer(stream, c - '0');
+
+    return St_Cons(i, read_bytevector(stream));
+}
+
 static StObject read_hash(FILE *stream)
 {
     skip_space(stream);
@@ -168,6 +188,16 @@ static StObject read_hash(FILE *stream)
     if (c == 'f')
     {
         return False;
+    }
+
+    if (c == 'u')
+    {
+        int d = getc(stream);
+        int e = getc(stream);
+        if (d == '8' && e == '(')
+        {
+            return St_MakeBytevectorFromList(read_bytevector(stream));
+        }
     }
 
     St_Error("read: unexpected hash literal");
