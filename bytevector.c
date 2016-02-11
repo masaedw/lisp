@@ -5,17 +5,14 @@
 #define LENGTH(x) (x)->bytevector.size
 #define DATA(x) (x)->bytevector.data
 
-StObject St_MakeBytevector(int size)
+StObject St_MakeBytevector(int size, int byte)
 {
     StObject o = St_Alloc(TBYTEVECTOR, sizeof(struct StBytevector) + size - 1);
     LENGTH(o) = size;
-    return o;
-}
-
-StObject St_MakeBytevector2(int size, uint8_t byte)
-{
-    StObject o = St_MakeBytevector(size);
-    memset(DATA(o), byte, size);
+    if (byte >= 0)
+    {
+        memset(DATA(o), byte, size);
+    }
     return o;
 }
 
@@ -76,7 +73,7 @@ StObject St_MakeBytevectorFrom(StObject b, int start, int end)
         St_Error("bytevector-copy: end %d is less than start %d", end, start);
     }
 
-    StObject o = St_MakeBytevector(newlen);
+    StObject o = St_MakeBytevector(newlen, -1);
     memcpy(DATA(o), DATA(b) + start, newlen);
     return o;
 }
@@ -120,7 +117,7 @@ StObject St_BytevectorAppend(StObject vectors)
     ST_FOREACH(p, vectors) {
         len += LENGTH(ST_CAR(p));
     }
-    StObject o = St_MakeBytevector(len);
+    StObject o = St_MakeBytevector(len, -1);
 
     int d = 0;
     ST_FOREACH(p, vectors) {
