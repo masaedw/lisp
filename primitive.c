@@ -835,6 +835,7 @@ static StObject subr_bytevector_copyx(StObject args)
             St_Error("bytevector-copy!: bytevector required 'to'");
         }
         St_BytevectorCopy(to, at, from, start, end);
+        return Nil;
     }
     default:
         St_Error("bytevector-copy!: wrong number of arguments");
