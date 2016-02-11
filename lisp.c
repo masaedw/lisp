@@ -214,6 +214,11 @@ bool St_EqualP(StObject lhs, StObject rhs)
         return St_StringEqualP(lhs, rhs);
     }
 
+    if (ST_BYTEVECTORP(lhs) && ST_BYTEVECTORP(rhs))
+    {
+        return St_BytevectorEqualP(lhs, rhs);
+    }
+
     return St_EqvP(lhs, rhs);
 }
 

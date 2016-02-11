@@ -137,3 +137,13 @@ StObject St_BytevectorAppend(StObject vectors)
     }
     return o;
 }
+
+bool St_BytevectorEqualP(StObject b1, StObject b2)
+{
+    if (LENGTH(b1) != LENGTH(b2))
+    {
+        return false;
+    }
+
+    return memcmp(DATA(b1), DATA(b2), LENGTH(b1)) == 0;
+}

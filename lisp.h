@@ -269,7 +269,7 @@ void St_BytevectorU8Set(StObject bytevector, int k, uint8_t byte);
 StObject St_MakeBytevectorFrom(StObject bytevector, int start, int end);
 void St_BytevectorCopy(StObject to, int at, StObject from, int start, int end);
 StObject St_BytevectorAppend(StObject vectors);
-
+bool St_BytevectorEqualP(StObject b1, StObject b2);
 
 // Dynamic Vector (complex type)
 
