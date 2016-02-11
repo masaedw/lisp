@@ -239,8 +239,8 @@ StObject St_Intern(const char *symbol_string);
 
 #define ST_BOOLEAN(b) ((b) ? True : False)
 // TODO overflow check
-#define St_Integer(value) ST_OBJECT(((intptr_t)(value) << 2) | 1)
-#define ST_INT_VALUE(x) (((intptr_t)(x) >> 2))
+#define St_Integer(value) ST_OBJECT(((intptr_t)(value) << ST_TAG_BITS) | ST_INT_TAG)
+#define ST_INT_VALUE(x) (((intptr_t)(x) >> ST_TAG_BITS))
 
 // String
 
