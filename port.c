@@ -17,7 +17,7 @@ StObject St_MakeFdPort(int fd, bool need_to_close)
 {
     StObject o = St_Alloc(TFDPORT, sizeof(struct StFdPort));
     FD(o) = fd;
-    BUF(o) = St_MakeBytevector(BUFSIZE, -1);
+    BUF(o) = St_Malloc(BUFSIZE);
     SIZE(o) = 0;
     P(o) = -1;
     NEED_TO_CLOSE(o) = need_to_close;
@@ -27,11 +27,11 @@ StObject St_MakeFdPort(int fd, bool need_to_close)
 }
 
 #define IS_EMPTY_BUF(o) (P(o) == -1)
-#define BUF_REF(port) St_Integer(St_BytevectorU8Ref(BUF(port), P(port)))
+#define BUF_REF(port) St_Integer(BUF(port)[P(port)])
 
 static bool FillBuffer(StObject port)
 {
-    ssize_t size = read(FD(port), ST_BYTEVECTOR_DATA(BUF(port)), BUFSIZE);
+    ssize_t size = read(FD(port), BUF(port), BUFSIZE);
     if (size == -1)
     {
         St_Error("read error");

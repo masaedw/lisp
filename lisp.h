@@ -94,7 +94,7 @@ struct Object
             int fd;
             ssize_t size;
             int p;
-            StObject buf;
+            uint8_t *buf;
             bool need_to_close;
             bool eof;
         } fd_port;
