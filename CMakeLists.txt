@@ -4,5 +4,5 @@ set(CMAKE_C_FLAGS "-Wall -std=c99 -Wno-unknown-attributes -O2")
 include_directories(/usr/local/include)
 link_directories(/usr/local/lib)
 
-add_executable(lisp main.c lisp.c parse.c print.c symbol.c primitive.c compile.c vm.c syntax.c bytevector.c)
+add_executable(lisp main.c lisp.c parse.c print.c symbol.c primitive.c compile.c vm.c syntax.c bytevector.c port.c)
 target_link_libraries(lisp gc)

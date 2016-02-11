@@ -110,6 +110,7 @@ static void print(FILE *stream, StObject obj)
         CASE(TSUBR, "#<subr %s>", obj->subr.name);
         CASE(TLAMBDA, "#<lambda>");
         CASE(TMACRO, "#<macro>");
+        CASE(TFDPORT, "#<port fd:%d>", obj->fd_port.fd);
 
 #undef CASE
 

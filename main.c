@@ -40,6 +40,24 @@ void test_print()
     St_Print(v);
 }
 
+void test_port()
+{
+    StObject in = St_MakeFdPort(0, false);
+
+    while (true) {
+        printf("input: ");
+        fflush(stdout);
+        do {
+            StObject c = St_ReadChar(in);
+            if (ST_EOFP(c))
+            {
+                return;
+            }
+            printf("%c", (char)ST_INT_VALUE(c));
+        } while (St_CharReadyP(in));
+    }
+}
+
 static FILE *input;
 
 void finalizer()
@@ -70,9 +88,15 @@ int main(int argc, char** argv)
         pargs++;
     }
 
-    if (argc >=2 && strcmp(argv[1], "-p") == 0)
+    if (argc >= 2 && strcmp(argv[1], "-p") == 0)
     {
         test_print();
+        return 0;
+    }
+
+    if (argc >= 2 && strcmp(argv[1], "-t") == 0)
+    {
+        test_port();
         return 0;
     }
 

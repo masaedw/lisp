@@ -19,6 +19,7 @@ enum {
     TSUBR,
     TLAMBDA,
     TMACRO,
+    TFDPORT,
 };
 
 typedef struct Object Object;
@@ -87,6 +88,15 @@ struct Object
             StObject proc;
             StObject symbol;
         } macro;
+
+        struct StFdPort {
+            int fd;
+            ssize_t size;
+            int p;
+            StObject buf;
+            bool need_to_close;
+            bool eof;
+        } fd_port;
     };
 };
 
@@ -139,6 +149,7 @@ StObject St_Alloc(int type, size_t size);
 #define ST_LAMBDAP(obj)     (ST_OBJECTP(obj) && (obj)->type == TLAMBDA)
 #define ST_MACROP(obj)      (ST_OBJECTP(obj) && (obj)->type == TMACRO)
 #define ST_PROCEDUREP(obj)  (ST_SUBRP(obj) || ST_LAMBDAP(obj))
+#define ST_FDPORTP(obj)     (ST_OBJECTP(obj) && (obj)->type == TFDPORT)
 
 // List and Pair
 
@@ -270,6 +281,7 @@ StObject St_MakeBytevectorFrom(StObject bytevector, int start, int end);
 void St_BytevectorCopy(StObject to, int at, StObject from, int start, int end);
 StObject St_BytevectorAppend(StObject vectors);
 bool St_BytevectorEqualP(StObject b1, StObject b2);
+#define ST_BYTEVECTOR_DATA(b) ((void*)(b)->bytevector.data)
 
 // Dynamic Vector (complex type)
 
@@ -300,6 +312,21 @@ bool St_EqualP(StObject lhs, StObject rhs);
 StObject St_Gensym();
 StObject St_Apply(StObject proc, StObject args);
 void St_Load(const char *filename);
+
+// Port
+
+StObject St_MakeFdPort(int fd, bool need_to_close);
+//StObject St_Read(StObject port);
+StObject St_ReadChar(StObject port);
+StObject St_PeekChar(StObject port);
+StObject St_ReadLine(StObject port);
+bool St_CharReadyP(StObject port);
+StObject St_ReadString(int k, StObject port);
+StObject St_ReadU8(StObject port);
+StObject St_PeekU8(StObject port);
+bool St_U8ReadyP(StObject port);
+//StObject St_ReadBytevector(int k, StObject port);
+//int St_ReadBytevectorX(StObject bytevector, StObject port, int start, int end);
 
 // Environment
 
