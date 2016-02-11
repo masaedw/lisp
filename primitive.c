@@ -666,6 +666,181 @@ static StObject subr_assv(StObject args)
     return St_Assv(obj, alist);
 }
 
+static StObject subr_bytevectorp(StObject args)
+{
+    ST_ARGS1("bytevector?", args, o);
+
+    return ST_BOOLEAN(ST_BYTEVECTORP(o));
+}
+
+static StObject subr_make_bytevector(StObject args)
+{
+    int len = St_Length(args);
+    int byte = -1;
+    switch (len) {
+    case 2: {
+        StObject b = ST_CADR(args);
+        if (!ST_INTP(b))
+        {
+            St_Error("make-bytevector: integer requried");
+        }
+        byte = ST_INT_VALUE(b);
+    }
+    case 1: {
+        StObject k = ST_CAR(args);
+        if (!ST_INTP(k))
+        {
+            St_Error("make-bytevector: integer requried");
+        }
+        return St_MakeBytevector(ST_INT_VALUE(k), byte);
+    }
+    default:
+        St_Error("make-bytevector: wrong number of arguments");
+    }
+}
+
+static StObject subr_bytevector_length(StObject args)
+{
+    ST_ARGS1("bytevector-length", args, o);
+    if (!ST_BYTEVECTORP(o))
+    {
+        St_Error("bytevector-length: bytevector requried");
+    }
+
+    return St_Integer(St_BytevectorLength(o));
+}
+
+static StObject subr_bytevector_u8_ref(StObject args)
+{
+    ST_ARGS2("bytevector-u8-ref", args, o, k);
+
+    if (!ST_BYTEVECTORP(o))
+    {
+        St_Error("bytevector-length: bytevector requried");
+    }
+
+    if (!ST_INTP(k))
+    {
+        St_Error("bytevector-length: integer required");
+    }
+
+    return St_Integer(St_BytevectorU8Ref(o, ST_INT_VALUE(k)));
+}
+
+static StObject subr_bytevector_u8_set(StObject args)
+{
+    ST_ARGS3("bytevector-u8-set!", args, o, k, v);
+
+    if (!ST_BYTEVECTORP(o))
+    {
+        St_Error("bytevector-length: bytevector requried");
+    }
+
+    if (!ST_INTP(k))
+    {
+        St_Error("bytevector-length: integer required");
+    }
+
+    if (!ST_INTP(v))
+    {
+        St_Error("bytevector-length: integer required");
+    }
+
+    St_BytevectorU8Set(o, ST_INT_VALUE(k), ST_INT_VALUE(v));
+
+    return Nil;
+}
+
+static StObject subr_bytevector_copy(StObject args)
+{
+    int len = St_Length(args);
+
+    int start = -1;
+    int end = -1;
+
+    switch (len) {
+    case 3:
+        if (!ST_INTP(ST_CADDR(args)))
+        {
+            St_Error("bytevector-copy: integer required");
+        }
+        end = ST_INT_VALUE(ST_CADDR(args));
+    case 2:
+        if (!ST_INTP(ST_CADR(args)))
+        {
+            St_Error("bytevector-copy: integer required");
+        }
+        start = ST_INT_VALUE(ST_CADR(args));
+    case 1:
+        if (!ST_BYTEVECTORP(ST_CAR(args)))
+        {
+            St_Error("bytevector-copy: bytevector required");
+        }
+        return St_MakeBytevectorFrom(ST_CAR(args), start, end);
+    default:
+        St_Error("bytevector-copy: wrong number of arguments");
+    }
+}
+
+static StObject subr_bytevector_copyx(StObject args)
+{
+    int len = St_Length(args);
+
+    int start = -1;
+    int end = -1;
+
+    switch (len) {
+    case 5: {
+        StObject e = ST_CADDR(ST_CDDR(args));
+        if (!ST_INTP(e))
+        {
+            St_Error("bytevector-copy!: integer required 'end'");
+        }
+        end = ST_INT_VALUE(e);
+    }
+    case 4: {
+        StObject s = ST_CADR(ST_CDDR(args));
+        if (!ST_INTP(s))
+        {
+            St_Error("bytevector-copy!: integer required 'start'");
+        }
+        start = ST_INT_VALUE(s);
+    }
+    case 3: {
+        StObject from = ST_CAR(ST_CDDR(args));
+        if (!ST_BYTEVECTORP(from))
+        {
+            St_Error("bytevector-copy!: bytevector required 'from'");
+        }
+        StObject a = ST_CADR(args);
+        if (!ST_INTP(a))
+        {
+            St_Error("bytevector-copy!: integer required 'at'");
+        }
+        int at = ST_INT_VALUE(a);
+        StObject to = ST_CAR(args);
+        if (!ST_BYTEVECTORP(to))
+        {
+            St_Error("bytevector-copy!: bytevector required 'to'");
+        }
+        St_BytevectorCopy(to, at, from, start, end);
+    }
+    default:
+        St_Error("bytevector-copy!: wrong number of arguments");
+    }
+}
+
+static StObject subr_bytevector_append(StObject args)
+{
+    ST_FOREACH(p, args) {
+        if (!ST_BYTEVECTORP(ST_CAR(p)))
+        {
+            St_Error("bytevector-append: bytevector required");
+        }
+    }
+    return St_BytevectorAppend(args);
+}
+
 void St_InitPrimitives()
 {
     StObject m = GlobalModule;
@@ -729,4 +904,12 @@ void St_InitPrimitives()
     St_AddSubr(m, "eof-object?", subr_eof_objectp);
     St_AddSubr(m, "assq", subr_assq);
     St_AddSubr(m, "assv", subr_assv);
+    St_AddSubr(m, "bytevector?", subr_bytevectorp);
+    St_AddSubr(m, "make-bytevector", subr_make_bytevector);
+    St_AddSubr(m, "bytevector-length", subr_bytevector_length);
+    St_AddSubr(m, "bytevector-u8-ref", subr_bytevector_u8_ref);
+    St_AddSubr(m, "bytevector-u8-set!", subr_bytevector_u8_set);
+    St_AddSubr(m, "bytevector-copy", subr_bytevector_copy);
+    St_AddSubr(m, "bytevector-copy!", subr_bytevector_copyx);
+    St_AddSubr(m, "bytevector-append", subr_bytevector_append);
 }
