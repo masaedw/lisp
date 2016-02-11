@@ -19,15 +19,15 @@ static void print(FILE *stream, StObject obj)
     switch ((intptr_t)obj)
     {
 #define CASE(type, ...)                         \
-        case type:                              \
+        case (intptr_t)type:                    \
             fprintf(stream, __VA_ARGS__);       \
             return
 
-        CASE((intptr_t)Nil, "()");
-        CASE((intptr_t)True, "#t");
-        CASE((intptr_t)False, "#f");
-        CASE((intptr_t)Eof, "#<eof-object>");
-        CASE((intptr_t)Unbound, "#<unbound>");
+        CASE(Nil, "()");
+        CASE(True, "#t");
+        CASE(False, "#f");
+        CASE(Eof, "#<eof-object>");
+        CASE(Unbound, "#<unbound>");
 
 #undef CASE
     }
