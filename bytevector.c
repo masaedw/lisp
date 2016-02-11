@@ -119,7 +119,7 @@ void St_BytevectorCopy(StObject to, int at, StObject from, int start, int end)
         St_Error("bytevector-copy!: length to copy %d is more than capacity %d", copylen, capa);
     }
 
-    memcpy(DATA(to) + at, DATA(from) + start, copylen);
+    memmove(DATA(to) + at, DATA(from) + start, copylen);
 }
 
 StObject St_BytevectorAppend(StObject vectors)
