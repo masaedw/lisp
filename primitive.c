@@ -699,6 +699,17 @@ static StObject subr_make_bytevector(StObject args)
     }
 }
 
+static StObject subr_bytevector(StObject args)
+{
+    ST_FOREACH(p, args) {
+        if (!ST_INTP(ST_CAR(p)))
+        {
+            St_Error("bytevector: integer required");
+        }
+    }
+    return St_MakeBytevectorFromList(args);
+}
+
 static StObject subr_bytevector_length(StObject args)
 {
     ST_ARGS1("bytevector-length", args, o);
@@ -906,6 +917,7 @@ void St_InitPrimitives()
     St_AddSubr(m, "assv", subr_assv);
     St_AddSubr(m, "bytevector?", subr_bytevectorp);
     St_AddSubr(m, "make-bytevector", subr_make_bytevector);
+    St_AddSubr(m, "bytevector", subr_bytevector);
     St_AddSubr(m, "bytevector-length", subr_bytevector_length);
     St_AddSubr(m, "bytevector-u8-ref", subr_bytevector_u8_ref);
     St_AddSubr(m, "bytevector-u8-set!", subr_bytevector_u8_set);

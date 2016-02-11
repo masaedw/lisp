@@ -262,6 +262,7 @@ int St_VectorLength(StObject vector);
 // Bytevector
 
 StObject St_MakeBytevector(int size, int byte);
+StObject St_MakeBytevectorFromList(StObject bytes);
 int St_BytevectorLength(StObject bytevector);
 uint8_t St_BytevectorU8Ref(StObject bytevector, int k);
 void St_BytevectorU8Set(StObject bytevector, int k, uint8_t byte);

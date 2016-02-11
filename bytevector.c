@@ -16,6 +16,17 @@ StObject St_MakeBytevector(int size, int byte)
     return o;
 }
 
+StObject St_MakeBytevectorFromList(StObject bytes)
+{
+    int len = St_Length(bytes);
+    StObject o = St_MakeBytevector(len, -1);
+    int i = 0;
+    ST_FOREACH(p, bytes) {
+        St_BytevectorU8Set(o, i++, ST_INT_VALUE(ST_CAR(p)));
+    }
+    return o;
+}
+
 int St_BytevectorLength(StObject b)
 {
     return LENGTH(b);
