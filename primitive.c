@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "lisp.h"
 
 static StObject subr_plus(StObject args)
