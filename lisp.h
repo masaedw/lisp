@@ -329,6 +329,11 @@ bool St_U8ReadyP(StObject port);
 //StObject St_ReadBytevector(int k, StObject port);
 //int St_ReadBytevectorX(StObject bytevector, StObject port, int start, int end);
 
+// System
+
+StObject St_SysPipe();
+int St_SysFork();
+
 // Environment
 
 void St_AddSyntax(StObject module, const char *key, SyntaxFunction *syntax);
