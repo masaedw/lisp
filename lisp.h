@@ -345,7 +345,7 @@ void St_InitVm();
 
 // Parser
 
-StObject St_Read(FILE *stream);
+StObject St_Read(StObject port);
 
 // Printer
 

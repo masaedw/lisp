@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <string.h>
@@ -225,12 +226,14 @@ bool St_EqualP(StObject lhs, StObject rhs)
 void St_Load(const char* filename)
 {
     StObject expr = Nil;
-    FILE *input = fopen(filename, "r");
+    int fd = open(filename, O_RDONLY);
 
-    if (input == NULL)
+    if (fd == -1)
     {
         St_Error("can't open: %s", filename);
     }
+
+    StObject input = St_MakeFdPort(fd, true);
 
     while (true) {
         expr = St_Read(input);

@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <string.h>
 
 #include "lisp.h"
@@ -58,14 +59,11 @@ void test_port()
     }
 }
 
-static FILE *input;
+static StObject input;
 
 void finalizer()
 {
-    if (input != stdin)
-    {
-        fclose(input);
-    }
+    //fclose(input);
 }
 
 int main(int argc, char** argv)
@@ -100,18 +98,21 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    input = stdin;
     atexit(finalizer);
 
     if (argc >= pargs + 1)
     {
-        FILE *f = fopen(argv[pargs], "r");
-        if (f == NULL)
+        int f = open(argv[pargs], O_RDONLY);
+        if (f == -1)
         {
             St_Error("can't open: %s", argv[pargs]);
         }
 
-        input = f;
+        input = St_MakeFdPort(f, true);
+    }
+    else
+    {
+        input = St_MakeFdPort(0, false);
     }
 
     while (true) {
