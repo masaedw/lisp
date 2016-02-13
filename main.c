@@ -6,40 +6,41 @@
 
 void test_print()
 {
-    St_Print(Nil);
+    St_Print(Nil, False);
 
-    St_Print(True);
+    St_Print(True, False);
 
-    St_Print(False);
+    St_Print(False, False);
 
     StObject one = St_Integer(1);
 
     StObject two = St_Integer(2);
 
-    St_Print(St_Cons(one, two));
+    St_Print(St_Cons(one, two), False);
 
-    St_Print(St_Cons(one, St_Cons(two, Nil)));
+    St_Print(St_Cons(one, St_Cons(two, Nil)), False);
 
     StObject sym1 = St_Intern("sym1");
 
-    St_Print(sym1);
+    St_Print(sym1, False);
 
     StObject sym2 = St_Intern("sym2");
 
-    St_Print(St_Cons(sym1, sym2));
+    St_Print(St_Cons(sym1, sym2), False);
 
 
     St_Print(St_Cons(St_Cons(one, St_Cons(two, Nil)),
-                     St_Cons(sym1, St_Cons(sym2, St_Cons(Nil, sym1)))));
+                     St_Cons(sym1, St_Cons(sym2, St_Cons(Nil, sym1)))),
+             False);
 
     StObject str = St_MakeString(4, "hoge");
-    St_Print(str);
+    St_Print(str, False);
 
     StObject v = St_MakeVector(3);
     St_VectorSet(v, 0, one);
     St_VectorSet(v, 1, sym1);
     St_VectorSet(v, 2, True);
-    St_Print(v);
+    St_Print(v, False);
 }
 
 void test_port()
@@ -128,7 +129,7 @@ int main(int argc, char** argv)
 
         if (interactive_mode)
         {
-            St_Print(value);
+            St_Print(value, False);
         }
     };
 

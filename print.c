@@ -1,8 +1,9 @@
+#include <stdarg.h>
 #include <stdio.h>
 
 #include "lisp.h"
 
-static void print(FILE *stream, StObject obj)
+static void print(StObject obj, StObject port)
 {
     if (obj == NULL)
     {
@@ -11,16 +12,17 @@ static void print(FILE *stream, StObject obj)
 
     if (ST_INTP(obj))
     {
-        fprintf(stream, "%ld", ST_INT_VALUE(obj));
-        fflush(stream);
+        char buf[20];
+        sprintf(buf, "%ld", ST_INT_VALUE(obj));
+        St_WriteCString(buf, port);
         return;
     }
 
     switch ((intptr_t)obj)
     {
-#define CASE(type, ...)                         \
+#define CASE(type, str)                         \
         case (intptr_t)type:                    \
-            fprintf(stream, __VA_ARGS__);       \
+            St_WriteCString(str, port);         \
             return
 
         CASE(Nil, "()");
@@ -36,98 +38,123 @@ static void print(FILE *stream, StObject obj)
     switch (obj->type)
     {
     case TCELL:
-        fprintf(stream, "(");
+        St_WriteU8('(', port);
 
-        print(stream, ST_CAR(obj));
+        print(ST_CAR(obj), port);
 
         while (ST_PAIRP(ST_CDR(obj))) {
             obj = ST_CDR(obj);
-            fprintf(stream, " ");
-            print(stream, ST_CAR(obj));
+            St_WriteU8(' ', port);
+            print(ST_CAR(obj), port);
         }
 
         if (!ST_NULLP(ST_CDR(obj)))
         {
-            fprintf(stream, " . ");
-            print(stream, ST_CDR(obj));
+            St_WriteCString(" . ", port);
+            print(ST_CDR(obj), port);
         }
 
-        fprintf(stream, ")");
+        St_WriteU8(')', port);
 
         break;
 
     case TVECTOR: {
-        fprintf(stream, "#(");
+        St_WriteCString("#(", port);
 
         for (int i = 0; i < St_VectorLength(obj); i++) {
-            print(stream, St_VectorRef(obj, i));
+            print(St_VectorRef(obj, i), port);
 
             if (i < St_VectorLength(obj) - 1)
             {
-                fprintf(stream, " ");
+                St_WriteU8(' ', port);
             }
         }
 
-        fprintf(stream, ")");
+        St_WriteU8(')', port);
 
         break;
     }
 
     case TBYTEVECTOR: {
-        fprintf(stream, "#u8(");
+        St_WriteCString("#u8(", port);
         int len = St_BytevectorLength(obj);
 
         for (int i = 0; i < len; i++) {
-            fprintf(stream, "%d", St_BytevectorU8Ref(obj, i));
+            char buf[4];
+            sprintf(buf, "%d", St_BytevectorU8Ref(obj, i));
+            St_WriteCString(buf, port);
 
             if (i < len - 1)
             {
-                fprintf(stream, " ");
+                St_WriteU8(' ', port);
             }
         }
 
-        fprintf(stream, ")");
+        St_WriteU8(')', port);
 
         break;
     }
 
     case TSTRING: {
-        for (int i = 0; i < obj->string.len; i++) {
-            fprintf(stream, "%c", obj->string.value[i]);
-        }
+        St_WriteBuffer(obj->string.value, obj->string.len, port);
 
         break;
     }
 
+    case TSYMBOL: {
+        St_WriteCString(obj->symbol.value, port);
 
-#define CASE(type, ...)                         \
-        case type:                              \
-            fprintf(stream, __VA_ARGS__);       \
-            break
+        break;
+    }
 
-        CASE(TSYMBOL, "%s", obj->symbol.value);
-        CASE(TSYNTAX, "#<syntax %s>", obj->syntax.name);
-        CASE(TSUBR, "#<subr %s>", obj->subr.name);
-        CASE(TLAMBDA, "#<lambda>");
-        CASE(TMACRO, "#<macro>");
-        CASE(TFDPORT, "#<port fd:%d>", obj->fd_port.fd);
+    case TSYNTAX: {
+        St_WriteCString("#<syntax ", port);
+        St_WriteCString(obj->syntax.name, port);
+        St_WriteCString(">", port);
 
-#undef CASE
+        break;
+    }
+
+    case TSUBR: {
+        St_WriteCString("#<subr ", port);
+        St_WriteCString(obj->subr.name, port);
+        St_WriteCString(">", port);
+
+        break;
+    }
+
+    case TLAMBDA: {
+        St_WriteCString("#<lambda>", port);
+
+        break;
+    }
+
+    case TMACRO: {
+        St_WriteCString("#<macro>", port);
+
+        break;
+    }
+
+    case TFDPORT: {
+        St_WriteCString("#<port fd:", port);
+        char buf[20];
+        sprintf(buf, "%d", obj->fd_port.fd);
+        St_WriteCString(buf, port);
+        St_WriteU8('>', port);
+    }
 
     default:
         St_Error("unknown type %d", obj->type);
     }
-
-    fflush(stream);
 }
 
-void St_Display(StObject obj)
+void St_Display(StObject obj, StObject port)
 {
-    print(stdout, obj);
+    print(obj, port);
 }
 
-void St_Print(StObject obj)
+void St_Print(StObject obj, StObject port)
 {
-    print(stdout, obj);
-    fprintf(stdout, "\n");
+    print(obj, port);
+    St_Newline(port);
 }

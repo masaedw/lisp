@@ -1,3 +1,4 @@
+#include <string.h>
 #include <sys/select.h>
 #include <sys/types.h>
 #include <sys/uio.h>
@@ -139,6 +140,51 @@ bool St_U8ReadyP(StObject port)
     }
 
     return r == 1;
+}
+
+void St_Newline(StObject port)
+{
+    St_WriteU8('\n', port);
+}
+
+void St_WriteBuffer(const char *buf, size_t len, StObject port)
+{
+    if (ST_FALSEP(port))
+    {
+        port = St_StandardOutputPort;
+    }
+
+    size_t written = 0;
+
+    do {
+        ssize_t l = write(FD(port), buf + written, len - written);
+        if (l == -1)
+        {
+            St_Error("write error");
+        }
+        written += l;
+    } while (written < len);
+}
+
+void St_WriteCString(const char *str, StObject port)
+{
+    size_t len = strlen(str);
+    St_WriteBuffer(str, len, port);
+}
+
+void St_WriteU8(uint8_t byte, StObject port)
+{
+    if (ST_FALSEP(port))
+    {
+        port = St_StandardOutputPort;
+    }
+
+    ssize_t l = write(FD(port), &byte, 1);
+
+    if (l == -1)
+    {
+        St_Error("write error");
+    }
 }
 
 StObject St_StandardInputPort  = Unbound;

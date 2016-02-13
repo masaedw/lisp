@@ -324,6 +324,11 @@ StObject St_ReadString(int k, StObject port);
 StObject St_ReadU8(StObject port);
 StObject St_PeekU8(StObject port);
 bool St_U8ReadyP(StObject port);
+void St_Newline(StObject port);
+void St_WriteBuffer(const char *buf, size_t len, StObject port);
+void St_WriteCString(const char *str, StObject port);
+void St_WriteU8(uint8_t byte, StObject port);
+
 //StObject St_ReadBytevector(int k, StObject port);
 //int St_ReadBytevectorX(StObject bytevector, StObject port, int start, int end);
 extern StObject St_StandardInputPort;
@@ -351,8 +356,8 @@ StObject St_Read(StObject port);
 
 // Printer
 
-void St_Display(StObject obj);
-void St_Print(StObject obj);
+void St_Display(StObject obj, StObject port);
+void St_Print(StObject obj, StObject port);
 
 // Evaluator
 

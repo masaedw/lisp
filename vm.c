@@ -186,11 +186,11 @@ static StObject vm(StObject m, StObject insn)
     while (true) {
 
         /*
-        St_Display(ST_CAR(Vm->x));
+        St_Display(ST_CAR(Vm->x), False);
         if (St_Length(Vm->x) > 1)
         {
             printf(" [");
-            St_Display(ST_CADR(Vm->x));
+            St_Display(ST_CADR(Vm->x), False);
             printf("]");
         }
         else
@@ -198,7 +198,7 @@ static StObject vm(StObject m, StObject insn)
             printf(" []");
         }
         printf(" (f:%d fp:%d s:%d) ", Vm->f, Vm->fp, Vm->s);
-        St_Print(Vm->a);
+        St_Print(Vm->a, False);
         //*/
 
         CASE(halt) {

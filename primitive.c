@@ -239,7 +239,7 @@ static StObject subr_evenp(StObject args)
 static StObject subr_display(StObject args)
 {
     ST_FOREACH(p, args) {
-        St_Display(ST_CAR(p));
+        St_Display(ST_CAR(p), False);
     }
 
     return Nil;
@@ -248,7 +248,7 @@ static StObject subr_display(StObject args)
 static StObject subr_print(StObject args)
 {
     ST_FOREACH(p, args) {
-        St_Print(ST_CAR(p));
+        St_Print(ST_CAR(p), False);
     }
 
     return Nil;
