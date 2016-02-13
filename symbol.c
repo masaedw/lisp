@@ -3,7 +3,7 @@
 
 #include "lisp.h"
 
-StObject Symbols = Nil;
+static StObject Symbols = Nil;
 
 static StObject push(const char* symbol_value)
 {

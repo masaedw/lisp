@@ -205,7 +205,6 @@ StObject St_SetIntersect(StObject s1, StObject s2);
 
 // Symbol
 
-extern StObject Symbols;
 StObject St_Intern(const char *symbol_string);
 
 // Primitive utilities
