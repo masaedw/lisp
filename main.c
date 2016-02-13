@@ -71,6 +71,7 @@ int main(int argc, char** argv)
 {
     GC_INIT();
 
+    St_InitPort();
     St_InitModule();
     St_InitPrimitives();
     St_InitSyntax();

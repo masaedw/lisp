@@ -140,3 +140,14 @@ bool St_U8ReadyP(StObject port)
 
     return r == 1;
 }
+
+StObject St_StandardInputPort  = Unbound;
+StObject St_StandardOutputPort = Unbound;
+StObject St_StandardErrorPort  = Unbound;
+
+void St_InitPort()
+{
+    St_StandardInputPort  = St_MakeFdPort(0, false);
+    St_StandardOutputPort = St_MakeFdPort(1, false);
+    St_StandardErrorPort  = St_MakeFdPort(2, false);
+}

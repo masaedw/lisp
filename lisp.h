@@ -326,6 +326,10 @@ StObject St_PeekU8(StObject port);
 bool St_U8ReadyP(StObject port);
 //StObject St_ReadBytevector(int k, StObject port);
 //int St_ReadBytevectorX(StObject bytevector, StObject port, int start, int end);
+extern StObject St_StandardInputPort;
+extern StObject St_StandardOutputPort;
+extern StObject St_StandardErrorPort;
+void St_InitPort();
 
 // System
 
