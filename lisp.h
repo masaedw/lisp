@@ -96,6 +96,7 @@ struct Object
             uint8_t *buf;
             bool need_to_close;
             bool eof;
+            bool closed;
         } fd_port;
     };
 };
@@ -328,6 +329,9 @@ void St_Newline(StObject port);
 void St_WriteBuffer(const char *buf, size_t len, StObject port);
 void St_WriteCString(const char *str, StObject port);
 void St_WriteU8(uint8_t byte, StObject port);
+void St_ClosePort(StObject port);
+//void St_CloseReadPort(StObject port);
+//void St_CloseWritePort(StObject port);
 
 //StObject St_ReadBytevector(int k, StObject port);
 //int St_ReadBytevectorX(StObject bytevector, StObject port, int start, int end);

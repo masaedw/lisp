@@ -12,6 +12,7 @@
 #define BUF(o)           (o)->fd_port.buf
 #define NEED_TO_CLOSE(o) (o)->fd_port.need_to_close
 #define EOFP(o)          (o)->fd_port.eof
+#define CLOSEDP(o)       (o)->fd_port.closed
 #define BUFSIZE          1024*10
 
 /*
@@ -34,6 +35,7 @@ StObject St_MakeFdPort(int fd, bool need_to_close)
     P(o) = -1;
     NEED_TO_CLOSE(o) = need_to_close;
     EOFP(o) = false;
+    CLOSEDP(o) = false;
 
     return o;
 }
@@ -196,6 +198,17 @@ void St_WriteU8(uint8_t byte, StObject port)
     {
         St_Error("write error");
     }
+}
+
+void St_ClosePort(StObject port)
+{
+    if (CLOSEDP(port))
+    {
+        return;
+    }
+
+    close(FD(port));
+    CLOSEDP(port) = true;
 }
 
 StObject St_StandardInputPort  = Unbound;
