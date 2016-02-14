@@ -11,10 +11,7 @@ StObject St_SysPipe()
         St_Error("pipe error");
     }
 
-    StObject o = St_MakeVector(2);
-    St_VectorSet(o, 0, St_Integer(fds[0]));
-    St_VectorSet(o, 1, St_Integer(fds[1]));
-    return o;
+    return St_Cons(St_MakeFdPort(fds[0], true), St_MakeFdPort(fds[1], true));
 }
 
 int St_SysFork()

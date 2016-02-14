@@ -338,6 +338,7 @@ void St_InitPort();
 
 // System
 
+// returns pair of ports: (in . out)
 StObject St_SysPipe();
 int St_SysFork();
 
