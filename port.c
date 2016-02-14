@@ -14,6 +14,17 @@
 #define EOFP(o)          (o)->fd_port.eof
 #define BUFSIZE          1024*10
 
+/*
+
+  read buffer structure:
+
+  BUFSIZE       |<---------------------->|
+  BUF(o)        |******------------------| *: read data   -: invalid data
+  SIZE(o)       |<---->|     SIZE of read data
+  P(o)              ^        Pointer of next unread byte. When all bytes are read, P(o) points -1.
+
+ */
+
 StObject St_MakeFdPort(int fd, bool need_to_close)
 {
     StObject o = St_Alloc(TFDPORT, sizeof(struct StFdPort));
