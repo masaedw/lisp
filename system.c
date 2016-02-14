@@ -1,5 +1,6 @@
 #include <signal.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -139,7 +140,7 @@ void St_InitSystem()
     DEFINE_SIGNAL(SIGILL);
     DEFINE_SIGNAL(SIGTRAP);
     DEFINE_SIGNAL(SIGABRT);
-    DEFINE_SIGNAL(SIGEMT);
+//    DEFINE_SIGNAL(SIGEMT);
     DEFINE_SIGNAL(SIGFPE);
     DEFINE_SIGNAL(SIGKILL);
     DEFINE_SIGNAL(SIGBUS);
@@ -161,7 +162,7 @@ void St_InitSystem()
     DEFINE_SIGNAL(SIGVTALRM);
     DEFINE_SIGNAL(SIGPROF);
     DEFINE_SIGNAL(SIGWINCH);
-    DEFINE_SIGNAL(SIGINFO);
+//    DEFINE_SIGNAL(SIGINFO);
     DEFINE_SIGNAL(SIGUSR1);
     DEFINE_SIGNAL(SIGUSR2);
 
