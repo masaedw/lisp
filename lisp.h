@@ -345,6 +345,11 @@ void St_InitPort();
 // returns pair of ports: (in . out)
 StObject St_SysPipe();
 int St_SysFork();
+void St_SysPause();
+void St_SysExit(int status) __attribute__((noreturn));
+void St_SysKill(int pid, int signal);
+void St_SysWaitPid(int pid);
+void St_InitSystem();
 
 // Environment
 
@@ -356,6 +361,7 @@ void St_InitSyntax();
 void St_InitVm();
 
 // Parser
+
 
 StObject St_Read(StObject port);
 

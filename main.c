@@ -74,6 +74,7 @@ int main(int argc, char** argv)
 
     St_InitPort();
     St_InitModule();
+    St_InitSystem();
     St_InitPrimitives();
     St_InitSyntax();
     St_InitVm();
