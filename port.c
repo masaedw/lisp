@@ -232,6 +232,27 @@ static StObject subr_read_line(StObject args)
     }
 }
 
+static StObject subr_read_char(StObject args)
+{
+    int len = St_Length(args);
+
+    StObject port = False;
+
+    switch (len) {
+    case 1: {
+        port = ST_CAR(args);
+        if (!ST_FDPORTP(port))
+        {
+            St_Error("port required");
+        }
+    }
+    case 0:
+        return St_ReadChar(port);
+    default:
+        St_Error("read-char: wrong number of arguments");
+    }
+}
+
 StObject St_StandardInputPort  = Unbound;
 StObject St_StandardOutputPort = Unbound;
 StObject St_StandardErrorPort  = Unbound;
@@ -245,4 +266,5 @@ void St_InitPort()
     StObject m = GlobalModule;
 
     St_AddSubr(m, "read-line", subr_read_line);
-}
+    St_AddSubr(m, "read-char", subr_read_char);
+ }
