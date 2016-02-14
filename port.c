@@ -211,6 +211,27 @@ void St_ClosePort(StObject port)
     CLOSEDP(port) = true;
 }
 
+static StObject subr_read_line(StObject args)
+{
+    int len = St_Length(args);
+
+    StObject port = False;
+
+    switch (len) {
+    case 1: {
+        port = ST_CAR(args);
+        if (!ST_FDPORTP(port))
+        {
+            St_Error("port required");
+        }
+    }
+    case 0:
+        return St_ReadLine(port);
+    default:
+        St_Error("read-line: wrong number of arguments");
+    }
+}
+
 StObject St_StandardInputPort  = Unbound;
 StObject St_StandardOutputPort = Unbound;
 StObject St_StandardErrorPort  = Unbound;
@@ -220,4 +241,8 @@ void St_InitPort()
     St_StandardInputPort  = St_MakeFdPort(0, false);
     St_StandardOutputPort = St_MakeFdPort(1, false);
     St_StandardErrorPort  = St_MakeFdPort(2, false);
+
+    StObject m = GlobalModule;
+
+    St_AddSubr(m, "read-line", subr_read_line);
 }
