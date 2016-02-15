@@ -279,6 +279,15 @@ static StObject subr_newline(StObject args)
     PORT_PROC_BODY("newline", (St_Newline(port), Nil));
 }
 
+static StObject subr_close_port(StObject args)
+{
+    ST_ARGS1("close-port", args, port);
+
+    St_ClosePort(port);
+
+    return Nil;
+}
+
 StObject St_StandardInputPort  = Unbound;
 StObject St_StandardOutputPort = Unbound;
 StObject St_StandardErrorPort  = Unbound;
@@ -295,4 +304,5 @@ void St_InitPort()
     St_AddSubr(m, "read-char", subr_read_char);
     St_AddSubr(m, "display", subr_display);
     St_AddSubr(m, "newline", subr_newline);
+    St_AddSubr(m, "close-port", subr_close_port);
  }
