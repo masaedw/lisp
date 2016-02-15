@@ -1,9 +1,10 @@
 (define assert
   (lambda (expected actual msg)
-    (display (if (equal? expected actual) 'success_ 'failed_) msg)
+    (display (if (equal? expected actual) 'success_ 'failed_))
+    (display msg)
     (if (not (equal? expected actual))
-      (display '__ expected '_expected_but_got_ actual))
-    (newline)))
+      (print '__ expected '_expected_but_got_ actual)
+      (newline))))
 
 (print (if (eqv? 1 1)
          'success_eqv_1_1

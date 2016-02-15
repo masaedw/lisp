@@ -211,46 +211,53 @@ void St_ClosePort(StObject port)
     CLOSEDP(port) = true;
 }
 
+#define PORT_PROC_BODY(name, body)                          \
+    do {                                                    \
+        int len = St_Length(args);                          \
+                                                            \
+        StObject port = False;                              \
+                                                            \
+        switch (len) {                                      \
+        case 1: {                                           \
+            port = ST_CAR(args);                            \
+            if (!ST_FDPORTP(port))                          \
+            {                                               \
+                St_Error("port required");                  \
+            }                                               \
+        }                                                   \
+        case 0:                                             \
+            return body;                                    \
+        default:                                            \
+            St_Error(#name ": wrong number of arguments");  \
+        }                                                   \
+    } while (0)
+
 static StObject subr_read_line(StObject args)
 {
-    int len = St_Length(args);
-
-    StObject port = False;
-
-    switch (len) {
-    case 1: {
-        port = ST_CAR(args);
-        if (!ST_FDPORTP(port))
-        {
-            St_Error("port required");
-        }
-    }
-    case 0:
-        return St_ReadLine(port);
-    default:
-        St_Error("read-line: wrong number of arguments");
-    }
+    PORT_PROC_BODY("read-line", St_ReadLine(port));
 }
 
 static StObject subr_read_char(StObject args)
 {
-    int len = St_Length(args);
+    PORT_PROC_BODY("read-line", St_ReadChar(port));
+}
 
-    StObject port = False;
+static StObject subr_display(StObject args)
+{
+    StObject obj = Unbound;
 
-    switch (len) {
-    case 1: {
-        port = ST_CAR(args);
-        if (!ST_FDPORTP(port))
-        {
-            St_Error("port required");
-        }
+    if (ST_PAIRP(args))
+    {
+        obj = ST_CAR(args);
+        args = ST_CDR(args);
     }
-    case 0:
-        return St_ReadChar(port);
-    default:
-        St_Error("read-char: wrong number of arguments");
-    }
+
+    PORT_PROC_BODY("display", (St_Display(obj, port), Nil));
+}
+
+static StObject subr_newline(StObject args)
+{
+    PORT_PROC_BODY("newline", (St_Newline(port), Nil));
 }
 
 StObject St_StandardInputPort  = Unbound;
@@ -267,4 +274,6 @@ void St_InitPort()
 
     St_AddSubr(m, "read-line", subr_read_line);
     St_AddSubr(m, "read-char", subr_read_char);
+    St_AddSubr(m, "display", subr_display);
+    St_AddSubr(m, "newline", subr_newline);
  }

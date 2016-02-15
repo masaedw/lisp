@@ -236,27 +236,14 @@ static StObject subr_evenp(StObject args)
     return ST_BOOLEAN(ST_INT_VALUE(o) % 2 == 0);
 }
 
-static StObject subr_display(StObject args)
+static StObject subr_print(StObject args)
 {
     ST_FOREACH(p, args) {
         St_Display(ST_CAR(p), False);
     }
 
-    return Nil;
-}
+    St_Newline(False);
 
-static StObject subr_print(StObject args)
-{
-    ST_FOREACH(p, args) {
-        St_Print(ST_CAR(p), False);
-    }
-
-    return Nil;
-}
-
-static StObject subr_newline(StObject args)
-{
-    fprintf(stdout, "\n");
     return Nil;
 }
 
@@ -875,9 +862,7 @@ void St_InitPrimitives()
     St_AddSubr(m, "negative?", subr_negativep);
     St_AddSubr(m, "odd?", subr_oddp);
     St_AddSubr(m, "even?", subr_evenp);
-    St_AddSubr(m, "display", subr_display);
     St_AddSubr(m, "print", subr_print);
-    St_AddSubr(m, "newline", subr_newline);
     St_AddSubr(m, "eq?", subr_eqp);
     St_AddSubr(m, "eqv?", subr_eqvp);
     St_AddSubr(m, "equal?", subr_equalp);
