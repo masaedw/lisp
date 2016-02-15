@@ -86,7 +86,26 @@ StObject St_PeekChar(StObject port)
 
 StObject St_ReadLine(StObject port)
 {
-    return Nil; // TODO
+    StObject h = Nil, t = Nil;
+
+    while (true) {
+        StObject c = St_ReadChar(port);
+        if (ST_EOFP(c) || ST_INT_VALUE(c) == '\n')
+        {
+            break;
+        }
+        ST_APPEND1(h, t, c);
+    }
+
+    int len = St_Length(h);
+    char buf[len];
+    int i = 0;
+
+    ST_FOREACH(p, h) {
+        buf[i++] = ST_INT_VALUE(ST_CAR(p));
+    }
+
+    return St_MakeString(len, buf);
 }
 
 bool St_CharReadyP(StObject port)
