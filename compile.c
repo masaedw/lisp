@@ -132,6 +132,14 @@ static StObject find_free(StObject x, StObject b)
             return St_SetUnion(find_free(body, nb), f);
         }
 
+        CASE(let1) {
+            StObject sym = ST_CADR(x);
+            StObject value = ST_CADDR(x);
+            StObject body = ST_CDR(ST_CDDR(x));
+
+            return St_SetUnion(find_free(body, St_SetCons(sym, b)), find_free(value, b));
+        }
+
         CASE(if) {
             StObject testc = ST_CADR(x);
             StObject thenc = ST_CADDR(x);

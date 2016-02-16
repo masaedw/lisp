@@ -59,10 +59,30 @@ static StObject syntax_begin(StObject expr)
     return St_Cons(I("let"), St_Cons(Nil, ST_CDR(expr)));
 }
 
+static StObject syntax_let1(StObject expr)
+{
+    if (St_Length(expr) < 3)
+    {
+        St_Error("let1: malformed let1");
+    }
+
+    if (!ST_SYMBOLP(ST_CADR(expr)))
+    {
+        St_Error("let1: malformed let1, symbol requrired");
+    }
+
+    StObject sym = ST_CADR(expr);
+    StObject val = ST_CADDR(expr);
+    StObject body = ST_CDR(ST_CDDR(expr));
+
+    return St_Cons(I("let"), St_Cons(ST_LIST1(ST_LIST2(sym, val)), body));
+}
+
 void St_InitSyntax()
 {
     StObject m = GlobalModule;
 
     St_AddSyntax(m, "let", syntax_let);
     St_AddSyntax(m, "begin", syntax_begin);
+    St_AddSyntax(m, "let1", syntax_let1);
 }

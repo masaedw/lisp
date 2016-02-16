@@ -26,7 +26,7 @@
       (test "hogehoge"))
   (let ((in (car r))
         (out (cdr r)))
-    (let ((pid (sys-fork)))
+    (let1 pid (sys-fork)
       (if (= pid 0)
         (begin
           (close-port in)
@@ -34,8 +34,8 @@
           (newline out)
           (close-port out)
           (sys-pause))
-        (let ((r (read-line in)))
+        (let1 r (read-line in)
           (print (string=? r test))
           (sys-kill pid SIGTERM)
           (sys-waitpid pid))))))
-          
+
