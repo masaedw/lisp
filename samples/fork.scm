@@ -28,7 +28,7 @@
         (out (cdr r)))
     (let ((pid (sys-fork)))
       (if (= pid 0)
-        (let ()
+        (begin
           (close-port in)
           (display test out)
           (newline out)
@@ -39,10 +39,3 @@
           (sys-kill pid SIGTERM)
           (sys-waitpid pid))))))
           
-
-
-
-
-
-
-
