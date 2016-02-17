@@ -289,6 +289,36 @@ static StObject subr_symbolp(StObject args)
     return ST_BOOLEAN(ST_SYMBOLP(o));
 }
 
+static StObject subr_symbol_equalp(StObject args)
+{
+    int len = St_Length(args);
+    if (len < 2)
+    {
+        St_Error("symbol=?: wrong number of arguments: at least 2 arguments required but got %d", len);
+    }
+
+    StObject a = ST_CAR(args);
+
+    if (!ST_SYMBOLP(a))
+    {
+        St_Error("symbol=?: symbol required");
+    }
+
+    ST_FOREACH(p, ST_CDR(args))
+    {
+        if (!ST_SYMBOLP(ST_CAR(p)))
+        {
+            St_Error("symbol=?: symbol required");
+        }
+        if (a != ST_CAR(p))
+        {
+            return False;
+        }
+    }
+
+    return True;
+}
+
 static StObject subr_not(StObject args)
 {
     ST_ARGS1("not", args, o);
@@ -869,6 +899,7 @@ void St_InitPrimitives()
     St_AddSubr(m, "null?", subr_nullp);
     St_AddSubr(m, "pair?", subr_pairp);
     St_AddSubr(m, "symbol?", subr_symbolp);
+    St_AddSubr(m, "symbol=?", subr_symbol_equalp);
     St_AddSubr(m, "not", subr_not);
     St_AddSubr(m, "cons", subr_cons);
     St_AddSubr(m, "car", subr_car);
