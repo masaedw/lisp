@@ -12,8 +12,13 @@ void St_Error(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    vfprintf(stderr, fmt, args);
+
+    char *rptr;
+    vasprintf(&rptr, fmt, args);
+
     va_end(args);
+
+    St_WriteCString(rptr, St_CurrentErrorPort);
 
     exit(1);
 }

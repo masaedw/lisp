@@ -183,7 +183,7 @@ void St_WriteBuffer(const char *buf, size_t len, StObject port)
 {
     if (ST_FALSEP(port))
     {
-        port = St_StandardOutputPort;
+        port = St_CurrentOutputPort;
     }
 
     size_t written = 0;
@@ -208,7 +208,7 @@ void St_WriteU8(uint8_t byte, StObject port)
 {
     if (ST_FALSEP(port))
     {
-        port = St_StandardOutputPort;
+        port = St_CurrentOutputPort;
     }
 
     ssize_t l = write(FD(port), &byte, 1);
