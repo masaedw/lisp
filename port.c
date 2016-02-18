@@ -292,11 +292,15 @@ StObject St_StandardInputPort  = Unbound;
 StObject St_StandardOutputPort = Unbound;
 StObject St_StandardErrorPort  = Unbound;
 
+StObject St_CurrentInputPort  = Unbound;
+StObject St_CurrentOutputPort = Unbound;
+StObject St_CurrentErrorPort  = Unbound;
+
 void St_InitPort()
 {
-    St_StandardInputPort  = St_MakeFdPort(0, false);
-    St_StandardOutputPort = St_MakeFdPort(1, false);
-    St_StandardErrorPort  = St_MakeFdPort(2, false);
+    St_CurrentInputPort  = St_StandardInputPort  = St_MakeFdPort(0, false);
+    St_CurrentOutputPort = St_StandardOutputPort = St_MakeFdPort(1, false);
+    St_CurrentErrorPort  = St_StandardErrorPort  = St_MakeFdPort(2, false);
 
     StObject m = GlobalModule;
 

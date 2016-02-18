@@ -872,6 +872,41 @@ static StObject subr_bytevector_append(StObject args)
     return St_BytevectorAppend(args);
 }
 
+static StObject current_x_port_impl(StObject args, const char* name, StObject *port)
+{
+    switch (St_Length(args)) {
+    case 1: {
+        StObject np = ST_CAR(args);
+        if (!ST_FDPORTP(np))
+        {
+            St_Error("%s: port required", name);
+        }
+        StObject tmp = *port;
+        *port = np;
+        return tmp;
+    }
+    case 0:
+        return *port;
+    default:
+        St_Error("%s: wrong number of arguments", name);
+    }
+}
+
+static StObject subr_current_input_port(StObject args)
+{
+    return current_x_port_impl(args, "current-input-port", &St_CurrentInputPort);
+}
+
+static StObject subr_current_output_port(StObject args)
+{
+    return current_x_port_impl(args, "current-output-port", &St_CurrentOutputPort);
+}
+
+static StObject subr_current_error_port(StObject args)
+{
+    return current_x_port_impl(args, "current-error-port", &St_CurrentErrorPort);
+}
+
 void St_InitPrimitives()
 {
     StObject m = GlobalModule;
@@ -943,4 +978,7 @@ void St_InitPrimitives()
     St_AddSubr(m, "bytevector-copy", subr_bytevector_copy);
     St_AddSubr(m, "bytevector-copy!", subr_bytevector_copyx);
     St_AddSubr(m, "bytevector-append", subr_bytevector_append);
+    St_AddSubr(m, "current-input-port", subr_current_input_port);
+    St_AddSubr(m, "current-output-port", subr_current_output_port);
+    St_AddSubr(m, "current-error-port", subr_current_error_port);
 }

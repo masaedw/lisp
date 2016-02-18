@@ -338,6 +338,9 @@ void St_ClosePort(StObject port);
 extern StObject St_StandardInputPort;
 extern StObject St_StandardOutputPort;
 extern StObject St_StandardErrorPort;
+extern StObject St_CurrentInputPort;
+extern StObject St_CurrentOutputPort;
+extern StObject St_CurrentErrorPort;
 void St_InitPort();
 
 // System
