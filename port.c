@@ -115,7 +115,24 @@ bool St_CharReadyP(StObject port)
 
 StObject St_ReadString(int k, StObject port)
 {
-    return Nil; // TODO
+    if (k <= 0)
+    {
+        St_Error("read-string: invalid length");
+    }
+
+    char buf[k];
+    size_t len;
+
+    for (len = 0; len < (size_t)k; len++) {
+        StObject c = St_ReadChar(port);
+        if (ST_EOFP(c))
+        {
+            break;
+        }
+        buf[len] = ST_INT_VALUE(c);
+    }
+
+    return St_MakeString(len, buf);
 }
 
 StObject St_ReadU8(StObject port)
