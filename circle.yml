@@ -4,7 +4,7 @@ machine:
     CXX: clang++
 dependencies:
   pre:
-    - sudo apt-get update; sudo apt-get install libgc-dev
+    - sudo apt-get update; sudo apt-get remove clang; sudo apt-get install libgc-dev clang-3.4 libclang-common-3.4-dev libllvm3.4=1:3.4-1ubuntu3~precise2
     - cmake .
   override:
     - make
