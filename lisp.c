@@ -32,14 +32,21 @@ StObject St_Alloc(int type, size_t size)
     return obj;
 }
 
+void *St_Alloc2(int type, size_t size)
+{
+    struct StObjectHeader *obj = St_Malloc(size);
+    obj->type = type;
+    return obj;
+}
+
 StObject St_Cons(StObject car, StObject cdr)
 {
-    StObject cell = St_Alloc(TCELL, sizeof(void*) * 2);
+    StCell cell = St_Alloc2(TCELL, sizeof(struct StCellRec));
 
     ST_CAR_SET(cell, car);
     ST_CDR_SET(cell, cdr);
 
-    return cell;
+    return ST_OBJECT(cell);
 }
 
 StObject St_Acons(StObject key, StObject val, StObject cdr)

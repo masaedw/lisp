@@ -22,11 +22,53 @@ enum {
     TFDPORT,
 };
 
+struct StObjectHeader;
 typedef struct Object Object;
 typedef Object * StObject;
 typedef StObject SyntaxFunction(StObject form);
 typedef StObject SubrFunction(StObject args);
 #define ST_OBJECT(x) ((StObject)(x))
+
+#define ST_OBJECT_HEADER int type
+
+struct StObjectHeader
+{
+    ST_OBJECT_HEADER;
+};
+
+struct StCellRec
+{
+    ST_OBJECT_HEADER;
+    StObject car;
+    StObject cdr;
+};
+typedef struct StCellRec *StCell;
+
+struct StSymbolRec
+{
+    ST_OBJECT_HEADER;
+    uint8_t value[];
+};
+
+struct StStringRec
+{
+    ST_OBJECT_HEADER;
+    size_t len;
+    uint8_t value[];
+};
+
+struct StCharacterRec
+{
+    ST_OBJECT_HEADER;
+    uint32_t value;
+};
+
+struct StVectorRec
+{
+    ST_OBJECT_HEADER;
+    size_t size;
+    StObject data[];
+};
 
 struct Object
 {
@@ -34,12 +76,6 @@ struct Object
 
     union {
         int dummy;
-
-        // cell
-        struct {
-            StObject car;
-            StObject cdr;
-        } cell;
 
         struct {
             char value[1];
@@ -131,6 +167,7 @@ void St_Error(const char *fmt, ...) __attribute__((noreturn));
 #define St_Malloc GC_MALLOC
 
 StObject St_Alloc(int type, size_t size);
+void *St_Alloc2(int type, size_t size);
 
 #define ST_OBJECTP(obj)     (ST_POINTER_TAG(obj) == ST_OBJECT_TAG)
 #define ST_NULLP(obj)       ((obj) == Nil)
@@ -169,8 +206,8 @@ StObject St_Assv(StObject obj, StObject alist);
 #define ST_LIST4(a0, a1, a2, a3)     St_Cons((a0), ST_LIST3((a1), (a2), (a3)))
 #define ST_LIST5(a0, a1, a2, a3, a4) St_Cons((a0), ST_LIST4((a1), (a2), (a3), (a4)))
 
-#define ST_CAR(pair) (pair)->cell.car
-#define ST_CDR(pair) (pair)->cell.cdr
+#define ST_CAR(pair) (((StCell)(pair))->car)
+#define ST_CDR(pair) (((StCell)(pair))->cdr)
 #define ST_CDDR(list) ST_CDR(ST_CDR(list))
 #define ST_CDAR(list) ST_CDR(ST_CAR(list))
 #define ST_CADR(list) ST_CAR(ST_CDR(list))
@@ -178,8 +215,8 @@ StObject St_Assv(StObject obj, StObject alist);
 #define ST_CADDR(list) ST_CAR(ST_CDR(ST_CDR(list)))
 #define ST_CADDDR(list) ST_CAR(ST_CDR(ST_CDR(ST_CDR(list))))
 
-#define ST_CAR_SET(pair, value) ((pair)->cell.car = (value))
-#define ST_CDR_SET(pair, value) ((pair)->cell.cdr = (value))
+#define ST_CAR_SET(pair, value) (ST_CAR(pair) = (value))
+#define ST_CDR_SET(pair, value) (ST_CDR(pair) = (value))
 
 #define ST_APPEND1(head, tail, value)                   \
     do {                                                \
