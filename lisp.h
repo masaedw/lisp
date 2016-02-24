@@ -47,8 +47,11 @@ typedef struct StCellRec *StCell;
 struct StSymbolRec
 {
     ST_OBJECT_HEADER;
-    uint8_t value[];
+    char value[];
 };
+typedef struct StSymbolRec *StSymbol;
+#define ST_SYMBOL(x) ((StSymbol)(x))
+#define ST_SYMBOL_VALUE(x) (ST_SYMBOL(x)->value)
 
 struct StStringRec
 {
@@ -76,10 +79,6 @@ struct Object
 
     union {
         int dummy;
-
-        struct {
-            char value[1];
-        } symbol;
 
         struct {
             int len;

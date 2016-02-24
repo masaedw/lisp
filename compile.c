@@ -289,7 +289,7 @@ static StObject macroexpand(StObject m, StObject x)
                 {
                     if (arity != len)
                     {
-                        St_Error("%s: wrong number of arguments: required %d but got %d", o->macro.symbol->symbol.value, arity, len);
+                        St_Error("%s: wrong number of arguments: required %d but got %d", ST_SYMBOL_VALUE(o->macro.symbol), arity, len);
                     }
                 }
                 else
@@ -297,7 +297,7 @@ static StObject macroexpand(StObject m, StObject x)
                     int required = -arity - 1;
                     if (required > len)
                     {
-                        St_Error("%s: wrong number of arguments: required %d but got %d", o->macro.symbol->symbol.value, required, len);
+                        St_Error("%s: wrong number of arguments: required %d but got %d", ST_SYMBOL_VALUE(o->macro.symbol), required, len);
                     }
                 }
 

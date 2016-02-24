@@ -9,18 +9,18 @@ static StObject Symbols = Nil;
 static StObject push(const char* symbol_value)
 {
     size_t len = strlen(symbol_value);
-    StObject symbol = St_Alloc(TSYMBOL, len + 1);
-    strcpy(symbol->symbol.value, symbol_value);
+    StSymbol symbol = St_Alloc2(TSYMBOL, sizeof(struct StSymbolRec) + len);
+    strcpy(symbol->value, symbol_value);
 
-    Symbols = St_Cons(symbol, Symbols);
+    Symbols = St_Cons(ST_OBJECT(symbol), Symbols);
 
-    return symbol;
+    return ST_OBJECT(symbol);
 }
 
 StObject St_Intern(const char *symbol_value)
 {
     ST_FOREACH(p, Symbols) {
-        if (strcmp(symbol_value, ST_CAR(p)->symbol.value) == 0)
+        if (strcmp(symbol_value, ST_SYMBOL_VALUE(ST_CAR(p))) == 0)
         {
             return ST_CAR(p);
         }

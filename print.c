@@ -102,7 +102,7 @@ static void print(StObject obj, StObject port)
     }
 
     case TSYMBOL: {
-        St_WriteCString(obj->symbol.value, port);
+        St_WriteCString(ST_SYMBOL_VALUE(obj), port);
 
         break;
     }

@@ -225,7 +225,7 @@ static StObject vm(StObject m, StObject insn)
             StObject pair = St_ModuleRef(Vm->m, ST_INT_VALUE(n));
             if (ST_UNBOUNDP(ST_CDR(pair)))
             {
-                St_Error("unbound variable %s", ST_CAR(pair)->symbol.value);
+                St_Error("unbound variable %s", ST_SYMBOL_VALUE(ST_CAR(pair)));
             }
             Vm->a = ST_CDR(pair);
             Vm->x = x;
