@@ -57,8 +57,12 @@ struct StStringRec
 {
     ST_OBJECT_HEADER;
     size_t len;
-    uint8_t value[];
+    char value[];
 };
+typedef struct StStringRec *StString;
+#define ST_STRING(x) ((StString)(x))
+#define ST_STRING_LENGTH(x) (ST_STRING(x)->len)
+#define ST_STRING_VALUE(x) (ST_STRING(x)->value)
 
 struct StCharacterRec
 {
@@ -79,11 +83,6 @@ struct Object
 
     union {
         int dummy;
-
-        struct {
-            int len;
-            char value[1];
-        } string;
 
         struct {
             int value;
@@ -293,7 +292,7 @@ StObject St_Intern(const char *symbol_string);
 
 StObject St_MakeEmptyString(int len);
 StObject St_MakeString(int len, char* buf);
-int St_StringLength(StObject s);
+size_t St_StringLength(StObject s);
 bool St_StringEqualP(StObject s1, StObject s2);
 StObject St_StringAppend(StObject list);
 char *St_StringGetCString(StObject string);

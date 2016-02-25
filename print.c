@@ -96,7 +96,7 @@ static void print(StObject obj, StObject port)
     }
 
     case TSTRING: {
-        St_WriteBuffer(obj->string.value, obj->string.len, port);
+        St_WriteBuffer(ST_STRING_VALUE(obj), ST_STRING_LENGTH(obj), port);
 
         break;
     }

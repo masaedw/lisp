@@ -260,51 +260,50 @@ void St_Load(const char* filename)
 
 StObject St_MakeEmptyString(int len)
 {
-    StObject o = St_Alloc(TSTRING, offsetof(Object, string.value) - offsetof(Object, dummy) + len);
-    o->string.len = len;
-
+    StObject o = St_Alloc2(TSTRING, sizeof(struct StStringRec) + len);
+    ST_STRING_LENGTH(o) = len;
     return o;
 }
 
 StObject St_MakeString(int len, char *buf)
 {
     StObject o = St_MakeEmptyString(len);
-    memcpy(o->string.value, buf, len);
+    memcpy(ST_STRING_VALUE(o), buf, len);
 
     return o;
 }
 
-int St_StringLength(StObject s)
+size_t St_StringLength(StObject s)
 {
-    return s->string.len;
+    return ST_STRING_LENGTH(s);
 }
 
 bool St_StringEqualP(StObject s1, StObject s2)
 {
-    if (St_StringLength(s1) != St_StringLength(s2))
+    if (ST_STRING_LENGTH(s1) != ST_STRING_LENGTH(s2))
     {
         return false;
     }
 
-    int len = St_StringLength(s1);
+    size_t len = ST_STRING_LENGTH(s1);
 
-    return memcmp(s1->string.value, s2->string.value, len) == 0;
+    return memcmp(ST_STRING_VALUE(s1), ST_STRING_VALUE(s2), len) == 0;
 }
 
 StObject St_StringAppend(StObject list)
 {
-    int newlen = 0;
+    size_t newlen = 0;
 
     ST_FOREACH(p, list) {
-        newlen += St_StringLength(ST_CAR(p));
+        newlen += ST_STRING_LENGTH(ST_CAR(p));
     }
 
     StObject o = St_MakeEmptyString(newlen);
     int offset = 0;
 
     ST_FOREACH(p, list) {
-        int len = St_StringLength(ST_CAR(p));
-        memcpy(o->string.value + offset, ST_CAR(p)->string.value, len);
+        int len = ST_STRING_LENGTH(ST_CAR(p));
+        memcpy(ST_STRING_VALUE(o) + offset, ST_STRING_VALUE(ST_CAR(p)), len);
         offset += len;
     }
 
@@ -313,9 +312,9 @@ StObject St_StringAppend(StObject list)
 
 char *St_StringGetCString(StObject string)
 {
-    int len = string->string.len;
+    size_t len = ST_STRING_LENGTH(string);
     char *buf = St_Malloc(len + 1);
-    memcpy(buf, string->string.value, len);
+    memcpy(buf, ST_STRING_VALUE(string), len);
     buf[len] = 0;
     return buf;
 }
