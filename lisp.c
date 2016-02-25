@@ -326,11 +326,11 @@ StObject St_MakeVector(int size)
         St_Error("make-vector: size must be a positive integer");
     }
 
-    StObject o = St_Alloc(TVECTOR, sizeof(void*) * (size + 1));
-    o->vector.size = size;
+    StObject o = St_Alloc2(TVECTOR, sizeof(struct StVectorRec) + (sizeof(StObject) * size));
+    ST_VECTOR_LENGTH(o) = size;
 
     for (int i = 0; i < size; i++) {
-        o->vector.data[i] = Nil;
+        ST_VECTOR_DATA(o)[i] = Nil;
     }
 
     return o;
@@ -338,32 +338,32 @@ StObject St_MakeVector(int size)
 
 void St_CopyVector(StObject dst, StObject src, int size)
 {
-    memcpy(dst->vector.data, src->vector.data, sizeof(Object*) * size);
+    memcpy(ST_VECTOR_DATA(dst), ST_VECTOR_DATA(src), sizeof(Object*) * size);
 }
 
 StObject St_VectorRef(StObject v, int idx)
 {
-    if (idx < 0 || v->vector.size <= idx)
+    if (idx < 0 || ST_VECTOR_LENGTH(v) <= (unsigned int)idx)
     {
-        St_Error("vector-ref: index out of range: %d against %d", idx, v->vector.size);
+        St_Error("vector-ref: index out of range: %d against %d", idx, ST_VECTOR_LENGTH(v));
     }
 
-    return v->vector.data[idx];
+    return ST_VECTOR_DATA(v)[idx];
 }
 
 void St_VectorSet(StObject v, int idx, StObject obj)
 {
-    if (idx < 0 || v->vector.size <= idx)
+    if (idx < 0 || ST_VECTOR_LENGTH(v) <= (unsigned int)idx)
     {
         St_Error("vector-set: index out of range");
     }
 
-    v->vector.data[idx] = obj;
+    ST_VECTOR_DATA(v)[idx] = obj;
 }
 
-int St_VectorLength(StObject v)
+size_t St_VectorLength(StObject v)
 {
-    return v->vector.size;
+    return ST_VECTOR_LENGTH(v);
 }
 
 // dynamic array

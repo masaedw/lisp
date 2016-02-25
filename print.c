@@ -61,10 +61,10 @@ static void print(StObject obj, StObject port)
     case TVECTOR: {
         St_WriteCString("#(", port);
 
-        for (int i = 0; i < St_VectorLength(obj); i++) {
+        for (size_t i = 0; i < ST_VECTOR_LENGTH(obj); i++) {
             print(St_VectorRef(obj, i), port);
 
-            if (i < St_VectorLength(obj) - 1)
+            if (i < ST_VECTOR_LENGTH(obj) - 1)
             {
                 St_WriteU8(' ', port);
             }

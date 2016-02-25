@@ -73,9 +73,13 @@ struct StCharacterRec
 struct StVectorRec
 {
     ST_OBJECT_HEADER;
-    size_t size;
+    size_t len;
     StObject data[];
 };
+typedef struct StVectorRec *StVector;
+#define ST_VECTOR(x) ((StVector)(x))
+#define ST_VECTOR_LENGTH(x) (ST_VECTOR(x)->len)
+#define ST_VECTOR_DATA(x) (ST_VECTOR(x)->data)
 
 struct Object
 {
@@ -87,11 +91,6 @@ struct Object
         struct {
             int value;
         } charcter;
-
-        struct {
-            int size;
-            StObject data[1];
-        } vector;
 
         struct StBytevector {
             int size;
@@ -303,7 +302,7 @@ StObject St_MakeVector(int size);
 StObject St_VectorRef(StObject vector, int idx);
 void St_CopyVector(StObject dst, StObject src, int size);
 void St_VectorSet(StObject vector, int idx, StObject obj);
-int St_VectorLength(StObject vector);
+size_t St_VectorLength(StObject vector);
 
 // Bytevector
 
