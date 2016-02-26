@@ -81,6 +81,17 @@ typedef struct StVectorRec *StVector;
 #define ST_VECTOR_LENGTH(x) (ST_VECTOR(x)->len)
 #define ST_VECTOR_DATA(x) (ST_VECTOR(x)->data)
 
+struct StBytevectorRec
+{
+    ST_OBJECT_HEADER;
+    size_t len;
+    uint8_t data[];
+};
+typedef struct StBytevectorRec *StBytevector;
+#define ST_BYTEVECTOR(x) ((StBytevector)(x))
+#define ST_BYTEVECTOR_LENGTH(x) (ST_BYTEVECTOR(x)->len)
+#define ST_BYTEVECTOR_DATA(x) (ST_BYTEVECTOR(x)->data)
+
 struct Object
 {
     int type;
@@ -91,11 +102,6 @@ struct Object
         struct {
             int value;
         } charcter;
-
-        struct StBytevector {
-            int size;
-            uint8_t data[1];
-        } bytevector;
 
         // syntax
         struct {
@@ -308,14 +314,13 @@ size_t St_VectorLength(StObject vector);
 
 StObject St_MakeBytevector(int size, int byte);
 StObject St_MakeBytevectorFromList(StObject bytes);
-int St_BytevectorLength(StObject bytevector);
+size_t St_BytevectorLength(StObject bytevector);
 uint8_t St_BytevectorU8Ref(StObject bytevector, int k);
 void St_BytevectorU8Set(StObject bytevector, int k, uint8_t byte);
 StObject St_MakeBytevectorFrom(StObject bytevector, int start, int end);
 void St_BytevectorCopy(StObject to, int at, StObject from, int start, int end);
 StObject St_BytevectorAppend(StObject vectors);
 bool St_BytevectorEqualP(StObject b1, StObject b2);
-#define ST_BYTEVECTOR_DATA(b) ((void*)(b)->bytevector.data)
 
 // Dynamic Vector (complex type)
 

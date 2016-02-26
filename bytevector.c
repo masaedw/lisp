@@ -2,12 +2,12 @@
 
 #include "lisp.h"
 
-#define LENGTH(x) (x)->bytevector.size
-#define DATA(x) (x)->bytevector.data
+#define LENGTH(x) ST_BYTEVECTOR_LENGTH(x)
+#define DATA(x) ST_BYTEVECTOR_DATA(x)
 
 StObject St_MakeBytevector(int size, int byte)
 {
-    StObject o = St_Alloc(TBYTEVECTOR, sizeof(struct StBytevector) + size - 1);
+    StObject o = St_Alloc2(TBYTEVECTOR, sizeof(struct StBytevectorRec) + size);
     LENGTH(o) = size;
     if (byte >= 0)
     {
@@ -27,14 +27,14 @@ StObject St_MakeBytevectorFromList(StObject bytes)
     return o;
 }
 
-int St_BytevectorLength(StObject b)
+size_t St_BytevectorLength(StObject b)
 {
     return LENGTH(b);
 }
 
 #define VALIDATE_INDEX(n, b, k)                                         \
     do {                                                                \
-        if ((k) < 0 || LENGTH(b) <= (k))                                \
+        if ((k) < 0 || LENGTH(b) <= (size_t)(k))                        \
         {                                                               \
             St_Error("%s: index out of range: %d against %d", (n), (k), LENGTH(b)); \
         }                                                               \
@@ -42,7 +42,7 @@ int St_BytevectorLength(StObject b)
 
 #define VALIDATE_SIZE(n, b, k)                                          \
     do {                                                                \
-        if ((k) < 0 || LENGTH(b) < (k))                                 \
+        if ((k) < 0 || LENGTH(b) < (size_t)(k))                         \
         {                                                               \
             St_Error("%s: index out of range: %d against %d", (n), (k), LENGTH(b)); \
         }                                                               \

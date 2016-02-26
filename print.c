@@ -77,7 +77,7 @@ static void print(StObject obj, StObject port)
 
     case TBYTEVECTOR: {
         St_WriteCString("#u8(", port);
-        int len = St_BytevectorLength(obj);
+        int len = ST_BYTEVECTOR_LENGTH(obj);
 
         for (int i = 0; i < len; i++) {
             char buf[4];
