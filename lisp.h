@@ -43,6 +43,7 @@ struct StCellRec
     StObject cdr;
 };
 typedef struct StCellRec *StCell;
+#define ST_CELL(x) ((StCell)(x))
 
 struct StSymbolRec
 {
@@ -209,8 +210,8 @@ StObject St_Assv(StObject obj, StObject alist);
 #define ST_LIST4(a0, a1, a2, a3)     St_Cons((a0), ST_LIST3((a1), (a2), (a3)))
 #define ST_LIST5(a0, a1, a2, a3, a4) St_Cons((a0), ST_LIST4((a1), (a2), (a3), (a4)))
 
-#define ST_CAR(pair) (((StCell)(pair))->car)
-#define ST_CDR(pair) (((StCell)(pair))->cdr)
+#define ST_CAR(pair) (ST_CELL(pair)->car)
+#define ST_CDR(pair) (ST_CELL(pair)->cdr)
 #define ST_CDDR(list) ST_CDR(ST_CDR(list))
 #define ST_CDAR(list) ST_CDR(ST_CAR(list))
 #define ST_CADR(list) ST_CAR(ST_CDR(list))

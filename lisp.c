@@ -41,12 +41,12 @@ void *St_Alloc2(int type, size_t size)
 
 StObject St_Cons(StObject car, StObject cdr)
 {
-    StCell cell = St_Alloc2(TCELL, sizeof(struct StCellRec));
+    StObject cell = St_Alloc2(TCELL, sizeof(struct StCellRec));
 
     ST_CAR_SET(cell, car);
     ST_CDR_SET(cell, cdr);
 
-    return ST_OBJECT(cell);
+    return cell;
 }
 
 StObject St_Acons(StObject key, StObject val, StObject cdr)
