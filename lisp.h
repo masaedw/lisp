@@ -128,6 +128,17 @@ typedef struct StLambdaRec *StLambda;
 #define ST_LAMBDA_FREE(x) (ST_LAMBDA(x)->free)
 #define ST_LAMBDA_ARITY(x) (ST_LAMBDA(x)->arity)
 
+struct StMacroRec
+{
+    ST_OBJECT_HEADER;
+    StObject proc;
+    StObject symbol;
+};
+typedef struct StMacroRec *StMacro;
+#define ST_MACRO(x) ((StMacro)(x))
+#define ST_MACRO_PROC(x) (ST_MACRO(x)->proc)
+#define ST_MACRO_SYMBOL(x) (ST_MACRO(x)->symbol)
+
 struct Object
 {
     int type;
@@ -138,12 +149,6 @@ struct Object
         struct {
             int value;
         } charcter;
-
-        // macro
-        struct {
-            StObject proc;
-            StObject symbol;
-        } macro;
 
         struct StFdPort {
             int fd;

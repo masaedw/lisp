@@ -262,7 +262,7 @@ static StObject make_boxes(StObject sets, StObject vars, StObject next, int n)
 
 static int macro_arity(StObject m)
 {
-    return ST_LAMBDA_ARITY(m->macro.proc);
+    return ST_LAMBDA_ARITY(ST_MACRO_PROC(m));
 }
 
 static StObject macroexpand(StObject m, StObject x)
@@ -289,7 +289,7 @@ static StObject macroexpand(StObject m, StObject x)
                 {
                     if (arity != len)
                     {
-                        St_Error("%s: wrong number of arguments: required %d but got %d", ST_SYMBOL_VALUE(o->macro.symbol), arity, len);
+                        St_Error("%s: wrong number of arguments: required %d but got %d", ST_SYMBOL_VALUE(ST_MACRO_SYMBOL(o)), arity, len);
                     }
                 }
                 else
@@ -297,11 +297,11 @@ static StObject macroexpand(StObject m, StObject x)
                     int required = -arity - 1;
                     if (required > len)
                     {
-                        St_Error("%s: wrong number of arguments: required %d but got %d", ST_SYMBOL_VALUE(o->macro.symbol), required, len);
+                        St_Error("%s: wrong number of arguments: required %d but got %d", ST_SYMBOL_VALUE(ST_MACRO_SYMBOL(o)), required, len);
                     }
                 }
 
-                StObject nx = St_Apply(o->macro.proc, ST_CDR(x));
+                StObject nx = St_Apply(ST_MACRO_PROC(o), ST_CDR(x));
                 return macroexpand(m, nx);
             }
         }

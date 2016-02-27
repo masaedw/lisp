@@ -73,9 +73,9 @@ static StObject index_closure(StObject c, int n)
 
 static StObject make_macro(StObject sym, StObject proc)
 {
-    StObject macro = St_Alloc(TMACRO, sizeof(void*) * 2);
-    macro->macro.proc = proc;
-    macro->macro.symbol = sym;
+    StObject macro = St_Alloc2(TMACRO, sizeof(struct StMacroRec));
+    ST_MACRO_PROC(macro) = proc;
+    ST_MACRO_SYMBOL(macro) = sym;
     return macro;
 }
 
