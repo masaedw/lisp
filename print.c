@@ -109,7 +109,7 @@ static void print(StObject obj, StObject port)
 
     case TSYNTAX: {
         St_WriteCString("#<syntax ", port);
-        St_WriteCString(obj->syntax.name, port);
+        St_WriteCString(ST_SYNTAX_NAME(obj), port);
         St_WriteCString(">", port);
 
         break;

@@ -510,9 +510,9 @@ void St_InitModule()
 
 void St_AddSyntax(StObject module, const char *key, SyntaxFunction *syntax)
 {
-    StObject s = St_Alloc(TSYNTAX, sizeof(void*) * 2);
-    s->syntax.body = syntax;
-    s->syntax.name = key;
+    StObject s = St_Alloc2(TSYNTAX, sizeof(struct StSyntaxRec));
+    ST_SYNTAX_BODY(s) = syntax;
+    ST_SYNTAX_NAME(s) = key;
 
     St_ModulePush(module, St_Intern(key), s);
 }

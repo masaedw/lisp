@@ -484,7 +484,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
 
             if (ST_SYNTAXP(o))
             {
-                return compile(o->syntax.body(x), m, e, s, next);
+                return compile(ST_SYNTAX_BODY(o)(x), m, e, s, next);
             }
         }
 

@@ -25,7 +25,6 @@ enum {
 struct StObjectHeader;
 typedef struct Object Object;
 typedef Object * StObject;
-typedef StObject SyntaxFunction(StObject form);
 typedef StObject SubrFunction(StObject args);
 #define ST_OBJECT(x) ((StObject)(x))
 
@@ -93,6 +92,18 @@ typedef struct StBytevectorRec *StBytevector;
 #define ST_BYTEVECTOR_LENGTH(x) (ST_BYTEVECTOR(x)->len)
 #define ST_BYTEVECTOR_DATA(x) (ST_BYTEVECTOR(x)->data)
 
+typedef StObject SyntaxFunction(StObject form);
+struct StSyntaxRec
+{
+    ST_OBJECT_HEADER;
+    SyntaxFunction *body;
+    const char *name;
+};
+typedef struct StSyntaxRec *StSyntax;
+#define ST_SYNTAX(x) ((StSyntax)(x))
+#define ST_SYNTAX_BODY(x) (ST_SYNTAX(x)->body)
+#define ST_SYNTAX_NAME(x) (ST_SYNTAX(x)->name)
+
 struct Object
 {
     int type;
@@ -103,12 +114,6 @@ struct Object
         struct {
             int value;
         } charcter;
-
-        // syntax
-        struct {
-            SyntaxFunction *body;
-            const char *name;
-        } syntax;
 
         // subr
         struct {
