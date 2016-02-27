@@ -23,15 +23,6 @@ void St_Error(const char *fmt, ...)
     exit(1);
 }
 
-StObject St_Alloc(int type, size_t size)
-{
-    StObject obj = (StObject)St_Malloc(offsetof(Object, dummy) + size);
-
-    obj->type = type;
-
-    return obj;
-}
-
 void *St_Alloc2(int type, size_t size)
 {
     struct StObjectHeader *obj = St_Malloc(size);
@@ -338,7 +329,7 @@ StObject St_MakeVector(int size)
 
 void St_CopyVector(StObject dst, StObject src, int size)
 {
-    memcpy(ST_VECTOR_DATA(dst), ST_VECTOR_DATA(src), sizeof(Object*) * size);
+    memcpy(ST_VECTOR_DATA(dst), ST_VECTOR_DATA(src), sizeof(StObject) * size);
 }
 
 StObject St_VectorRef(StObject v, int idx)

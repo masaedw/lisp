@@ -23,8 +23,7 @@ enum {
 };
 
 struct StObjectHeader;
-typedef struct Object Object;
-typedef Object * StObject;
+typedef struct StObjectHeader *StObject;
 #define ST_OBJECT(x) ((StObject)(x))
 
 #define ST_OBJECT_HEADER int type
@@ -154,20 +153,6 @@ typedef struct StFdPortRec *StFdPort;
 #define ST_FDPORT(x) ((StFdPort)(x))
 #define ST_FDPORT_FD(x) (ST_FDPORT(x)->fd)
 
-struct Object
-{
-    int type;
-
-    union {
-        int dummy;
-
-        struct {
-            int value;
-        } charcter;
-
-    };
-};
-
 // Tagged pointer structure
 //
 // name       lower bits  value
@@ -197,7 +182,6 @@ void St_Error(const char *fmt, ...) __attribute__((noreturn));
 
 #define St_Malloc GC_MALLOC
 
-StObject St_Alloc(int type, size_t size);
 void *St_Alloc2(int type, size_t size);
 
 #define ST_OBJECTP(obj)     (ST_POINTER_TAG(obj) == ST_OBJECT_TAG)
