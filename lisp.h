@@ -115,6 +115,19 @@ typedef struct StSubrRec *StSubr;
 #define ST_SUBR_BODY(x) (ST_SUBR(x)->body)
 #define ST_SUBR_NAME(x) (ST_SUBR(x)->name)
 
+struct StLambdaRec
+{
+    ST_OBJECT_HEADER;
+    StObject body;
+    StObject free;
+    int arity;
+};
+typedef struct StLambdaRec *StLambda;
+#define ST_LAMBDA(x) ((StLambda)(x))
+#define ST_LAMBDA_BODY(x) (ST_LAMBDA(x)->body)
+#define ST_LAMBDA_FREE(x) (ST_LAMBDA(x)->free)
+#define ST_LAMBDA_ARITY(x) (ST_LAMBDA(x)->arity)
+
 struct Object
 {
     int type;
@@ -125,13 +138,6 @@ struct Object
         struct {
             int value;
         } charcter;
-
-        // lambda
-        struct {
-            StObject body;
-            StObject free;
-            int arity;
-        } lambda;
 
         // macro
         struct {

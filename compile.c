@@ -262,7 +262,7 @@ static StObject make_boxes(StObject sets, StObject vars, StObject next, int n)
 
 static int macro_arity(StObject m)
 {
-    return m->macro.proc->lambda.arity;
+    return ST_LAMBDA_ARITY(m->macro.proc);
 }
 
 static StObject macroexpand(StObject m, StObject x)

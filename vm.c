@@ -52,12 +52,12 @@ static void index_set(int s, int i, StObject v)
 
 static StObject make_closure(StObject body, int arity, int n, int s)
 {
-    StObject c = St_Alloc(TLAMBDA, sizeof(StObject ) * 2);
+    StObject c = St_Alloc2(TLAMBDA, sizeof(struct StLambdaRec));
     StObject f = n == 0 ? Nil : St_MakeVector(n);
 
-    c->lambda.body = body;
-    c->lambda.free = f;
-    c->lambda.arity = arity;
+    ST_LAMBDA_BODY(c) = body;
+    ST_LAMBDA_FREE(c) = f;
+    ST_LAMBDA_ARITY(c) = arity;
 
     for (int i = 0; i < n; i++) {
         St_VectorSet(f, i, index(s, i));
@@ -66,19 +66,9 @@ static StObject make_closure(StObject body, int arity, int n, int s)
     return c;
 }
 
-static StObject closure_body(StObject c)
-{
-    return c->lambda.body;
-}
-
-static int closure_arity(StObject c)
-{
-    return c->lambda.arity;
-}
-
 static StObject index_closure(StObject c, int n)
 {
-    return St_VectorRef(c->lambda.free, n);
+    return St_VectorRef(ST_LAMBDA_FREE(c), n);
 }
 
 static StObject make_macro(StObject sym, StObject proc)
@@ -347,7 +337,7 @@ static StObject vm(StObject m, StObject insn)
             else
             {
                 int len = Vm->s - Vm->fp;
-                int arity = closure_arity(Vm->a);
+                int arity = ST_LAMBDA_ARITY(Vm->a);
 
                 if (arity >= 0)
                 {
@@ -378,7 +368,7 @@ static StObject vm(StObject m, StObject insn)
                     Vm->s -= listed - 1;
                 }
 
-                Vm->x = closure_body(Vm->a);
+                Vm->x = ST_LAMBDA_BODY(Vm->a);
                 Vm->f = Vm->s;
                 Vm->c = Vm->a;
             }
