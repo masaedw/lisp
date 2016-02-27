@@ -6,13 +6,13 @@
 
 #include "lisp.h"
 
-#define FD(o)            (o)->fd_port.fd
-#define SIZE(o)          (o)->fd_port.size
-#define P(o)             (o)->fd_port.p
-#define BUF(o)           (o)->fd_port.buf
-#define NEED_TO_CLOSE(o) (o)->fd_port.need_to_close
-#define EOFP(o)          (o)->fd_port.eof
-#define CLOSEDP(o)       (o)->fd_port.closed
+#define FD(o)            ST_FDPORT_FD(o)
+#define SIZE(o)          ST_FDPORT(o)->size
+#define P(o)             ST_FDPORT(o)->p
+#define BUF(o)           ST_FDPORT(o)->buf
+#define NEED_TO_CLOSE(o) ST_FDPORT(o)->need_to_close
+#define EOFP(o)          ST_FDPORT(o)->eof
+#define CLOSEDP(o)       ST_FDPORT(o)->closed
 #define BUFSIZE          1024*10
 
 /*
@@ -28,7 +28,7 @@
 
 StObject St_MakeFdPort(int fd, bool need_to_close)
 {
-    StObject o = St_Alloc(TFDPORT, sizeof(struct StFdPort));
+    StObject o = St_Alloc2(TFDPORT, sizeof(struct StFdPortRec));
     FD(o) = fd;
     BUF(o) = St_Malloc(BUFSIZE);
     SIZE(o) = 0;

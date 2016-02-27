@@ -139,6 +139,21 @@ typedef struct StMacroRec *StMacro;
 #define ST_MACRO_PROC(x) (ST_MACRO(x)->proc)
 #define ST_MACRO_SYMBOL(x) (ST_MACRO(x)->symbol)
 
+struct StFdPortRec
+{
+    ST_OBJECT_HEADER;
+    int fd;
+    ssize_t size;
+    int p;
+    uint8_t *buf;
+    bool need_to_close;
+    bool eof;
+    bool closed;
+};
+typedef struct StFdPortRec *StFdPort;
+#define ST_FDPORT(x) ((StFdPort)(x))
+#define ST_FDPORT_FD(x) (ST_FDPORT(x)->fd)
+
 struct Object
 {
     int type;
@@ -150,15 +165,6 @@ struct Object
             int value;
         } charcter;
 
-        struct StFdPort {
-            int fd;
-            ssize_t size;
-            int p;
-            uint8_t *buf;
-            bool need_to_close;
-            bool eof;
-            bool closed;
-        } fd_port;
     };
 };
 

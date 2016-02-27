@@ -138,7 +138,7 @@ static void print(StObject obj, StObject port)
     case TFDPORT: {
         St_WriteCString("#<port fd:", port);
         char buf[20];
-        sprintf(buf, "%d", obj->fd_port.fd);
+        sprintf(buf, "%d", ST_FDPORT_FD(obj));
         St_WriteCString(buf, port);
         St_WriteU8('>', port);
     }
