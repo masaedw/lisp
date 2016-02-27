@@ -508,7 +508,7 @@ void St_InitModule()
     GlobalModule = St_MakeModule(Nil);
 }
 
-void St_AddSyntax(StObject module, const char *key, SyntaxFunction *syntax)
+void St_AddSyntax(StObject module, const char *key, StSyntaxFunction syntax)
 {
     StObject s = St_Alloc2(TSYNTAX, sizeof(struct StSyntaxRec));
     ST_SYNTAX_BODY(s) = syntax;
@@ -517,11 +517,11 @@ void St_AddSyntax(StObject module, const char *key, SyntaxFunction *syntax)
     St_ModulePush(module, St_Intern(key), s);
 }
 
-void St_AddSubr(StObject module, const char *key, SubrFunction *subr)
+void St_AddSubr(StObject module, const char *key, StSubrFunction subr)
 {
-    StObject s = St_Alloc(TSUBR, sizeof(void*) * 2);
-    s->subr.body = subr;
-    s->subr.name = key;
+    StObject s = St_Alloc2(TSUBR, sizeof(struct StSubrRec));
+    ST_SUBR_BODY(s) = subr;
+    ST_SUBR_NAME(s) = key;
 
     St_ModulePush(module, St_Intern(key), s);
 }

@@ -117,7 +117,7 @@ static void print(StObject obj, StObject port)
 
     case TSUBR: {
         St_WriteCString("#<subr ", port);
-        St_WriteCString(obj->subr.name, port);
+        St_WriteCString(ST_SUBR_NAME(obj), port);
         St_WriteCString(">", port);
 
         break;

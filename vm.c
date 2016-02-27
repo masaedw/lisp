@@ -335,7 +335,7 @@ static StObject vm(StObject m, StObject insn)
                     ST_APPEND1(head, tail, index(Vm->s, i));
                 }
 
-                Vm->a = Vm->a->subr.body(head);
+                Vm->a = ST_SUBR_BODY(Vm->a)(head);
 
                 // return
                 Vm->x = index(Vm->s, len + 0);

@@ -25,7 +25,6 @@ enum {
 struct StObjectHeader;
 typedef struct Object Object;
 typedef Object * StObject;
-typedef StObject SubrFunction(StObject args);
 #define ST_OBJECT(x) ((StObject)(x))
 
 #define ST_OBJECT_HEADER int type
@@ -92,17 +91,29 @@ typedef struct StBytevectorRec *StBytevector;
 #define ST_BYTEVECTOR_LENGTH(x) (ST_BYTEVECTOR(x)->len)
 #define ST_BYTEVECTOR_DATA(x) (ST_BYTEVECTOR(x)->data)
 
-typedef StObject SyntaxFunction(StObject form);
+typedef StObject (*StSyntaxFunction)(StObject form);
 struct StSyntaxRec
 {
     ST_OBJECT_HEADER;
-    SyntaxFunction *body;
+    StSyntaxFunction body;
     const char *name;
 };
 typedef struct StSyntaxRec *StSyntax;
 #define ST_SYNTAX(x) ((StSyntax)(x))
 #define ST_SYNTAX_BODY(x) (ST_SYNTAX(x)->body)
 #define ST_SYNTAX_NAME(x) (ST_SYNTAX(x)->name)
+
+typedef StObject (*StSubrFunction)(StObject args);
+struct StSubrRec
+{
+    ST_OBJECT_HEADER;
+    StSubrFunction body;
+    const char *name;
+};
+typedef struct StSubrRec *StSubr;
+#define ST_SUBR(x) ((StSubr)(x))
+#define ST_SUBR_BODY(x) (ST_SUBR(x)->body)
+#define ST_SUBR_NAME(x) (ST_SUBR(x)->name)
 
 struct Object
 {
@@ -114,12 +125,6 @@ struct Object
         struct {
             int value;
         } charcter;
-
-        // subr
-        struct {
-            SubrFunction *body;
-            const char *name;
-        } subr;
 
         // lambda
         struct {
@@ -402,8 +407,8 @@ void St_InitSystem();
 
 // Environment
 
-void St_AddSyntax(StObject module, const char *key, SyntaxFunction *syntax);
-void St_AddSubr(StObject module, const char *key, SubrFunction *subr);
+void St_AddSyntax(StObject module, const char *key, StSyntaxFunction syntax);
+void St_AddSubr(StObject module, const char *key, StSubrFunction subr);
 
 void St_InitPrimitives();
 void St_InitSyntax();
