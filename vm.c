@@ -181,15 +181,15 @@ static StObject vm(StObject m, StObject insn)
         St_Display(ST_CAR(Vm->x), False);
         if (St_Length(Vm->x) > 1)
         {
-            printf(" [");
+            printf(" [");fflush(stdout);
             St_Display(ST_CADR(Vm->x), False);
-            printf("]");
+            printf("]");fflush(stdout);
         }
         else
         {
-            printf(" []");
+            printf(" []");fflush(stdout);
         }
-        printf(" (f:%d fp:%d s:%d) ", Vm->f, Vm->fp, Vm->s);
+        printf(" (f:%d fp:%d s:%d) ", Vm->f, Vm->fp, Vm->s);fflush(stdout);
         St_Print(Vm->a, False);
         //*/
 
