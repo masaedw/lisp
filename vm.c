@@ -311,6 +311,7 @@ static StObject vm(StObject m, StObject insn)
             ST_ARGS3("shift", ST_CDR(Vm->x), n, m, x);
             Vm->x = x;
             Vm->s = shift_args(ST_INT_VALUE(n), ST_INT_VALUE(m), Vm->s);
+            continue;
         }
 
         CASE(apply) {
