@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -184,6 +185,13 @@ static StObject find_free(StObject x, StObject b)
             return St_SetUnion(find_free(testc, b),
                                St_SetUnion(find_free(thenc, b),
                                            find_free(elsec, b)));
+        }
+
+        CASE(define) {
+            StObject var = ST_CADR(x);
+            StObject exp = ST_CADDR(x);
+
+            return find_free(exp, St_SetCons(var, b));
         }
 
         CASE(set!) {
@@ -437,6 +445,22 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
 
             StObject free = find_free(body, St_SetUnion(vars, module_vars));
             StObject sets = find_sets(body, vars);
+            StObject defs = find_define(body);
+
+            StObject extended_vars = St_SetAppend(vars, defs);
+            int len_vars = St_Length(extended_vars);
+
+            StObject nsets = St_SetUnion(sets,
+                                         St_SetUnion(defs,
+                                                     St_SetIntersect(s, free)));
+            StObject body_c = compile_body(body, m, St_Cons(extended_vars, free), nsets,
+                                           ST_LIST2(I("return"), St_Integer(len_vars)));
+
+            if (abs(arity) != len_vars)
+            {
+                int to_extend = len_vars - abs(arity);
+                body_c = ST_LIST3(I("extend"), St_Integer(to_extend), body_c);
+            }
 
             return collect_free(m,
                                 e,
@@ -444,10 +468,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
                                 ST_LIST5(I("close"),
                                          St_Integer(arity),
                                          St_Integer(St_Length(free)),
-                                         make_boxes(sets, vars,
-                                                    compile_body(body, m, St_Cons(vars, free), St_SetUnion(sets, St_SetIntersect(s, free)),
-                                                                 ST_LIST2(I("return"), St_Integer(abs(arity)))),
-                                                    0),
+                                         make_boxes(sets, vars, body_c, 0),
                                          next));
         }
 
@@ -488,7 +509,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
                                                       : ST_LIST1(I("apply"))))));
         }
 
-        if (car == I("define")) // not internal define for now
+        if (car == I("define"))
         {
             StObject var = ST_CADR(x);
             StObject v = ST_CADDR(x);

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "lisp.h"
 
 typedef struct STVm
@@ -161,6 +162,7 @@ static StObject vm(StObject m, StObject insn)
     INSN(nuate);
     INSN(frame);
     INSN(argument);
+    INSN(extend);
     INSN(shift);
     INSN(apply);
     INSN(macro);
@@ -304,6 +306,16 @@ static StObject vm(StObject m, StObject insn)
             ST_ARGS1("argument", ST_CDR(Vm->x), x);
             Vm->x = x;
             Vm->s = push(Vm->a, Vm->s);
+            continue;
+        }
+
+        CASE(extend) {
+            ST_ARGS2("extend", ST_CDR(Vm->x), n, x);
+            Vm->x = x;
+            Vm->f += ST_INT_VALUE(n);
+            for (int i = 0; i < ST_INT_VALUE(n); i++) {
+                Vm->s = push(make_box(Unbound), Vm->s);
+            }
             continue;
         }
 
