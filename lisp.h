@@ -254,6 +254,7 @@ StObject St_Assv(StObject obj, StObject alist);
 bool St_SetMemberP(StObject obj, StObject s);
 StObject St_SetCons(StObject obj, StObject s);
 StObject St_SetUnion(StObject s1, StObject s2);
+StObject St_SetAppend(StObject s1, StObject s2);
 StObject St_SetMinus(StObject s1, StObject s2);
 StObject St_SetIntersect(StObject s1, StObject s2);
 

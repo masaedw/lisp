@@ -175,6 +175,22 @@ StObject St_SetUnion(StObject s1, StObject s2)
     return s2;
 }
 
+// stable (to keep element's order) version of St_SetUnion
+StObject St_SetAppend(StObject s1, StObject s2)
+{
+    StObject h = Nil, t = Nil;
+    ST_FOREACH(p, s1) {
+        ST_APPEND1(h, t, ST_CAR(p));
+    }
+    ST_FOREACH(p, s2) {
+        if (!St_SetMemberP(ST_CAR(p), h))
+        {
+            ST_APPEND1(h, t, ST_CAR(p));
+        }
+    }
+    return h;
+}
+
 StObject St_SetMinus(StObject s1, StObject s2)
 {
     ST_FOREACH(p, s1) {
