@@ -76,6 +76,42 @@ static StObject collect_free(StObject module, StObject env, StObject vars, StObj
     return next;
 }
 
+// returns (defined_symbols . definition_sequence_finished)
+static StObject find_define_sub(StObject body)
+{
+    StObject defs = Nil;
+
+    ST_FOREACH(p, body) {
+        StObject x = ST_CAR(p);
+        if (ST_PAIRP(x))
+        {
+            if (ST_CAR(x) == I("define"))
+            {
+                defs = St_SetCons(ST_CADR(x), defs);
+            }
+            else if (ST_CAR(x) == I("begin"))
+            {
+                StObject r = find_define_sub(ST_CDR(x));
+                defs = St_SetUnion(ST_CAR(r), defs);
+                if (ST_CDR(r) == True)
+                {
+                    return St_Cons(defs, True);
+                }
+            }
+            else
+            {
+                return St_Cons(defs, True);
+            }
+        }
+    }
+    return St_Cons(defs, False);
+}
+
+static StObject find_define(StObject body)
+{
+    return ST_CAR(find_define_sub(body));
+}
+
 static StObject find_free(StObject x, StObject b)
 {
     if (ST_SYMBOLP(x))
