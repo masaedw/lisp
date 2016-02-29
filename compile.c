@@ -110,7 +110,7 @@ static StObject find_define_sub(StObject body)
 
 static StObject find_define(StObject body)
 {
-    return ST_CAR(find_define_sub(body));
+    return St_Reverse(ST_CAR(find_define_sub(body)));
 }
 
 static StObject find_free(StObject x, StObject b)
@@ -188,10 +188,9 @@ static StObject find_free(StObject x, StObject b)
         }
 
         CASE(define) {
-            StObject var = ST_CADR(x);
             StObject exp = ST_CADDR(x);
 
-            return find_free(exp, St_SetCons(var, b));
+            return find_free(exp, b);
         }
 
         CASE(set!) {
@@ -443,11 +442,11 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
                 ST_APPEND1(vars, tail, p);
             }
 
-            StObject free = find_free(body, St_SetUnion(vars, module_vars));
-            StObject sets = find_sets(body, vars);
             StObject defs = find_define(body);
+            StObject extended_vars = St_SetAppend(defs, vars);
+            StObject free = find_free(body, St_SetUnion(extended_vars, module_vars));
+            StObject sets = find_sets(body, vars);
 
-            StObject extended_vars = St_SetAppend(vars, defs);
             int len_vars = St_Length(extended_vars);
 
             StObject nsets = St_SetUnion(sets,

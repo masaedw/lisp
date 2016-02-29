@@ -13,3 +13,11 @@
 
 (print (x))
 (print var)
+
+(define y
+  (lambda (a b)
+    (define c 3)
+    (define d 4)
+    (list a b c d)))
+
+(print (y 1 2))
