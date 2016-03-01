@@ -88,7 +88,12 @@ static StObject find_define_sub(StObject body)
         {
             if (ST_CAR(x) == I("define"))
             {
-                defs = St_SetCons(ST_CADR(x), defs);
+                StObject sym = ST_CADR(x);
+                if (St_SetMemberP(sym, defs))
+                {
+                    St_Error("define: multiple define: %s", ST_SYMBOL_VALUE(sym));
+                }
+                defs = St_Cons(ST_CADR(x), defs);
             }
             else if (ST_CAR(x) == I("begin"))
             {

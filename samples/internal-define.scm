@@ -21,3 +21,9 @@
     (list a b c d)))
 
 (print (y 1 2))
+
+(define z
+  (lambda (a b)
+    (define c 3)
+    ;(define c 4) ;; error
+    (list a b c)))
