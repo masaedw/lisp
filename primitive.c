@@ -333,6 +333,28 @@ static StObject subr_cons(StObject args)
     return St_Cons(car, cdr);
 }
 
+static StObject subr_append(StObject args)
+{
+    if (ST_NULLP(args))
+    {
+        St_Error("append: wrong number of arguments: at least 1 argument required");
+    }
+
+    args = St_Reverse(args);
+
+    StObject r = ST_CAR(args);
+
+    ST_FOREACH(p, ST_CDR(args)) {
+        if (!St_ListP(ST_CAR(p)))
+        {
+            St_Error("append: list required");
+        }
+        r = St_Append(ST_CAR(p), r);
+    }
+
+    return r;
+}
+
 static StObject subr_car(StObject args)
 {
     ST_ARGS1("car", args, cell);
@@ -937,6 +959,7 @@ void St_InitPrimitives()
     St_AddSubr(m, "symbol=?", subr_symbol_equalp);
     St_AddSubr(m, "not", subr_not);
     St_AddSubr(m, "cons", subr_cons);
+    St_AddSubr(m, "append", subr_append);
     St_AddSubr(m, "car", subr_car);
     St_AddSubr(m, "cdr", subr_cdr);
     St_AddSubr(m, "list", subr_list);

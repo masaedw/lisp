@@ -209,6 +209,7 @@ void *St_Alloc2(int type, size_t size);
 
 StObject St_Cons(StObject car, StObject cdr);
 StObject St_Acons(StObject key, StObject val, StObject cdr);
+StObject St_Append(StObject l1, StObject l2);
 StObject St_Reverse(StObject list);
 int St_Length(StObject list);
 bool St_ListP(StObject maybe_list);

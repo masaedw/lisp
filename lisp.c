@@ -45,6 +45,23 @@ StObject St_Acons(StObject key, StObject val, StObject cdr)
     return St_Cons(St_Cons(key, val), cdr);
 }
 
+StObject St_Append(StObject l1, StObject l2)
+{
+    StObject h = Nil, t = Nil;
+
+    ST_FOREACH(p, l1) {
+        ST_APPEND1(h, t, ST_CAR(p));
+    }
+
+    if (ST_NULLP(t))
+    {
+        return l2;
+    }
+
+    ST_CDR_SET(t, l2);
+    return h;
+}
+
 int St_Length(StObject list)
 {
     int length = 0;

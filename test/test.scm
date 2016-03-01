@@ -32,6 +32,10 @@
 (assert ''macro (macroexpand '(m)) 'macroexpand_0)
 (assert '(if #t (if #f a b) 'macro) (macroexpand '(my-if #t (my-if #f a b) (m))) 'macroexpand_1)
 
+(assert 'a (append 'a) 'append_0)
+(assert '(a . b) (append '(a) 'b) 'append_1)
+(assert '(a b c d) (append '(a b) '(c d)) 'append_2)
+
 (assert #t (symbol? 'a) 'symbol?_0)
 (assert #f (symbol? 1) 'symbol?_1)
 (assert #t (symbol=? 'a 'a 'a) 'symbol=?_0)
