@@ -40,3 +40,13 @@ StObject St_Gensym()
 
     return push(buf);
 }
+
+StObject St_SymbolToString(StObject sym)
+{
+    return St_MakeStringFromCString(ST_SYMBOL_VALUE(sym));
+}
+
+StObject St_StringToSymbol(StObject str)
+{
+    return St_Intern(St_StringGetCString(str));
+}

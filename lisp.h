@@ -262,6 +262,8 @@ StObject St_SetIntersect(StObject s1, StObject s2);
 // Symbol
 
 StObject St_Intern(const char *symbol_string);
+StObject St_SymbolToString(StObject sym);
+StObject St_StringToSymbol(StObject str);
 
 // Primitive utilities
 
@@ -311,7 +313,8 @@ StObject St_Intern(const char *symbol_string);
 // String
 
 StObject St_MakeEmptyString(int len);
-StObject St_MakeString(int len, char* buf);
+StObject St_MakeString(int len, const char* buf);
+StObject St_MakeStringFromCString(const char* buf);
 size_t St_StringLength(StObject s);
 bool St_StringEqualP(StObject s1, StObject s2);
 StObject St_StringAppend(StObject list);

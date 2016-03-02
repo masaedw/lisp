@@ -289,6 +289,30 @@ static StObject subr_symbolp(StObject args)
     return ST_BOOLEAN(ST_SYMBOLP(o));
 }
 
+static StObject subr_symbol_string(StObject args)
+{
+    ST_ARGS1("symbol->string", args, s);
+
+    if (!ST_SYMBOLP(s))
+    {
+        St_Error("symbol->string: symbol required");
+    }
+
+    return St_SymbolToString(s);
+}
+
+static StObject subr_string_symbol(StObject args)
+{
+    ST_ARGS1("string->symbol", args, s);
+
+    if (!ST_STRINGP(s))
+    {
+        St_Error("string->symbol: string required");
+    }
+
+    return St_StringToSymbol(s);
+}
+
 static StObject subr_symbol_equalp(StObject args)
 {
     int len = St_Length(args);
@@ -957,6 +981,8 @@ void St_InitPrimitives()
     St_AddSubr(m, "pair?", subr_pairp);
     St_AddSubr(m, "symbol?", subr_symbolp);
     St_AddSubr(m, "symbol=?", subr_symbol_equalp);
+    St_AddSubr(m, "symbol->string", subr_symbol_string);
+    St_AddSubr(m, "string->symbol", subr_string_symbol);
     St_AddSubr(m, "not", subr_not);
     St_AddSubr(m, "cons", subr_cons);
     St_AddSubr(m, "append", subr_append);

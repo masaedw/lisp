@@ -289,12 +289,17 @@ StObject St_MakeEmptyString(int len)
     return o;
 }
 
-StObject St_MakeString(int len, char *buf)
+StObject St_MakeString(int len, const char *buf)
 {
     StObject o = St_MakeEmptyString(len);
     memcpy(ST_STRING_VALUE(o), buf, len);
 
     return o;
+}
+
+StObject St_MakeStringFromCString(const char *buf)
+{
+    return St_MakeString(strlen(buf), buf);
 }
 
 size_t St_StringLength(StObject s)

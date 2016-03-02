@@ -41,6 +41,9 @@
 (assert #t (symbol=? 'a 'a 'a) 'symbol=?_0)
 (assert #f (symbol=? 'a 'a 'b) 'symbol=?_1)
 
+(assert "a" (symbol->string 'a) 'symbol->string_0)
+(assert 'a (string->symbol "a") 'string->symbol_0)
+
 (assert #t (list? '(a)) 'list_0)
 (assert #t (list? '(a b c)) 'list_1)
 (assert #t (list? '()) 'list_2)
