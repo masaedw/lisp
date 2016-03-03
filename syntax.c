@@ -54,11 +54,6 @@ static StObject syntax_let(StObject expr)
     return ret;
 }
 
-static StObject syntax_begin(StObject expr)
-{
-    return St_Cons(I("let"), St_Cons(Nil, ST_CDR(expr)));
-}
-
 static StObject syntax_let1(StObject expr)
 {
     if (St_Length(expr) < 3)
@@ -83,6 +78,5 @@ void St_InitSyntax()
     StObject m = GlobalModule;
 
     St_AddSyntax(m, "let", syntax_let);
-    St_AddSyntax(m, "begin", syntax_begin);
     St_AddSyntax(m, "let1", syntax_let1);
 }

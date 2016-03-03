@@ -182,6 +182,11 @@ static StObject find_free(StObject x, StObject b)
             return St_SetUnion(find_free(body, St_SetCons(sym, b)), find_free(value, b));
         }
 
+        CASE(begin) {
+            StObject body = ST_CDR(x);
+            return find_free(body, b);
+        }
+
         CASE(if) {
             StObject testc = ST_CADR(x);
             StObject thenc = ST_CADDR(x);
@@ -474,6 +479,11 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
                                          St_Integer(St_Length(free)),
                                          make_boxes(sets, vars, body_c, 0),
                                          next));
+        }
+
+        if (car == I("begin"))
+        {
+            return compile_body(ST_CDR(x), m, e, s, next);
         }
 
         if (car == I("if"))

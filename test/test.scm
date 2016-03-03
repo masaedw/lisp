@@ -221,3 +221,23 @@
 (assert #u8() (bytevector-append) 'bytevector-append_0)
 (assert #u8(1 2 3) (bytevector-append #u8(1 2 3)) 'bytevector-append_1)
 (assert #u8(1 2 3 4 5 6) (bytevector-append #u8(1 2 3) #u8(4 5 6)) 'bytevector-append_2)
+
+(define begin_value 1)
+
+(assert 2 (if #t
+            (begin
+              (set! begin_value 2)
+              2)
+            3)
+        'begin_0)
+(assert 2 begin_value 'begin_1)
+
+(define begin_lambda
+  (lambda (a)
+    (define a1 1)
+    (begin
+      (define a2 2)
+      (define a3 3))
+    (+ a a1 a2 a3)))
+
+(assert 7 (begin_lambda 1) 'begin_2)
