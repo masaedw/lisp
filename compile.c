@@ -381,6 +381,39 @@ static StObject macroexpand(StObject m, StObject x)
     return x;
 }
 
+static StObject syntaxexpand(StObject m, StObject x)
+{
+    if (ST_PAIRP(x))
+    {
+        if (ST_SYMBOLP(ST_CAR(x)))
+        {
+            StObject o = St_ModuleFind(m, ST_CAR(x));
+
+            if (ST_SYNTAXP(o))
+            {
+                return syntaxexpand(m, ST_SYNTAX_BODY(o)(x));
+            }
+        }
+
+        StObject p, h = Nil, t = Nil;
+
+        for (p = x; ST_PAIRP(p); p = ST_CDR(p)) {
+            StObject nx = syntaxexpand(m, ST_CAR(p));
+            ST_APPEND1(h, t, nx);
+        }
+
+        if (!ST_NULLP(p))
+        {
+            StObject nx = syntaxexpand(m, p);
+            ST_CDR_SET(t, nx);
+        }
+
+        return h;
+    }
+
+    return x;
+}
+
 static StObject compile_and(StObject xs, StObject m, StObject e, StObject s, StObject next)
 {
     if (ST_NULLP(xs))
@@ -549,16 +582,6 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
             return compile_or(ST_CDR(x), m, e, s, next);
         }
 
-        if (ST_SYMBOLP(car))
-        {
-            StObject o = St_ModuleFind(m, car);
-
-            if (ST_SYNTAXP(o))
-            {
-                return compile(ST_SYNTAX_BODY(o)(x), m, e, s, next);
-            }
-        }
-
         // else clause
         for (StObject args = ST_CDR(x), c = compile(ST_CAR(x), m, e, s, tailP(next) ? ST_LIST4(I("shift"), St_Integer(St_Length(ST_CDR(x))), ST_CADR(next), ST_LIST1(I("apply"))) : ST_LIST1(I("apply")));
              ;
@@ -576,7 +599,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
 
 StObject St_Compile(StObject expr, StObject module, StObject next)
 {
-    return compile(macroexpand(module, expr), module, St_Cons(Nil, Nil), Nil, next);
+    return compile(syntaxexpand(module, macroexpand(module, expr)), module, St_Cons(Nil, Nil), Nil, next);
 }
 
 StObject St_MacroExpand(StObject module, StObject expr)
