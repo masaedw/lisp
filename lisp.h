@@ -90,7 +90,7 @@ typedef struct StBytevectorRec *StBytevector;
 #define ST_BYTEVECTOR_LENGTH(x) (ST_BYTEVECTOR(x)->len)
 #define ST_BYTEVECTOR_DATA(x) (ST_BYTEVECTOR(x)->data)
 
-typedef StObject (*StSyntaxFunction)(StObject form);
+typedef StObject (*StSyntaxFunction)(StObject module, StObject form);
 struct StSyntaxRec
 {
     ST_OBJECT_HEADER;
@@ -438,6 +438,7 @@ StObject St__Eval_INSN(StObject module, StObject insn);
 // Compiler
 
 StObject St_MacroExpand(StObject module, StObject expr);
+StObject St_SyntaxExpand(StObject module, StObject expr);
 StObject St_Compile(StObject expr, StObject module, StObject next);
 
 #endif

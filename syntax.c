@@ -23,7 +23,7 @@ static void validate_bindings(StObject args)
     }
 }
 
-static StObject syntax_let(StObject expr)
+static StObject syntax_let(StObject module, StObject expr)
 {
     // (let <bindings> <body>)
     // <bindings> ::= ((sym <expr>)*)
@@ -51,10 +51,10 @@ static StObject syntax_let(StObject expr)
     StObject lambda = St_Cons(I("lambda"), St_Cons(syms, body));
     StObject ret = St_Cons(lambda, vals);
 
-    return ret;
+    return St_SyntaxExpand(module, ret);
 }
 
-static StObject syntax_let1(StObject expr)
+static StObject syntax_let1(StObject module, StObject expr)
 {
     if (St_Length(expr) < 3)
     {
@@ -69,8 +69,9 @@ static StObject syntax_let1(StObject expr)
     StObject sym = ST_CADR(expr);
     StObject val = ST_CADDR(expr);
     StObject body = ST_CDR(ST_CDDR(expr));
+    StObject ret = St_Cons(I("let"), St_Cons(ST_LIST1(ST_LIST2(sym, val)), body));
 
-    return St_Cons(I("let"), St_Cons(ST_LIST1(ST_LIST2(sym, val)), body));
+    return St_SyntaxExpand(module, ret);
 }
 
 void St_InitSyntax()

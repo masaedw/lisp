@@ -369,7 +369,7 @@ static StObject syntaxexpand(StObject m, StObject x)
 
             if (ST_SYNTAXP(o))
             {
-                return syntaxexpand(m, ST_SYNTAX_BODY(o)(x));
+                return ST_SYNTAX_BODY(o)(m, x);
             }
         }
 
@@ -583,4 +583,9 @@ StObject St_Compile(StObject expr, StObject module, StObject next)
 StObject St_MacroExpand(StObject module, StObject expr)
 {
     return macroexpand(module, expr);
+}
+
+StObject St_SyntaxExpand(StObject module, StObject expr)
+{
+    return syntaxexpand(module, expr);
 }
