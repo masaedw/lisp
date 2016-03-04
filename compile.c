@@ -160,28 +160,6 @@ static StObject find_free(StObject x, StObject b)
             return find_free(body, nb);
         }
 
-        CASE(let) {
-            StObject bindings = ST_CADR(x);
-            StObject body = ST_CDDR(x);
-            StObject f = Nil;
-            StObject nb = b;
-
-            ST_FOREACH(p, bindings) {
-                StObject bn = ST_CAR(p);
-                f = St_SetUnion(find_free(ST_CADR(bn), b), f);
-                nb = St_SetCons(ST_CAR(bn), nb);
-            }
-            return St_SetUnion(find_free(body, nb), f);
-        }
-
-        CASE(let1) {
-            StObject sym = ST_CADR(x);
-            StObject value = ST_CADDR(x);
-            StObject body = ST_CDR(ST_CDDR(x));
-
-            return St_SetUnion(find_free(body, St_SetCons(sym, b)), find_free(value, b));
-        }
-
         CASE(begin) {
             StObject body = ST_CDR(x);
             return find_free(body, b);
