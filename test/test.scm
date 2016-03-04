@@ -243,3 +243,19 @@
     (+ a a1 a2 a3)))
 
 (assert 7 (begin_lambda 1) 'begin_2)
+
+(define (add1 a)
+  (let1 x 1
+    (+ a x)))
+
+(define (add2 a)
+  (+ a 2))
+
+(define (add3 a)
+  (if #f
+    a
+    (+ a 3)))
+
+(assert 2 (add1 1) 'define_lambda_0)
+(assert 4 (add2 2) 'define_lambda_1)
+(assert 6 (add3 3) 'define_lambda_2)

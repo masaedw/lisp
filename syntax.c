@@ -74,10 +74,34 @@ static StObject syntax_let1(StObject module, StObject expr)
     return St_SyntaxExpand(module, ret);
 }
 
+static StObject syntax_define(StObject module, StObject expr)
+{
+    if (St_Length(expr) < 3)
+    {
+        St_Error("define: malformed define");
+    }
+
+    if (ST_PAIRP(ST_CADR(expr)))
+    {
+        StObject sym = ST_CAR(ST_CADR(expr));
+        StObject vars = ST_CDR(ST_CADR(expr));
+        StObject body = ST_CDDR(expr);
+        StObject lambda = St_Cons(I("lambda"), St_Cons(vars, body));
+
+        StObject ret = St_Cons(I("define"),
+                               St_Cons(St_SyntaxExpand(module, sym),
+                                       ST_LIST1(St_SyntaxExpand(module, lambda))));
+        return ret;
+    }
+
+    return St_Cons(ST_CAR(expr), St_SyntaxExpand(module, ST_CDR(expr)));
+}
+
 void St_InitSyntax()
 {
     StObject m = GlobalModule;
 
     St_AddSyntax(m, "let", syntax_let);
     St_AddSyntax(m, "let1", syntax_let1);
+    St_AddSyntax(m, "define", syntax_define);
 }
