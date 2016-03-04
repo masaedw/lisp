@@ -135,6 +135,8 @@
 (assert 1 (let ((a 1)) a) 'let_1)
 (assert 2 (let ((a 1) (b 1)) (+ a b)) 'let_2)
 
+(assert 1 (let1 x 1 x) 'let1_0)
+
 (define x 1)
 (set! x 2)
 (assert 2 x 'set!_0)
