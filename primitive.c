@@ -731,6 +731,20 @@ static StObject subr_assv(StObject args)
     return St_Assv(obj, alist);
 }
 
+static StObject subr_memq(StObject args)
+{
+    ST_ARGS2("memq", args, obj, list);
+
+    return St_Memq(obj, list);
+}
+
+static StObject subr_memv(StObject args)
+{
+    ST_ARGS2("memv", args, obj, list);
+
+    return St_Memv(obj, list);
+}
+
 static StObject subr_bytevectorp(StObject args)
 {
     ST_ARGS1("bytevector?", args, o);
@@ -1018,6 +1032,8 @@ void St_InitPrimitives()
     St_AddSubr(m, "eof-object?", subr_eof_objectp);
     St_AddSubr(m, "assq", subr_assq);
     St_AddSubr(m, "assv", subr_assv);
+    St_AddSubr(m, "memq", subr_memq);
+    St_AddSubr(m, "memv", subr_memv);
     St_AddSubr(m, "bytevector?", subr_bytevectorp);
     St_AddSubr(m, "make-bytevector", subr_make_bytevector);
     St_AddSubr(m, "bytevector", subr_bytevector);

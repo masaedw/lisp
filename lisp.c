@@ -166,6 +166,28 @@ StObject St_Assv(StObject obj, StObject alist)
     return False;
 }
 
+StObject St_Memq(StObject obj, StObject list)
+{
+    ST_FOREACH(p, list) {
+        if (obj == ST_CAR(p))
+        {
+            return p;
+        }
+    }
+    return False;
+}
+
+StObject St_Memv(StObject obj, StObject list)
+{
+    ST_FOREACH(p, list) {
+        if (St_EqvP(obj, ST_CAR(p)))
+        {
+            return p;
+        }
+    }
+    return False;
+}
+
 bool St_SetMemberP(StObject obj, StObject s)
 {
     ST_FOREACH(p, s) {

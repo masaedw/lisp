@@ -190,6 +190,13 @@
 (assert #f (assv 'd '((a . a) (b . b) (c . c))) 'assv_0)
 (assert '(a . a) (assv 'a '((a . a) (b . b) (c . c))) 'assv_1)
 
+(assert #f (memq 'a '()) 'memq_0)
+(assert #f (memq 'a '(b c d)) 'memq_1)
+(assert '(a d) (memq 'a '(b c a d)) 'memq_2)
+(assert #f (memv '1 '()) 'memv_0)
+(assert #f (memv '1 '(2 3)) 'memv_1)
+(assert '(2 3) (memv '2 '(1 2 3)) 'memv_2)
+
 (assert #f (bytevector? #t) 'bytevector?_0)
 (assert #t (bytevector? #u8()) 'bytevector?_1)
 (assert #t (bytevector? (make-bytevector 3)) 'make-bytevector_0)
