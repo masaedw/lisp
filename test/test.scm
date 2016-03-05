@@ -259,3 +259,7 @@
 (assert 2 (add1 1) 'define_lambda_0)
 (assert 4 (add2 2) 'define_lambda_1)
 (assert 6 (add3 3) 'define_lambda_2)
+
+(define (mylist . a) a)
+
+(assert '(a b c) (mylist 'a 'b 'c) 'define_lambda_3)
