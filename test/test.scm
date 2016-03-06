@@ -280,3 +280,13 @@
 (assert 1 (cond-test 1) 'cond_0)
 (assert () (cond-test #f) 'cond_1)
 (assert #t (cond ((= 1 1) #t)) 'cond_2)
+
+(define (case-test x)
+  (case x
+    ((1 2 3) 1)
+    ((a b c) 'a)
+    (else #f)))
+
+(assert 1 (case-test 1) 'case_0)
+(assert #f (case-test 'x) 'case_1)
+(assert 1 (case 2 ((1 2 3) 1)) 'case_2)

@@ -129,6 +129,49 @@ static StObject syntax_cond(StObject module, StObject expr)
     return St_SyntaxExpand(module, cond_expand(ST_CDR(expr)));
 }
 
+static StObject case_expand(StObject sym, StObject expr)
+{
+    if (ST_NULLP(expr))
+    {
+        return Nil;
+    }
+
+    if (ST_PAIRP(expr) && ST_PAIRP(ST_CAR(expr)))
+    {
+        StObject vals = ST_CAAR(expr);
+        StObject body = ST_CDAR(expr);
+
+        if (vals != I("else"))
+        {
+            return ST_LIST4(I("if"), ST_LIST3(I("memv"), sym, ST_LIST2(I("quote"), vals)),
+                            St_Cons(I("begin"), body),
+                            case_expand(sym, ST_CDR(expr)));
+        }
+        else
+        {
+            return St_Cons(I("begin"), body);
+        }
+    }
+
+    St_Error("case: malformed case clause");
+}
+
+static StObject syntax_case(StObject module, StObject expr)
+{
+    int len = St_Length(expr);
+    if (len < 3)
+    {
+        St_Error("case: malformed case");
+    }
+
+    StObject sym = St_Gensym();
+    StObject val = ST_CADR(expr);
+    StObject body = ST_CDDR(expr);
+    StObject ret = ST_LIST4(I("let1"), sym, val, case_expand(sym, body));
+
+    return St_SyntaxExpand(module, ret);
+}
+
 void St_InitSyntax()
 {
     StObject m = GlobalModule;
@@ -137,4 +180,5 @@ void St_InitSyntax()
     St_AddSyntax(m, "let1", syntax_let1);
     St_AddSyntax(m, "define", syntax_define);
     St_AddSyntax(m, "cond", syntax_cond);
+    St_AddSyntax(m, "case", syntax_case);
 }
