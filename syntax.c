@@ -97,6 +97,38 @@ static StObject syntax_define(StObject module, StObject expr)
     return St_Cons(ST_CAR(expr), St_SyntaxExpand(module, ST_CDR(expr)));
 }
 
+static StObject cond_expand(StObject module, StObject expr)
+{
+    if (ST_NULLP(ST_CAR(expr)))
+    {
+        return Nil;
+    }
+
+    if (ST_PAIRP(ST_CAR(expr)))
+    {
+        StObject pred = ST_CAAR(expr);
+        StObject body = ST_CDAR(expr);
+
+        if (pred != I("else"))
+        {
+            return ST_LIST4(I("if"), St_SyntaxExpand(module, pred),
+                            St_SyntaxExpand(module, St_Cons(I("begin"), body)),
+                            cond_expand(module, ST_CDR(expr)));
+        }
+        else
+        {
+             return St_SyntaxExpand(module, St_Cons(I("begin"), body));
+        }
+    }
+
+    return Nil;
+}
+
+static StObject syntax_cond(StObject module, StObject expr)
+{
+    return cond_expand(module, ST_CDR(expr));
+}
+
 void St_InitSyntax()
 {
     StObject m = GlobalModule;
@@ -104,4 +136,5 @@ void St_InitSyntax()
     St_AddSyntax(m, "let", syntax_let);
     St_AddSyntax(m, "let1", syntax_let1);
     St_AddSyntax(m, "define", syntax_define);
+    St_AddSyntax(m, "cond", syntax_cond);
 }

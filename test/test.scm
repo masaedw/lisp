@@ -270,3 +270,12 @@
 (define (mylist . a) a)
 
 (assert '(a b c) (mylist 'a 'b 'c) 'define_lambda_3)
+
+(define (cond-test x)
+  (cond
+   ((eqv? x 1) 1)
+   ((eqv? x 'a) 'a)
+   (else ())))
+
+(assert 1 (cond-test 1) 'cond_0)
+(assert () (cond-test #f) 'cond_1)
