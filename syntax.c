@@ -97,7 +97,7 @@ static StObject syntax_define(StObject module, StObject expr)
     return St_Cons(ST_CAR(expr), St_SyntaxExpand(module, ST_CDR(expr)));
 }
 
-static StObject cond_expand(StObject module, StObject expr)
+static StObject cond_expand(StObject expr)
 {
     if (ST_NULLP(ST_CAR(expr)))
     {
@@ -111,22 +111,22 @@ static StObject cond_expand(StObject module, StObject expr)
 
         if (pred != I("else"))
         {
-            return ST_LIST4(I("if"), St_SyntaxExpand(module, pred),
-                            St_SyntaxExpand(module, St_Cons(I("begin"), body)),
-                            cond_expand(module, ST_CDR(expr)));
+            return ST_LIST4(I("if"), pred,
+                            St_Cons(I("begin"), body),
+                            cond_expand(ST_CDR(expr)));
         }
         else
         {
-             return St_SyntaxExpand(module, St_Cons(I("begin"), body));
+             return St_Cons(I("begin"), body);
         }
     }
 
-    return Nil;
+    St_Error("cond: malformed cond clause");
 }
 
 static StObject syntax_cond(StObject module, StObject expr)
 {
-    return cond_expand(module, ST_CDR(expr));
+    return St_SyntaxExpand(module, cond_expand(ST_CDR(expr)));
 }
 
 void St_InitSyntax()
