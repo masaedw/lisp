@@ -99,12 +99,12 @@ static StObject syntax_define(StObject module, StObject expr)
 
 static StObject cond_expand(StObject expr)
 {
-    if (ST_NULLP(ST_CAR(expr)))
+    if (ST_NULLP(expr))
     {
         return Nil;
     }
 
-    if (ST_PAIRP(ST_CAR(expr)))
+    if (ST_PAIRP(expr) && ST_PAIRP(ST_CAR(expr)))
     {
         StObject pred = ST_CAAR(expr);
         StObject body = ST_CDAR(expr);

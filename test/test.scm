@@ -279,3 +279,4 @@
 
 (assert 1 (cond-test 1) 'cond_0)
 (assert () (cond-test #f) 'cond_1)
+(assert #t (cond ((= 1 1) #t)) 'cond_2)
