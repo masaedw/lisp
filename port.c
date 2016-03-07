@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <string.h>
 #include <sys/select.h>
 #include <sys/types.h>
@@ -38,6 +39,28 @@ StObject St_MakeFdPort(int fd, bool need_to_close)
     CLOSEDP(o) = false;
 
     return o;
+}
+
+StObject St_OpenInputPort(const char *path)
+{
+    int fd = open(path, O_RDONLY);
+    if (fd == -1)
+    {
+        St_Error("open-input-port: open failed");
+    }
+
+    return St_MakeFdPort(fd, true);
+}
+
+StObject St_OpenOutputPort(const char *path)
+{
+    int fd = open(path, O_WRONLY | O_CREAT, 0644);
+    if (fd == -1)
+    {
+        St_Error("open-output-port: open failed");
+    }
+
+    return St_MakeFdPort(fd, true);
 }
 
 #define IS_EMPTY_BUF(o) (P(o) == -1)
@@ -305,6 +328,30 @@ static StObject subr_close_port(StObject args)
     return Nil;
 }
 
+static StObject subr_open_input_file(StObject args)
+{
+    ST_ARGS1("open-input-file", args, path);
+
+    if (!ST_STRINGP(path))
+    {
+        St_Error("open-input-file: string required");
+    }
+
+    return St_OpenInputPort(St_StringGetCString(path));
+}
+
+static StObject subr_open_output_file(StObject args)
+{
+    ST_ARGS1("open-output-file", args, path);
+
+    if (!ST_STRINGP(path))
+    {
+        St_Error("open-output-file: string required");
+    }
+
+    return St_OpenOutputPort(St_StringGetCString(path));
+}
+
 StObject St_StandardInputPort  = Unbound;
 StObject St_StandardOutputPort = Unbound;
 StObject St_StandardErrorPort  = Unbound;
@@ -326,4 +373,6 @@ void St_InitPort()
     St_AddSubr(m, "display", subr_display);
     St_AddSubr(m, "newline", subr_newline);
     St_AddSubr(m, "close-port", subr_close_port);
+    St_AddSubr(m, "open-input-file", subr_open_input_file);
+    St_AddSubr(m, "open-output-file", subr_open_output_file);
  }

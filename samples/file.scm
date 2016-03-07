@@ -1,0 +1,15 @@
+(define text "Hello world!")
+
+(let1 o (open-output-file "io-sample.txt")
+  (print "write")
+  (display text o)
+  (newline o)
+  (close-port o))
+
+(let1 i (open-input-file "io-sample.txt")
+  (print "read")
+  (let1 line (read-line i)
+    (close-port i)
+    (if (string=? line text)
+      (print "success!!")
+      (print "failed"))))

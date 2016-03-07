@@ -375,6 +375,8 @@ void St_Load(const char *filename);
 // Port
 
 StObject St_MakeFdPort(int fd, bool need_to_close);
+StObject St_OpenInputPort(const char *path);
+StObject St_OpenOutputPort(const char *path);
 //StObject St_Read(StObject port);
 StObject St_ReadChar(StObject port);
 StObject St_PeekChar(StObject port);
