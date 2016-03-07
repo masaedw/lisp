@@ -6,6 +6,36 @@
 
 #include "lisp.h"
 
+StObject St_CurrentExecScriptName = Unbound; // filename or "-" (stdin)
+static int Argc;
+static char **Argv;
+static StObject ArgvObj = Unbound;
+
+StObject St_CommandLine()
+{
+    if (ST_UNBOUNDP(ArgvObj))
+    {
+        StObject h = Nil, t = Nil;
+        for (int i = 0; i < Argc; i++) {
+            ST_APPEND1(h, t, St_MakeStringFromCString(Argv[i]));
+        }
+        ArgvObj = h;
+
+        if (!St_StringEqualP(St_CurrentExecScriptName, St_MakeStringFromCString("-")))
+        {
+            ST_FOREACH(p, ArgvObj) {
+                if (St_StringEqualP(ST_CAR(p), St_CurrentExecScriptName))
+                {
+                    ArgvObj = p;
+                    break;
+                }
+            }
+        }
+    }
+
+    return ArgvObj;
+}
+
 StObject St_SysPipe()
 {
     int fds[2];
@@ -54,6 +84,13 @@ void St_SysWaitPid(int pid)
     {
         St_Error("waitpid erorr. pid: %d", pid);
     }
+}
+
+static StObject subr_command_line(StObject args)
+{
+    ST_ARGS0("command-line", args);
+
+    return St_CommandLine();
 }
 
 static StObject subr_sys_pipe(StObject args)
@@ -121,10 +158,14 @@ static StObject subr_sys_waitpid(StObject args)
     return Nil;
 }
 
-void St_InitSystem()
+void St_InitSystem(int argc, char** argv)
 {
+    Argc = argc;
+    Argv = argv;
+
     StObject m = GlobalModule;
 
+    St_AddSubr(m, "command-line", subr_command_line);
     St_AddSubr(m, "sys-pipe", subr_sys_pipe);
     St_AddSubr(m, "sys-fork", subr_sys_fork);
     St_AddSubr(m, "sys-pause", subr_sys_pause);

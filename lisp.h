@@ -406,6 +406,9 @@ void St_InitPort();
 
 // System
 
+extern StObject St_CurrentExecScriptName; // filename or "-" (stdin)
+StObject St_CommandLine();
+
 // returns pair of ports: (in . out)
 StObject St_SysPipe();
 int St_SysFork();
@@ -413,7 +416,7 @@ void St_SysPause();
 void St_SysExit(int status) __attribute__((noreturn));
 void St_SysKill(int pid, int signal);
 void St_SysWaitPid(int pid);
-void St_InitSystem();
+void St_InitSystem(int argc, char** argv);
 
 // Environment
 

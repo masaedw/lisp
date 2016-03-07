@@ -290,3 +290,5 @@
 (assert 1 (case-test 1) 'case_0)
 (assert #f (case-test 'x) 'case_1)
 (assert 1 (case 2 ((1 2 3) 1)) 'case_2)
+
+(assert "test/test.scm" (car (command-line)) 'command-line_0)

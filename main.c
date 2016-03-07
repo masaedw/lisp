@@ -74,7 +74,7 @@ int main(int argc, char** argv)
 
     St_InitModule();
     St_InitPort();
-    St_InitSystem();
+    St_InitSystem(argc, argv);
     St_InitPrimitives();
     St_InitSyntax();
     St_InitVm();
@@ -113,10 +113,12 @@ int main(int argc, char** argv)
         }
 
         input = St_MakeFdPort(f, true);
+        St_CurrentExecScriptName = St_MakeStringFromCString(argv[pargs]);
     }
     else
     {
-        input = St_MakeFdPort(0, false);
+        input = St_StandardInputPort;
+        St_CurrentExecScriptName = St_MakeStringFromCString("-");
     }
 
     while (true) {
