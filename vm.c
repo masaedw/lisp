@@ -347,7 +347,7 @@ static StObject vm(StObject m, StObject insn)
                 Vm->c = index(Vm->s, len + 3);
                 Vm->s = Vm->s - len - 4;
             }
-            else
+            else if (ST_LAMBDAP(Vm->a))
             {
                 int len = Vm->s - Vm->fp;
                 int arity = ST_LAMBDA_ARITY(Vm->a);
@@ -384,6 +384,10 @@ static StObject vm(StObject m, StObject insn)
                 Vm->x = ST_LAMBDA_BODY(Vm->a);
                 Vm->f = Vm->s;
                 Vm->c = Vm->a;
+            }
+            else
+            {
+                St_Error("vm: procedure required");
             }
             continue;
         }
