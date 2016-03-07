@@ -11,7 +11,7 @@ static int Argc;
 static char **Argv;
 static StObject ArgvObj = Unbound;
 
-StObject St_CommandLine()
+StObject St_CommandLine(void)
 {
     if (ST_UNBOUNDP(ArgvObj))
     {
@@ -36,7 +36,7 @@ StObject St_CommandLine()
     return ArgvObj;
 }
 
-StObject St_SysPipe()
+StObject St_SysPipe(void)
 {
     int fds[2];
 
@@ -48,7 +48,7 @@ StObject St_SysPipe()
     return St_Cons(St_MakeFdPort(fds[0], true), St_MakeFdPort(fds[1], true));
 }
 
-int St_SysFork()
+int St_SysFork(void)
 {
     int pid = fork();
     if (pid == -1)
@@ -59,7 +59,7 @@ int St_SysFork()
     return pid;
 }
 
-void St_SysPause()
+void St_SysPause(void)
 {
     pause();
 }

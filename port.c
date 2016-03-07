@@ -360,7 +360,7 @@ StObject St_CurrentInputPort  = Unbound;
 StObject St_CurrentOutputPort = Unbound;
 StObject St_CurrentErrorPort  = Unbound;
 
-void St_InitPort()
+void St_InitPort(void)
 {
     St_CurrentInputPort  = St_StandardInputPort  = St_MakeFdPort(0, false);
     St_CurrentOutputPort = St_StandardOutputPort = St_MakeFdPort(1, false);

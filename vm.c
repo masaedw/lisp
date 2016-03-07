@@ -25,7 +25,7 @@ typedef struct STVm
 static STVm _Vm;
 static STVm *Vm = &_Vm;
 
-void St_InitVm()
+void St_InitVm(void)
 {
     Vm->stack = St_MakeVector(1000);
 

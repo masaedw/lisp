@@ -362,13 +362,13 @@ void St_ModulePush(StObject module, StObject sym, StObject value);
 void St_ModuleSet(StObject module, int idx, StObject val);
 StObject St_ModuleRef(StObject module, int idx);
 StObject St_ModuleSymbols(StObject module);
-void St_InitModule();
+void St_InitModule(void);
 
 // Basic functions
 
 bool St_EqvP(StObject lhs, StObject rhs);
 bool St_EqualP(StObject lhs, StObject rhs);
-StObject St_Gensym();
+StObject St_Gensym(void);
 StObject St_Apply(StObject proc, StObject args);
 void St_Load(const char *filename);
 
@@ -402,17 +402,17 @@ extern StObject St_StandardErrorPort;
 extern StObject St_CurrentInputPort;
 extern StObject St_CurrentOutputPort;
 extern StObject St_CurrentErrorPort;
-void St_InitPort();
+void St_InitPort(void);
 
 // System
 
 extern StObject St_CurrentExecScriptName; // filename or "-" (stdin)
-StObject St_CommandLine();
+StObject St_CommandLine(void);
 
 // returns pair of ports: (in . out)
-StObject St_SysPipe();
-int St_SysFork();
-void St_SysPause();
+StObject St_SysPipe(void);
+int St_SysFork(void);
+void St_SysPause(void);
 void St_SysExit(int status) __attribute__((noreturn));
 void St_SysKill(int pid, int signal);
 void St_SysWaitPid(int pid);
@@ -423,9 +423,9 @@ void St_InitSystem(int argc, char** argv);
 void St_AddSyntax(StObject module, const char *key, StSyntaxFunction syntax);
 void St_AddSubr(StObject module, const char *key, StSubrFunction subr);
 
-void St_InitPrimitives();
-void St_InitSyntax();
-void St_InitVm();
+void St_InitPrimitives(void);
+void St_InitSyntax(void);
+void St_InitVm(void);
 
 // Parser
 

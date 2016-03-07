@@ -172,7 +172,7 @@ static StObject syntax_case(StObject module, StObject expr)
     return St_SyntaxExpand(module, ret);
 }
 
-void St_InitSyntax()
+void St_InitSyntax(void)
 {
     StObject m = GlobalModule;
 

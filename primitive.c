@@ -967,7 +967,7 @@ static StObject subr_current_error_port(StObject args)
     return current_x_port_impl(args, "current-error-port", &St_CurrentErrorPort);
 }
 
-void St_InitPrimitives()
+void St_InitPrimitives(void)
 {
     StObject m = GlobalModule;
 

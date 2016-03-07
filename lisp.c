@@ -554,7 +554,7 @@ StObject St_ModuleSymbols(StObject m)
     return syms;
 }
 
-void St_InitModule()
+void St_InitModule(void)
 {
     GlobalModule = St_MakeModule(Nil);
 }

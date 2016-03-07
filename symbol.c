@@ -29,7 +29,7 @@ StObject St_Intern(const char *symbol_value)
     return push(symbol_value);
 }
 
-StObject St_Gensym()
+StObject St_Gensym(void)
 {
     static int c = 0;
     static const int buf_size = 30;
