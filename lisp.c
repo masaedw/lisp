@@ -392,6 +392,20 @@ StObject St_MakeVector(int size)
     return o;
 }
 
+StObject St_MakeVectorFromList(StObject list)
+{
+    int len = St_Length(list);
+
+    StObject vec = St_MakeVector(len);
+
+    int i = 0;
+    ST_FOREACH(p, list) {
+        ST_VECTOR_DATA(vec)[i++] = ST_CAR(p);
+    }
+
+    return vec;
+}
+
 void St_CopyVector(StObject dst, StObject src, int size)
 {
     memcpy(ST_VECTOR_DATA(dst), ST_VECTOR_DATA(src), sizeof(StObject) * size);

@@ -473,11 +473,24 @@ static StObject subr_make_vector(StObject args)
 {
     ST_ARGS1("make-vector", args, size);
 
-    if (!ST_INTP(size) || ST_INT_VALUE(size) < 0) {
+    if (!ST_INTP(size) || ST_INT_VALUE(size) < 0)
+    {
         St_Error("make-vector: size must be a positive integer");
     }
 
     return St_MakeVector(ST_INT_VALUE(size));
+}
+
+static StObject subr_vector(StObject args)
+{
+    ST_ARGS1("vector", args, list);
+
+    if (!St_ListP(list))
+    {
+        St_Error("vector: list required.");
+    }
+
+    return St_MakeVectorFromList(list);
 }
 
 static StObject subr_vector_ref(StObject args)
@@ -1010,6 +1023,7 @@ void St_InitPrimitives(void)
     St_AddSubr(m, "set-cdr!", subr_set_cdr);
     St_AddSubr(m, "vector?", subr_vectorp);
     St_AddSubr(m, "make-vector", subr_make_vector);
+    St_AddSubr(m, "vector", subr_vector);
     St_AddSubr(m, "vector-ref", subr_vector_ref);
     St_AddSubr(m, "vector-set!", subr_vector_set);
     St_AddSubr(m, "vector-length", subr_vector_length);

@@ -325,6 +325,7 @@ char *St_StringGetCString(StObject string);
 // Vector
 
 StObject St_MakeVector(int size);
+StObject St_MakeVectorFromList(StObject list);
 StObject St_VectorRef(StObject vector, int idx);
 void St_CopyVector(StObject dst, StObject src, int size);
 void St_VectorSet(StObject vector, int idx, StObject obj);
