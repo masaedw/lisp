@@ -279,6 +279,11 @@ bool St_EqualP(StObject lhs, StObject rhs)
         return St_BytevectorEqualP(lhs, rhs);
     }
 
+    if (ST_VECTORP(lhs) && ST_VECTORP(rhs))
+    {
+        return St_VectorEqualP(lhs, rhs);
+    }
+
     return St_EqvP(lhs, rhs);
 }
 
@@ -415,6 +420,26 @@ void St_VectorSet(StObject v, int idx, StObject obj)
 size_t St_VectorLength(StObject v)
 {
     return ST_VECTOR_LENGTH(v);
+}
+
+bool St_VectorEqualP(StObject v1, StObject v2)
+{
+    if (ST_VECTOR_LENGTH(v1) != ST_VECTOR_LENGTH(v2))
+    {
+        return false;
+    }
+
+    int len = ST_VECTOR_LENGTH(v1);
+
+    for (int i = 0; i < len; i++) {
+        if (!St_EqualP(ST_VECTOR_DATA(v1)[i],
+                       ST_VECTOR_DATA(v2)[i]))
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 // dynamic array

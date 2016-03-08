@@ -329,6 +329,7 @@ StObject St_VectorRef(StObject vector, int idx);
 void St_CopyVector(StObject dst, StObject src, int size);
 void St_VectorSet(StObject vector, int idx, StObject obj);
 size_t St_VectorLength(StObject vector);
+bool St_VectorEqualP(StObject v1, StObject v2);
 
 // Bytevector
 
