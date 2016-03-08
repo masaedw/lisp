@@ -3,7 +3,7 @@
 
 #include "lisp.h"
 
-static StObject read_list(StObject port);
+static StObject read_list(StObject port, bool allow_dot);
 static StObject read_quote(StObject port);
 static StObject read_integer(StObject port, int first_digit);
 static StObject read_hash(StObject port);
@@ -46,7 +46,7 @@ static StObject read_expr(StObject port)
             getc(port);
             return Nil;
         }
-        return read_list(port);
+        return read_list(port, true);
     case '\'':
         return read_quote(port);
     case '0': case '1': case '2': case '3': case '4':
@@ -64,7 +64,7 @@ static StObject read_expr(StObject port)
     }
 }
 
-static StObject read_list(StObject port)
+static StObject read_list(StObject port, bool allow_dot)
 {
     StObject head = Nil;
     StObject tail = Nil;
@@ -106,6 +106,11 @@ static StObject read_list(StObject port)
 
         if (i == St_Intern("."))
         {
+            if (!allow_dot)
+            {
+                St_Error("read: unexpected dot");
+            }
+
             if (head == Nil)
             {
                 St_Error("read: dot must have car part in front of it");
@@ -205,6 +210,12 @@ static StObject read_hash(StObject port)
         {
             return St_MakeBytevectorFromList(read_bytevector(port));
         }
+    }
+
+    if (c == St_Integer('('))
+    {
+        StObject list = read_list(port, false);
+        return St_MakeVectorFromList(list);
     }
 
     St_Error("read: unexpected hash literal");
