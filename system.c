@@ -36,6 +36,19 @@ StObject St_CommandLine(void)
     return ArgvObj;
 }
 
+StObject St_GetEnvironment(StObject name)
+{
+    char *value = getenv(St_StringGetCString(name));
+    if (value == NULL)
+    {
+        return False;
+    }
+
+    return St_MakeStringFromCString(value);
+}
+StObject St_GetEnvironments(void);
+
+
 StObject St_SysPipe(void)
 {
     int fds[2];

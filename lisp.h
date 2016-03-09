@@ -410,6 +410,8 @@ void St_InitPort(void);
 
 extern StObject St_CurrentExecScriptName; // filename or "-" (stdin)
 StObject St_CommandLine(void);
+StObject St_GetEnvironment(StObject name);
+StObject St_GetEnvironments(void);
 
 // returns pair of ports: (in . out)
 StObject St_SysPipe(void);
