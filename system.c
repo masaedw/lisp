@@ -1,5 +1,6 @@
 #include <signal.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -39,6 +40,7 @@ StObject St_CommandLine(void)
 StObject St_GetEnvironment(StObject name)
 {
     char *value = getenv(St_StringGetCString(name));
+
     if (value == NULL)
     {
         return False;
@@ -46,8 +48,20 @@ StObject St_GetEnvironment(StObject name)
 
     return St_MakeStringFromCString(value);
 }
-StObject St_GetEnvironments(void);
 
+extern char **environ;
+
+StObject St_GetEnvironments(void)
+{
+    StObject h = Nil, t = Nil;
+
+    for (char **e = environ; *e != NULL; e++) {
+        char *p = strchr(*e, '=');
+        ST_APPEND1(h, t, St_Cons(St_MakeString(p - *e, *e), St_MakeStringFromCString(p + 1)));
+    }
+
+    return h;
+}
 
 StObject St_SysPipe(void)
 {
@@ -104,6 +118,25 @@ static StObject subr_command_line(StObject args)
     ST_ARGS0("command-line", args);
 
     return St_CommandLine();
+}
+
+static StObject subr_get_environment_variable(StObject args)
+{
+    ST_ARGS1("get-environment-variable", args, name);
+
+    if (!ST_STRINGP(name))
+    {
+        St_Error("get-environment-variable: string required");
+    }
+
+    return St_GetEnvironment(name);
+}
+
+static StObject subr_get_environment_variables(StObject args)
+{
+    ST_ARGS0("get-environment-variables", args);
+
+    return St_GetEnvironments();
 }
 
 static StObject subr_sys_pipe(StObject args)
@@ -179,6 +212,8 @@ void St_InitSystem(int argc, char** argv)
     StObject m = GlobalModule;
 
     St_AddSubr(m, "command-line", subr_command_line);
+    St_AddSubr(m, "get-environment-variable", subr_get_environment_variable);
+    St_AddSubr(m, "get-environment-variables", subr_get_environment_variables);
     St_AddSubr(m, "sys-pipe", subr_sys_pipe);
     St_AddSubr(m, "sys-fork", subr_sys_fork);
     St_AddSubr(m, "sys-pause", subr_sys_pause);

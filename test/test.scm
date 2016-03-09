@@ -294,3 +294,8 @@
 (assert 1 (case 2 ((1 2 3) 1)) 'case_2)
 
 (assert "test/test.scm" (car (command-line)) 'command-line_0)
+
+(assert #f (get-environment-variable "DID_NOT_DEFINED_ENV") 'get-environment-variable_0)
+(define path (get-environment-variable "PATH"))
+(assert #t (string? path) 'get-environment-variable_1)
+(assert #t (list? (get-environment-variables)) 'get-environment-variables_0)
