@@ -250,7 +250,7 @@ StObject St_Memv(StObject obj, StObject list);
         }                                               \
     } while (0)
 
-#define ST_FOREACH(p, list) for (StObject p = (list); !ST_NULLP(p); p = ST_CDR(p))
+#define ST_FOREACH(p, list) for (StObject p = (list); ST_PAIRP(p); p = ST_CDR(p))
 
 // List as Set
 
