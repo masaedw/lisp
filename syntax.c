@@ -76,7 +76,7 @@ static StObject syntax_let1(StObject module, StObject expr)
 
 static StObject syntax_define(StObject module, StObject expr)
 {
-    if (St_Length(expr) < 3)
+    if (St_Length(expr) < 2)
     {
         St_Error("define: malformed define");
     }

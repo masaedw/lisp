@@ -536,6 +536,12 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
 
         if (car == I("define"))
         {
+            int len = St_Length(x);
+            if (len < 3)
+            {
+                St_Error("define: malformed define");
+            }
+
             StObject var = ST_CADR(x);
             StObject v = ST_CADDR(x);
 
