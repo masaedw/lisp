@@ -141,6 +141,8 @@ static void print(StObject obj, StObject port)
         sprintf(buf, "%d", ST_FDPORT_FD(obj));
         St_WriteCString(buf, port);
         St_WriteU8('>', port);
+
+        break;
     }
 
     default:
