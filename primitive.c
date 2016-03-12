@@ -471,14 +471,25 @@ static StObject subr_vectorp(StObject args)
 
 static StObject subr_make_vector(StObject args)
 {
-    ST_ARGS1("make-vector", args, size);
+    int len = St_Length(args);
+    StObject fill = Nil;
+    StObject size = Unbound;
 
-    if (!ST_INTP(size) || ST_INT_VALUE(size) < 0)
-    {
-        St_Error("make-vector: size must be a positive integer");
+    switch (len) {
+    case 2:
+        fill = ST_CADR(args);
+    case 1:
+        size = ST_CAR(args);
+
+        if (!ST_INTP(size) || ST_INT_VALUE(size) < 0)
+        {
+            St_Error("make-vector: size must be a positive integer");
+        }
+
+        return St_MakeVectorWithInitValue(ST_INT_VALUE(size), fill);
+    default:
+        St_Error("make-vector: wrong number of arguments");
     }
-
-    return St_MakeVector(ST_INT_VALUE(size));
 }
 
 static StObject subr_vector(StObject args)

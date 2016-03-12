@@ -163,6 +163,7 @@
 (assert 1 (vector-ref x 0) 'vector_1)
 (assert #() (vector ()) 'vector_2)
 (assert #(1 2 3) (vector (list 1 (+ 1 1) 3)) 'vector_3)
+(assert #(a a a) (make-vector 3 'a) 'vector_4)
 
 (assert #t (set-member? 'a '(a b c)) 'set-member?_0)
 (assert #f (set-member? 'd '(a b c)) 'set-member?_1)

@@ -377,6 +377,11 @@ char *St_StringGetCString(StObject string)
 
 StObject St_MakeVector(int size)
 {
+    return St_MakeVectorWithInitValue(size, Nil);
+}
+
+StObject St_MakeVectorWithInitValue(int size, StObject fill)
+{
     if (size < 0)
     {
         St_Error("make-vector: size must be a positive integer");
@@ -386,7 +391,7 @@ StObject St_MakeVector(int size)
     ST_VECTOR_LENGTH(o) = size;
 
     for (int i = 0; i < size; i++) {
-        ST_VECTOR_DATA(o)[i] = Nil;
+        ST_VECTOR_DATA(o)[i] = fill;
     }
 
     return o;
