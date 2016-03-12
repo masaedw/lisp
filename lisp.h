@@ -62,11 +62,14 @@ typedef struct StStringRec *StString;
 #define ST_STRING_LENGTH(x) (ST_STRING(x)->len)
 #define ST_STRING_VALUE(x) (ST_STRING(x)->value)
 
-struct StCharacterRec
+struct StCharRec
 {
     ST_OBJECT_HEADER;
     uint32_t value;
 };
+typedef struct StCharRec *StChar;
+#define ST_CHAR(x) ((StChar)(x))
+#define ST_CHAR_VALUE(x) (ST_CHAR(x)->value)
 
 struct StVectorRec
 {
