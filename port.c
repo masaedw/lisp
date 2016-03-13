@@ -281,13 +281,13 @@ void St_ClosePort(StObject port)
             port = ST_CAR(args);                            \
             if (!ST_FDPORTP(port))                          \
             {                                               \
-                St_Error("port required");                  \
+                St_Error(name "port required");             \
             }                                               \
         }                                                   \
         case 0:                                             \
             return body;                                    \
         default:                                            \
-            St_Error(#name ": wrong number of arguments");  \
+            St_Error(name ": wrong number of arguments");   \
         }                                                   \
     } while (0)
 
@@ -298,7 +298,7 @@ static StObject subr_read_line(StObject args)
 
 static StObject subr_read_char(StObject args)
 {
-    PORT_PROC_BODY("read-line", St_ReadChar(port));
+    PORT_PROC_BODY("read-char", St_ReadChar(port));
 }
 
 static StObject subr_display(StObject args)
