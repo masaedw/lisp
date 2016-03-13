@@ -301,6 +301,37 @@ static StObject subr_read_char(StObject args)
     PORT_PROC_BODY("read-char", St_ReadChar(port));
 }
 
+static StObject subr_write_u8(StObject args)
+{
+    int len = St_Length(args);
+
+    StObject port = False;
+    StObject byte = Unbound;
+
+    switch (len) {
+    case 2:
+        port = ST_CADR(args);
+        if (!ST_FDPORTP(port))
+        {
+            St_Error("write-u8: port required");
+        }
+
+    case 1:
+        byte = ST_CAR(args);
+        if (!ST_INTP(byte) || ST_INT_VALUE(byte) < 0 || 0xff < ST_INT_VALUE(byte))
+        {
+            St_Error("write-u8: byte required");
+        }
+
+        St_WriteU8((uint8_t)ST_INT_VALUE(byte), port);
+
+        return Nil;
+
+    default:
+        St_Error("write-u8: wrong number of arguments");
+    }
+}
+
 static StObject subr_display(StObject args)
 {
     StObject obj = Unbound;
@@ -370,9 +401,10 @@ void St_InitPort(void)
 
     St_AddSubr(m, "read-line", subr_read_line);
     St_AddSubr(m, "read-char", subr_read_char);
+    St_AddSubr(m, "write-u8", subr_write_u8);
     St_AddSubr(m, "display", subr_display);
     St_AddSubr(m, "newline", subr_newline);
     St_AddSubr(m, "close-port", subr_close_port);
     St_AddSubr(m, "open-input-file", subr_open_input_file);
     St_AddSubr(m, "open-output-file", subr_open_output_file);
- }
+}
