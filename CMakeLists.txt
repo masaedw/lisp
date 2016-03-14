@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8.0)
 
+FILE(GLOB BASESRCS "*.c" "*.h")
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(GNU_SOURCE "-D_GNU_SOURCE")
 endif ()
@@ -8,5 +10,5 @@ set(CMAKE_C_FLAGS "-Wall -Wextra -overflow -fno-strict-aliasing -std=c99 -march=
 include_directories(/usr/local/include)
 link_directories(/usr/local/lib)
 
-add_executable(lisp main.c lisp.c parse.c print.c symbol.c primitive.c compile.c vm.c syntax.c bytevector.c port.c system.c)
+add_executable(lisp ${BASESRCS})
 target_link_libraries(lisp gc)
