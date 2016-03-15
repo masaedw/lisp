@@ -274,6 +274,14 @@
 
 (assert '(a b c) (mylist 'a 'b 'c) 'define_lambda_3)
 
+
+(define (int-define a)
+  (define (x v1 v2)
+    (+ v1 v2 5))
+  (x 2 (+ a 3)))
+
+(assert 11 (int-define 1) 'internal_define_0)
+
 (define (cond-test x)
   (cond
    ((eqv? x 1) 1)

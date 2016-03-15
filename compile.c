@@ -150,7 +150,7 @@ static StObject find_free(StObject x, StObject b)
             {
                 StObject p;
                 for (p = vars; ST_PAIRP(p); p = ST_CDR(p)) {
-                    nb = St_SetCons(ST_CAR(p), b);
+                    nb = St_SetCons(ST_CAR(p), nb);
                 }
                 if (!ST_NULLP(p))
                 {
