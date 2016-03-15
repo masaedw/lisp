@@ -280,7 +280,14 @@
     (+ v1 v2 5))
   (x 2 (+ a 3)))
 
+(define (int-define2 a)
+  (define (y v3 . v4)
+    (list v3 v4))
+  (y 1 2 3 a))
+
+
 (assert 11 (int-define 1) 'internal_define_0)
+(assert '(1 (2 3 4)) (int-define2 4) 'internal_define_1)
 
 (define (cond-test x)
   (cond

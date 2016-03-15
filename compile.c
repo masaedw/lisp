@@ -154,7 +154,7 @@ static StObject find_free(StObject x, StObject b)
                 }
                 if (!ST_NULLP(p))
                 {
-                    nb = St_SetCons(p, b);
+                    nb = St_SetCons(p, nb);
                 }
             }
             return find_free(body, nb);
