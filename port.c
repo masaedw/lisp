@@ -332,6 +332,21 @@ static StObject subr_write_u8(StObject args)
     }
 }
 
+static StObject subr_read_u8(StObject args)
+{
+    PORT_PROC_BODY("read-u8", St_ReadU8(port));
+}
+
+static StObject subr_peek_u8(StObject args)
+{
+    PORT_PROC_BODY("peek-u8", St_PeekU8(port));
+}
+
+static StObject subr_u8_readyp(StObject args)
+{
+    PORT_PROC_BODY("u8-ready?", ST_BOOLEAN(St_U8ReadyP(port)));
+}
+
 static StObject subr_display(StObject args)
 {
     StObject obj = Unbound;
@@ -402,6 +417,9 @@ void St_InitPort(void)
     St_AddSubr(m, "read-line", subr_read_line);
     St_AddSubr(m, "read-char", subr_read_char);
     St_AddSubr(m, "write-u8", subr_write_u8);
+    St_AddSubr(m, "read-u8", subr_read_u8);
+    St_AddSubr(m, "peek-u8", subr_peek_u8);
+    St_AddSubr(m, "u8-ready?", subr_u8_readyp);
     St_AddSubr(m, "display", subr_display);
     St_AddSubr(m, "newline", subr_newline);
     St_AddSubr(m, "close-port", subr_close_port);

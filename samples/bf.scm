@@ -98,7 +98,7 @@
          ((= i bfc-puc)
           (write-u8 (current-memory) out))
          ((= i bfc-gec)
-          (set-current-memory! (let1 c (read-char in)
+          (set-current-memory! (let1 c (read-u8 in)
                                  (if (eof-object? c) 0 c))))
          ((= i bfc-beg)
           (if (= (current-memory) 0)
