@@ -140,24 +140,23 @@ static StObject find_free(StObject x, StObject b)
         CASE(lambda) {
             StObject vars = ST_CADR(x);
             StObject body = ST_CDDR(x);
-            StObject nb = b;
 
             if (ST_SYMBOLP(vars))
             {
-                nb = St_SetCons(vars, nb);
+                b = St_SetCons(vars, b);
             }
             if (ST_PAIRP(vars))
             {
                 StObject p;
                 for (p = vars; ST_PAIRP(p); p = ST_CDR(p)) {
-                    nb = St_SetCons(ST_CAR(p), nb);
+                    b = St_SetCons(ST_CAR(p), b);
                 }
                 if (!ST_NULLP(p))
                 {
-                    nb = St_SetCons(p, nb);
+                    b = St_SetCons(p, b);
                 }
             }
-            return find_free(body, nb);
+            return find_free(body, b);
         }
 
         CASE(begin) {
