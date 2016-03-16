@@ -443,7 +443,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
         {
             StObject params = ST_CADR(x);
             StObject body = ST_CDDR(x);
-            StObject module_vars = St_ModuleSymbols(m);
+            StObject known_vars = St_SetUnion(ST_LIST3(I("or"), I("and"), I("define-macro")), St_ModuleSymbols(m));
 
             StObject p;
             int arity = 0;
@@ -464,7 +464,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
 
             StObject defs = find_define(body);
             StObject extended_vars = St_SetAppend(defs, vars);
-            StObject free = find_free(body, St_SetUnion(extended_vars, module_vars));
+            StObject free = find_free(body, St_SetUnion(extended_vars, known_vars));
             StObject sets = find_sets(body, vars);
 
             int len_vars = St_Length(extended_vars);
