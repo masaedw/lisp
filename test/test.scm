@@ -151,6 +151,8 @@
 
 (assert 2 (/ 12 2 3) 'div_0)
 
+(assert '((a . b) 1 2) (acons 'a 'b '(1 2)) 'acons_0)
+
 (define p (cons 1 2))
 (set-car! p 3)
 (assert '(3 . 2) p 'set-car!_0)

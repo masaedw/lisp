@@ -357,6 +357,13 @@ static StObject subr_cons(StObject args)
     return St_Cons(car, cdr);
 }
 
+static StObject subr_acons(StObject args)
+{
+    ST_ARGS3("acons", args, s, v, cdr);
+
+    return St_Acons(s, v, cdr);
+}
+
 static StObject subr_append(StObject args)
 {
     if (ST_NULLP(args))
@@ -1023,6 +1030,7 @@ void St_InitPrimitives(void)
     St_AddSubr(m, "string->symbol", subr_string_symbol);
     St_AddSubr(m, "not", subr_not);
     St_AddSubr(m, "cons", subr_cons);
+    St_AddSubr(m, "acons", subr_acons);
     St_AddSubr(m, "append", subr_append);
     St_AddSubr(m, "car", subr_car);
     St_AddSubr(m, "cdr", subr_cdr);
