@@ -95,7 +95,7 @@
 
 (define (jump-backward prog tpc n)
   (if (= n 0)
-    (set! pc tpc)
+    (set! pc (- tpc 1))
     (let1 i (car (vector-ref prog (- tpc 1)))
       (cond
        ((= i bfc-end)
@@ -122,7 +122,6 @@
     (if (> (vector-length prog) pc)
       (let ((i (car (current-insn prog)))
             (c (cdr (current-insn prog))))
-        (repeat c (current-memory))
         (cond
          ((= i bfc-inc)
           (set! p (+ p c)))
