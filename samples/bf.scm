@@ -119,7 +119,7 @@
 
 (define (bf-vm in out prog)
   (define (iter)
-    (if (>= (vector-length prog) pc)
+    (if (> (vector-length prog) pc)
       (let ((i (car (current-insn prog)))
             (c (cdr (current-insn prog))))
         (repeat c (current-memory))
