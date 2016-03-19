@@ -43,6 +43,8 @@ static StObject syntax_let(StObject module, StObject expr)
     StObject syms = Nil, symst = Nil;
     StObject vals = Nil, valst = Nil;
 
+    bindings = St_Reverse(bindings);
+
     ST_FOREACH(p, bindings) {
         ST_APPEND1(syms, symst, ST_CAAR(p));
         ST_APPEND1(vals, valst, ST_CADR(ST_CAR(p)));
@@ -177,6 +179,7 @@ void St_InitSyntax(void)
     StObject m = GlobalModule;
 
     St_AddSyntax(m, "let", syntax_let);
+    St_AddSyntax(m, "let*", syntax_let);
     St_AddSyntax(m, "let1", syntax_let1);
     St_AddSyntax(m, "define", syntax_define);
     St_AddSyntax(m, "cond", syntax_cond);

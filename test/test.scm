@@ -135,6 +135,12 @@
 (assert 1 (let ((a 1)) a) 'let_1)
 (assert 2 (let ((a 1) (b 1)) (+ a b)) 'let_2)
 
+(define x ())
+(let* ((a (begin (set! x (cons 1 x)) x))
+       (b (begin (set! x (cons 2 x)) x)))
+  #t)
+(assert '(2 1) x 'let*_0)
+
 (assert 1 (let1 x 1 x) 'let1_0)
 
 (define x 1)
