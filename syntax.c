@@ -39,11 +39,10 @@ static StObject syntax_let(StObject module, StObject expr)
     StObject body = ST_CDDR(expr);
 
     validate_bindings(bindings);
+    bindings = St_Reverse(bindings);
 
     StObject syms = Nil, symst = Nil;
     StObject vals = Nil, valst = Nil;
-
-    bindings = St_Reverse(bindings);
 
     ST_FOREACH(p, bindings) {
         ST_APPEND1(syms, symst, ST_CAAR(p));
