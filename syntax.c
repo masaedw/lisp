@@ -75,6 +75,38 @@ static StObject syntax_let1(StObject module, StObject expr)
     return St_SyntaxExpand(module, ret);
 }
 
+static StObject syntax_letrec(StObject module, StObject expr)
+{
+    // (letrec <bindings> <body>)
+    // <bindings> ::= ((sym <expr>)*)
+    // =>
+    // ((lambda () (define s1 e1) (define e2 s2) ... body))
+
+    if (St_Length(expr) < 2)
+    {
+        St_Error("letrec: malformed letrec");
+    }
+
+    StObject bindings = ST_CADR(expr);
+    StObject body = ST_CDDR(expr);
+
+    validate_bindings(bindings);
+
+    StObject ds = Nil, t = Nil;
+
+    ST_FOREACH(p, bindings) {
+        StObject s = ST_CAAR(p);
+        StObject e = ST_CAR(ST_CDAR(p));
+
+        ST_APPEND1(ds, t, ST_LIST3(I("define"), s, St_SyntaxExpand(module, e)));
+    }
+
+    return ST_LIST1(St_Cons(I("lambda"),
+                            St_Cons(Nil,
+                                    St_Cons(St_Cons(I("begin"), ds),
+                                            St_SyntaxExpand(module, body)))));
+}
+
 static StObject syntax_define(StObject module, StObject expr)
 {
     if (St_Length(expr) < 2)
@@ -180,6 +212,8 @@ void St_InitSyntax(void)
     St_AddSyntax(m, "let", syntax_let);
     St_AddSyntax(m, "let*", syntax_let);
     St_AddSyntax(m, "let1", syntax_let1);
+    St_AddSyntax(m, "letrec", syntax_letrec);
+    St_AddSyntax(m, "letrec*", syntax_letrec);
     St_AddSyntax(m, "define", syntax_define);
     St_AddSyntax(m, "cond", syntax_cond);
     St_AddSyntax(m, "case", syntax_case);

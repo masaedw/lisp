@@ -143,6 +143,18 @@
 
 (assert 1 (let1 x 1 x) 'let1_0)
 
+(assert #t (letrec ((odd? (lambda (n) (even? (- n 1))))
+                    (even? (lambda (n) (if (= n 0) #t (odd? (- n 1))))))
+             (odd? 5))
+        'letrec_0)
+
+(define x ())
+(letrec* ((a (begin (set! x (cons 1 x)) x))
+          (c (begin (set! x (cons 2 x)) x)))
+  #t)
+(assert '(2 1) x 'letrec*_0)
+  
+
 (define x 1)
 (set! x 2)
 (assert 2 x 'set!_0)
