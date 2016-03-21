@@ -79,6 +79,8 @@ int main(int argc, char** argv)
     St_InitSyntax();
     St_InitVm();
 
+    St_InitSrfi60();
+
     StObject expr;
 
     bool interactive_mode = false;

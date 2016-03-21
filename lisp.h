@@ -378,6 +378,16 @@ StObject St_Gensym(void);
 StObject St_Apply(StObject proc, StObject args);
 void St_Load(const char *filename);
 
+// Bitwise operators (srfi-60)
+
+StObject St_LogAnd(StObject lhs, StObject rhs);
+StObject St_LogIor(StObject lhs, StObject rhs);
+StObject St_LogXor(StObject lhs, StObject rhs);
+StObject St_LogNot(StObject n);
+StObject St_LogTest(StObject j, StObject k);
+StObject St_Ash(StObject n, StObject count);
+void St_InitSrfi60(void);
+
 // Port
 
 StObject St_MakeFdPort(int fd, bool need_to_close);

@@ -335,3 +335,51 @@
 (define path (get-environment-variable "PATH"))
 (assert #t (string? path) 'get-environment-variable_1)
 (assert #t (list? (get-environment-variables)) 'get-environment-variables_0)
+
+(assert -1 (logand) 'logand_0)
+(assert 1 (logand 1) 'logand_1)
+(assert 0 (logand 1 2) 'logand_2)
+(assert 1 (logand 1 3) 'logand_3)
+
+(assert -1 (bitwise-and) 'bitwise-and_0)
+(assert 1 (bitwise-and 1) 'bitwise-and_1)
+(assert 0 (bitwise-and 1 2) 'bitwise-and_2)
+(assert 1 (bitwise-and 1 3) 'bitwise-and_3)
+
+(assert 0 (logior) 'logior_0)
+(assert 1 (logior 1) 'logior_1)
+(assert 3 (logior 1 2) 'logior_2)
+(assert 3 (logior 1 3) 'logior_3)
+
+(assert 0 (bitwise-ior) 'bitwise-ior_0)
+(assert 1 (bitwise-ior 1) 'bitwise-ior_1)
+(assert 3 (bitwise-ior 1 2) 'bitwise-ior_2)
+(assert 3 (bitwise-ior 1 3) 'bitwise-ior_3)
+
+(assert 0 (logxor) 'logxor_0)
+(assert 1 (logxor 1) 'logxor_1)
+(assert 3 (logxor 1 2) 'logxor_2)
+(assert 2 (logxor 1 3) 'logxor_3)
+
+(assert 0 (bitwise-xor) 'bitwise-xor_0)
+(assert 1 (bitwise-xor 1) 'bitwise-xor_1)
+(assert 3 (bitwise-xor 1 2) 'bitwise-xor_2)
+(assert 2 (bitwise-xor 1 3) 'bitwise-xor_3)
+
+(assert -1 (lognot 0) 'lognot_0)
+(assert 5 (lognot -6) 'lognot_1)
+
+(assert -1 (bitwise-not 0) 'bitwise-not_0)
+(assert 5 (bitwise-not -6) 'bitwise-not_1)
+
+(assert #f (logtest 1 2) 'logtest_0)
+(assert #t (logtest 3 2) 'logtest_1)
+
+(assert #f (any-bits-set? 1 2) 'any-bits-set?_0)
+(assert #t (any-bits-set? 3 2) 'any-bits-set?_1)
+
+(assert 4 (ash 1 2) 'ash_0)
+(assert 5 (ash 20 -2) 'ash_1)
+
+(assert 4 (arithmetic-shift 1 2) 'arithmetic-shift_0)
+(assert 5 (arithmetic-shift 20 -2) 'arithmetic-shift_1)
