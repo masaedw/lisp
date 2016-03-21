@@ -59,6 +59,12 @@ static StObject read_expr(StObject port)
         return read_expr(port);
     case '"':
         return read_string(port);
+    case '-':
+        if (isdigit_s(peek(port)))
+        {
+            return St_Integer(-ST_INT_VALUE(read_integer(port, 0)));
+        }
+        // fallthrough
     default:
         return read_symbol(port, c);
     }
