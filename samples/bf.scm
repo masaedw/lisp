@@ -81,29 +81,31 @@
 (define (set-current-memory! v)
   (vector-set! mem p v))
 
-(define (jump-forward prog tpc n)
+(define (count-forward prog j n)
   (if (= n 0)
-    (set! pc tpc)
-    (let1 i (car (vector-ref prog (+ tpc 1)))
-      (cond
-       ((= i bfc-beg)
-        (jump-forward prog (+ tpc 1) (+ n 1)))
-       ((= i bfc-end)
-        (jump-forward prog (+ tpc 1) (- n 1)))
-       (else
-        (jump-forward prog (+ tpc 1) n))))))
+    j
+    (let1 i (car (vector-ref prog (+ j 1)))
+      (count-forward prog (+ j 1)
+                     (cond
+                      ((= i bfc-beg) (+ n 1))
+                      ((= i bfc-end) (- n 1))
+                      (else n))))))
 
-(define (jump-backward prog tpc n)
+(define (jump-forward prog)
+  (set! pc (count-forward prog pc 1)))
+
+(define (count-backward prog j n)
   (if (= n 0)
-    (set! pc (- tpc 1))
-    (let1 i (car (vector-ref prog (- tpc 1)))
-      (cond
-       ((= i bfc-end)
-        (jump-backward prog (- tpc 1) (+ n 1)))
-       ((= i bfc-beg)
-        (jump-backward prog (- tpc 1) (- n 1)))
-       (else
-        (jump-backward prog (- tpc 1) n))))))
+    (- j 1)
+    (let1 i (car (vector-ref prog (- j 1)))
+      (count-backward prog (- j 1)
+                      (cond
+                       ((= i bfc-end) (+ n 1))
+                       ((= i bfc-beg) (- n 1))
+                       (else n))))))
+
+(define (jump-backward prog)
+  (set! pc (count-backward prog pc 1)))
 
 
 (define (iterate n x)
@@ -138,9 +140,9 @@
                                            (if (eof-object? c) 0 c)))))
          ((= i bfc-beg)
           (if (= (current-memory) 0)
-            (jump-forward prog pc 1)))
+            (jump-forward prog)))
          ((= i bfc-end)
-          (jump-backward prog pc 1)))
+          (jump-backward prog)))
         (inc-pc)
         (iter))))
   (iter))
