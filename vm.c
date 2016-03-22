@@ -27,7 +27,7 @@ static STVm *Vm = &_Vm;
 
 void St_InitVm(void)
 {
-    Vm->stack = St_MakeVector(1000);
+    Vm->stack = St_MakeVector(10000);
 
     Vm->a = Nil;
     Vm->x = Nil;
