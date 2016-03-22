@@ -430,7 +430,7 @@ void St_VectorSet(StObject v, int idx, StObject obj)
 {
     if (idx < 0 || ST_VECTOR_LENGTH(v) <= (unsigned int)idx)
     {
-        St_Error("vector-set: index out of range");
+        St_Error("vector-set: index out of range: %d against %d", idx, ST_VECTOR_LENGTH(v));
     }
 
     ST_VECTOR_DATA(v)[idx] = obj;
