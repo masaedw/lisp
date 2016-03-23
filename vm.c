@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "lisp.h"
+#include "subr.h"
 
 typedef struct STVm
 {
@@ -199,21 +200,21 @@ static StObject vm(StObject m, StObject insn)
         }
 
         CASE(refer_local) {
-            ST_ARGS2("refer-local", ST_CDR(Vm->x), n, x);
+            ST_BIND2("refer-local", ST_CDR(Vm->x), n, x);
             Vm->a = index(Vm->f, ST_INT_VALUE(n));
             Vm->x = x;
             continue;
         }
 
         CASE(refer_free) {
-            ST_ARGS2("refer-free", ST_CDR(Vm->x), n, x);
+            ST_BIND2("refer-free", ST_CDR(Vm->x), n, x);
             Vm->a = index_closure(Vm->c, ST_INT_VALUE(n));
             Vm->x = x;
             continue;
         }
 
         CASE(refer_module) {
-            ST_ARGS2("refer-module", ST_CDR(Vm->x), n, x);
+            ST_BIND2("refer-module", ST_CDR(Vm->x), n, x);
             StObject pair = St_ModuleRef(Vm->m, ST_INT_VALUE(n));
             if (ST_UNBOUNDP(ST_CDR(pair)))
             {
@@ -225,21 +226,21 @@ static StObject vm(StObject m, StObject insn)
         }
 
         CASE(indirect) {
-            ST_ARGS1("indirect", ST_CDR(Vm->x), x);
+            ST_BIND1("indirect", ST_CDR(Vm->x), x);
             Vm->a = unbox(Vm->a);
             Vm->x = x;
             continue;
         }
 
         CASE(constant) {
-            ST_ARGS2("constant", ST_CDR(Vm->x), obj, x);
+            ST_BIND2("constant", ST_CDR(Vm->x), obj, x);
             Vm->a = obj;
             Vm->x = x;
             continue;
         }
 
         CASE(close) {
-            ST_ARGS4("close", ST_CDR(Vm->x), arity, n, body, x);
+            ST_BIND4("close", ST_CDR(Vm->x), arity, n, body, x);
             Vm->a = make_closure(body, ST_INT_VALUE(arity), ST_INT_VALUE(n), Vm->s);
             Vm->x = x;
             Vm->s = Vm->s - ST_INT_VALUE(n);
@@ -247,55 +248,55 @@ static StObject vm(StObject m, StObject insn)
         }
 
         CASE(box) {
-            ST_ARGS2("box", ST_CDR(Vm->x), n, x);
+            ST_BIND2("box", ST_CDR(Vm->x), n, x);
             index_set(Vm->f, ST_INT_VALUE(n), make_box(index(Vm->f, ST_INT_VALUE(n))));
             Vm->x = x;
             continue;
         }
 
         CASE(test) {
-            ST_ARGS2("test", ST_CDR(Vm->x), thenc, elsec);
+            ST_BIND2("test", ST_CDR(Vm->x), thenc, elsec);
             Vm->x = !ST_FALSEP(Vm->a) ? thenc : elsec;
             continue;
         }
 
         CASE(assign_local) {
-            ST_ARGS2("assign-local", ST_CDR(Vm->x), n, x);
+            ST_BIND2("assign-local", ST_CDR(Vm->x), n, x);
             set_box(index(Vm->f, ST_INT_VALUE(n)), Vm->a);
             Vm->x = x;
             continue;
         }
 
         CASE(assign_free) {
-            ST_ARGS2("assign-free", ST_CDR(Vm->x), n, x);
+            ST_BIND2("assign-free", ST_CDR(Vm->x), n, x);
             set_box(index_closure(Vm->c, ST_INT_VALUE(n)), Vm->a);
             Vm->x = x;
             continue;
         }
 
         CASE(assign_module) {
-            ST_ARGS2("assign-module", ST_CDR(Vm->x), n, x);
+            ST_BIND2("assign-module", ST_CDR(Vm->x), n, x);
             St_ModuleSet(Vm->m, ST_INT_VALUE(n), Vm->a);
             Vm->x = x;
             continue;
         }
 
         CASE(conti) {
-            ST_ARGS1("conti", ST_CDR(Vm->x), x);
+            ST_BIND1("conti", ST_CDR(Vm->x), x);
             Vm->a = make_continuation(Vm->s);
             Vm->x = x;
             continue;
         }
 
         CASE(nuate) {
-            ST_ARGS2("nuate", ST_CDR(Vm->x), st, x);
+            ST_BIND2("nuate", ST_CDR(Vm->x), st, x);
             Vm->x = x;
             Vm->s = restore_stack(st);
             continue;
         }
 
         CASE(frame) {
-            ST_ARGS2("frame", ST_CDR(Vm->x), ret, x);
+            ST_BIND2("frame", ST_CDR(Vm->x), ret, x);
             Vm->x = x;
             Vm->s = push(ret, push(St_Integer(Vm->f), push(St_Integer(Vm->fp), push(Vm->c, Vm->s))));
             Vm->fp = Vm->s;
@@ -303,14 +304,14 @@ static StObject vm(StObject m, StObject insn)
         }
 
         CASE(argument) {
-            ST_ARGS1("argument", ST_CDR(Vm->x), x);
+            ST_BIND1("argument", ST_CDR(Vm->x), x);
             Vm->x = x;
             Vm->s = push(Vm->a, Vm->s);
             continue;
         }
 
         CASE(extend) {
-            ST_ARGS2("extend", ST_CDR(Vm->x), n, x);
+            ST_BIND2("extend", ST_CDR(Vm->x), n, x);
             Vm->x = x;
             Vm->f += ST_INT_VALUE(n);
             for (int i = 0; i < ST_INT_VALUE(n); i++) {
@@ -320,7 +321,7 @@ static StObject vm(StObject m, StObject insn)
         }
 
         CASE(shift) {
-            ST_ARGS3("shift", ST_CDR(Vm->x), n, m, x);
+            ST_BIND3("shift", ST_CDR(Vm->x), n, m, x);
             Vm->x = x;
             Vm->s = shift_args(ST_INT_VALUE(n), ST_INT_VALUE(m), Vm->s);
             continue;
@@ -331,14 +332,8 @@ static StObject vm(StObject m, StObject insn)
             {
                 // not supported higher order functions
                 int len = Vm->s - Vm->fp;
-                StObject head = Nil;
-                StObject tail = Nil;
 
-                for (int i = 0; i < len; i++) {
-                    ST_APPEND1(head, tail, index(Vm->s, i));
-                }
-
-                Vm->a = ST_SUBR_BODY(Vm->a)(head);
+                Vm->a = ST_SUBR_BODY(Vm->a)(&(StCallInfo){ ST_VECTOR(Vm->stack), Vm->s, len });
 
                 // return
                 Vm->x = index(Vm->s, len + 0);
@@ -393,14 +388,14 @@ static StObject vm(StObject m, StObject insn)
         }
 
         CASE(macro) {
-            ST_ARGS2("macro", ST_CDR(Vm->x), sym, x);
+            ST_BIND2("macro", ST_CDR(Vm->x), sym, x);
             Vm->a = make_macro(sym, Vm->a);
             Vm->x = x;
             continue;
         }
 
         CASE(rtn) {
-            ST_ARGS1("return", ST_CDR(Vm->x), n);
+            ST_BIND1("return", ST_CDR(Vm->x), n);
             int s2 = Vm->s - ST_INT_VALUE(n);
             Vm->x = index(s2, 0);
             Vm->f = ST_INT_VALUE(index(s2, 1));
@@ -424,12 +419,13 @@ StObject St__Eval_INSN(StObject module, StObject insn)
 
 #define I(x) St_Intern(x)
 
-StObject St_Apply(StObject proc, StObject args)
+StObject St_Apply(StObject proc, StCallInfo *cinfo)
 {
     StObject i = ST_LIST3(I("constant"), proc, ST_LIST1(I("apply")));
 
-    ST_FOREACH(p, args) {
-        i = ST_LIST3(I("constant"), ST_CAR(p),
+    for (int j = cinfo->count - 1; j >= 0; j--) {
+        ARG(o, j);
+        i = ST_LIST3(I("constant"), o,
                      ST_LIST2(I("argument"),
                               i));
     }

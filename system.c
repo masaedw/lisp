@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "lisp.h"
+#include "subr.h"
 
 StObject St_CurrentExecScriptName = Unbound; // filename or "-" (stdin)
 static int Argc;
@@ -113,16 +114,16 @@ void St_SysWaitPid(int pid)
     }
 }
 
-static StObject subr_command_line(StObject args)
+static StObject subr_command_line(StCallInfo *cinfo)
 {
-    ST_ARGS0("command-line", args);
+    ST_ARGS0("command-line", cinfo);
 
     return St_CommandLine();
 }
 
-static StObject subr_get_environment_variable(StObject args)
+static StObject subr_get_environment_variable(StCallInfo *cinfo)
 {
-    ST_ARGS1("get-environment-variable", args, name);
+    ST_ARGS1("get-environment-variable", cinfo, name);
 
     if (!ST_STRINGP(name))
     {
@@ -132,53 +133,53 @@ static StObject subr_get_environment_variable(StObject args)
     return St_GetEnvironment(name);
 }
 
-static StObject subr_get_environment_variables(StObject args)
+static StObject subr_get_environment_variables(StCallInfo *cinfo)
 {
-    ST_ARGS0("get-environment-variables", args);
+    ST_ARGS0("get-environment-variables", cinfo);
 
     return St_GetEnvironments();
 }
 
-static StObject subr_sys_pipe(StObject args)
+static StObject subr_sys_pipe(StCallInfo *cinfo)
 {
-    ST_ARGS0("sys-pipe", args);
+    ST_ARGS0("sys-pipe", cinfo);
 
     return St_SysPipe();
 }
 
-static StObject subr_sys_fork(StObject args)
+static StObject subr_sys_fork(StCallInfo *cinfo)
 {
-    ST_ARGS0("sys-fork", args);
+    ST_ARGS0("sys-fork", cinfo);
 
     return St_Integer(St_SysFork());
 }
 
-static StObject subr_sys_pause(StObject args)
+static StObject subr_sys_pause(StCallInfo *cinfo)
 {
-    ST_ARGS0("sys-pause", args);
+    ST_ARGS0("sys-pause", cinfo);
 
     St_SysPause();
 
     return Nil;
 }
 
-static StObject subr_sys_exit(StObject args)
+static StObject subr_sys_exit(StCallInfo *cinfo)
 {
-    ST_ARGS1("sys-exit", args, s);
+    ST_ARGS1("sys-exit", cinfo, s);
 
     if (!ST_INTP(s))
     {
         St_Error("sys-exit: integer required");
     }
 
-    St_SysExit(ST_INT_VALUE(args));
+    St_SysExit(ST_INT_VALUE(s));
 
     return Nil;
 }
 
-static StObject subr_sys_kill(StObject args)
+static StObject subr_sys_kill(StCallInfo *cinfo)
 {
-    ST_ARGS2("sys-kill", args, pid, signal);
+    ST_ARGS2("sys-kill", cinfo, pid, signal);
 
     if (!ST_INTP(pid) || !ST_INTP(signal))
     {
@@ -190,9 +191,9 @@ static StObject subr_sys_kill(StObject args)
     return Nil;
 }
 
-static StObject subr_sys_waitpid(StObject args)
+static StObject subr_sys_waitpid(StCallInfo *cinfo)
 {
-    ST_ARGS1("sys-waitpid", args, pid);
+    ST_ARGS1("sys-waitpid", cinfo, pid);
 
     if (!ST_INTP(pid))
     {

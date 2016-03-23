@@ -23,8 +23,6 @@ static StObject subr_plus(StCallInfo *cinfo)
 
 static StObject subr_minus(StCallInfo *cinfo)
 {
-    int count = cinfo->count;
-
     switch (cinfo->count) {
     case 0: {
         St_Error("-: wrong number of arguments");
@@ -39,7 +37,7 @@ static StObject subr_minus(StCallInfo *cinfo)
 
         return St_Integer(-ST_INT_VALUE(operand));
     }
-    default:
+    default: {
         ARG(head, 0);
 
         if (!ST_INTP(head))
@@ -61,6 +59,7 @@ static StObject subr_minus(StCallInfo *cinfo)
         }
 
         return St_Integer(value);
+    }
     }
 }
 
@@ -103,7 +102,7 @@ static StObject subr_div(StCallInfo *cinfo)
 
         return St_Integer(1 / ST_INT_VALUE(operand));
     }
-    default:
+    default: {
         ARG(head, 0);
         if (!ST_INTP(head))
         {
@@ -128,6 +127,7 @@ static StObject subr_div(StCallInfo *cinfo)
         }
         return St_Integer(value);
     }
+    }
 }
 
 #define DEFINE_NUMERIC_COMPARISON(fname, op, sym)                       \
@@ -147,8 +147,7 @@ static StObject subr_div(StCallInfo *cinfo)
         }                                                               \
                                                                         \
         bool r = ST_INT_VALUE(fst) op ST_INT_VALUE(snd);                \
-        int last;                                                       \
-        StObject p;                                                     \
+        int last = ST_INT_VALUE(snd);                                   \
         ST_ARG_FOREACH(i, 2) {                                          \
             if (!r)                                                     \
             {                                                           \
@@ -163,6 +162,7 @@ static StObject subr_div(StCallInfo *cinfo)
             }                                                           \
                                                                         \
             r = last op ST_INT_VALUE(o);                                \
+            last = ST_INT_VALUE(o);                                     \
         }                                                               \
                                                                         \
         return ST_BOOLEAN(r);                                           \
@@ -327,26 +327,26 @@ static StObject subr_string_symbol(StCallInfo *cinfo)
 
 static StObject subr_symbol_equalp(StCallInfo *cinfo)
 {
-    int len = St_Length(args);
-    if (len < 2)
+    if (cinfo->count < 2)
     {
-        St_Error("symbol=?: wrong number of arguments: at least 2 arguments required but got %d", len);
+        St_Error("symbol=?: wrong number of arguments: at least 2 arguments required but got %d", cinfo->count);
     }
 
-    StObject a = ST_CAR(args);
+    ARG(a, 0);
 
     if (!ST_SYMBOLP(a))
     {
         St_Error("symbol=?: symbol required");
     }
 
-    ST_FOREACH(p, ST_CDR(args))
+    ST_ARG_FOREACH(i, 1)
     {
-        if (!ST_SYMBOLP(ST_CAR(p)))
+        ARG(o, i);
+        if (!ST_SYMBOLP(o))
         {
             St_Error("symbol=?: symbol required");
         }
-        if (a != ST_CAR(p))
+        if (a != o)
         {
             return False;
         }
@@ -378,21 +378,21 @@ static StObject subr_acons(StCallInfo *cinfo)
 
 static StObject subr_append(StCallInfo *cinfo)
 {
-    if (ST_NULLP(args))
+    if (cinfo->count == 0)
     {
         St_Error("append: wrong number of arguments: at least 1 argument required");
     }
 
-    args = St_Reverse(args);
+    StObject r = St_Arg(cinfo, cinfo->count - 1);
 
-    StObject r = ST_CAR(args);
-
-    ST_FOREACH(p, ST_CDR(args)) {
-        if (!St_ListP(ST_CAR(p)))
+    for (int i = cinfo->count - 2; i >= 0; i--) {
+        ARG(o, i);
+        if (!St_ListP(o))
         {
+            St_Print(o, False);
             St_Error("append: list required");
         }
-        r = St_Append(ST_CAR(p), r);
+        r = St_Append(o, r);
     }
 
     return r;
@@ -424,7 +424,12 @@ static StObject subr_cdr(StCallInfo *cinfo)
 
 static StObject subr_list(StCallInfo *cinfo)
 {
-    return args;
+    StObject x = Nil;
+    for (int i = cinfo->count - 1; i >= 0; i--) {
+        ARG(o, i);
+        x = St_Cons(o, x);
+    }
+    return x;
 }
 
 static StObject subr_length(StCallInfo *cinfo)
@@ -495,9 +500,9 @@ static StObject subr_make_vector(StCallInfo *cinfo)
 
     switch (cinfo->count) {
     case 2:
-        fill = ST_CADR(args);
+        fill = St_Arg(cinfo, 1);
     case 1:
-        size = ST_CAR(args);
+        size = St_Arg(cinfo, 0);
 
         if (!ST_INTP(size) || ST_INT_VALUE(size) < 0)
         {
@@ -652,37 +657,40 @@ static StObject subr_string_length(StCallInfo *cinfo)
 
 static StObject subr_string_append(StCallInfo *cinfo)
 {
-    ST_FOREACH(p, args) {
-        if (!ST_STRINGP(ST_CAR(p)))
+    StObject x = Nil;
+
+    for (int i = cinfo->count - 1; i >= 0; i--) {
+        ARG(o, i);
+        if (!ST_STRINGP(o))
         {
             St_Error("string-append: string required");
         }
+        x = St_Cons(o, x);
     }
 
-    return St_StringAppend(args);
+    return St_StringAppend(x);
 }
 
 static StObject subr_string_equalp(StCallInfo *cinfo)
 {
-    int len = 0;
+    if (cinfo->count < 2)
+    {
+        St_Error("string=?: wrong number of argumats, at least 2 argument required");
+    }
 
-    ST_FOREACH(p, args) {
-        len++;
-        if (!ST_STRINGP(ST_CAR(p)))
+    ST_ARG_FOREACH(i, 0) {
+        ARG(o, i);
+        if (!ST_STRINGP(o))
         {
             St_Error("string=?: string required");
         }
     }
 
-    if (len < 2)
-    {
-        St_Error("string=?: wrong number of argumats, at least 2 argument required");
-    }
+    ARG(fst, 0);
 
-    StObject fst = ST_CAR(args);
-
-    ST_FOREACH(p, ST_CDR(args)) {
-        if (!St_StringEqualP(fst, ST_CAR(p)))
+    ST_ARG_FOREACH(i, 1) {
+        ARG(o, i);
+        if (!St_StringEqualP(fst, o))
         {
             return False;
         }
@@ -705,8 +713,6 @@ static StObject subr_apply(StCallInfo *cinfo)
         St_Error("required procedure");
     }
 
-    args = St_Reverse(ST_CDR(args));
-
     ARG(x, cinfo->count - 1);
 
     if (!St_ListP(x))
@@ -714,14 +720,14 @@ static StObject subr_apply(StCallInfo *cinfo)
         St_Error("required proper list");
     }
 
-    for (i = cinfo->count - 2; i > 0; i--)
+    for (int i = cinfo->count - 2; i > 0; i--)
     {
         x = St_Cons(St_Arg(cinfo, i), x);
     }
 
     StObject v = St_MakeVectorFromList(x);
 
-    return St_Apply(proc, &(StCallInfo){ v, St_VectorLength(v) + 1, St_VectorLength(v) });
+    return St_Apply(proc, &(StCallInfo){ ST_VECTOR(v), St_VectorLength(v), St_VectorLength(v) });
 }
 
 static StObject subr_macroexpand(StCallInfo *cinfo)
@@ -747,7 +753,7 @@ static StObject subr_load(StCallInfo *cinfo)
 
 static StObject subr_eof_object(StCallInfo *cinfo)
 {
-    ST_ARGS0("eof-object", args);
+    ST_ARGS0("eof-object", cinfo);
 
     return Eof;
 }
@@ -799,7 +805,7 @@ static StObject subr_make_bytevector(StCallInfo *cinfo)
     int byte = -1;
     switch (cinfo->count) {
     case 2: {
-        ATG(b, 1);
+        ARG(b, 1);
         if (!ST_INTP(b))
         {
             St_Error("make-bytevector: integer requried");
@@ -821,17 +827,17 @@ static StObject subr_make_bytevector(StCallInfo *cinfo)
 
 static StObject subr_bytevector(StCallInfo *cinfo)
 {
-    StObject b = St_MakeBytevector(cinfo->count);
+    StObject b = St_MakeBytevector(cinfo->count, 0);
 
     ST_ARG_FOREACH(i, 0) {
-        ST_ARG(o, i);
+        ARG(o, i);
 
         if (!ST_INTP(o))
         {
             St_Error("bytevector: integer required");
         }
 
-        St_BytevectorU8Set(b, ST_INT_VALUE(o));
+        St_BytevectorU8Set(b, i, ST_INT_VALUE(o));
     }
 
     return b;
@@ -896,27 +902,30 @@ static StObject subr_bytevector_copy(StCallInfo *cinfo)
     int end = -1;
 
     switch (cinfo->count) {
-    case 3:
+    case 3: {
         ARG(oEnd, 2);
         if (!ST_INTP(oEnd))
         {
             St_Error("bytevector-copy: integer required");
         }
         end = ST_INT_VALUE(oEnd);
-    case 2:
+    }
+    case 2: {
         ARG(oStart, 1);
         if (!ST_INTP(oStart))
         {
             St_Error("bytevector-copy: integer required");
         }
         start = ST_INT_VALUE(oStart);
-    case 1:
+    }
+    case 1: {
         ARG(b, 0);
         if (!ST_BYTEVECTORP(b))
         {
             St_Error("bytevector-copy: bytevector required");
         }
         return St_MakeBytevectorFrom(b, start, end);
+    }
     default:
         St_Error("bytevector-copy: wrong number of arguments");
     }
@@ -1005,17 +1014,17 @@ static StObject current_x_port_impl(StCallInfo *cinfo, const char* name, StObjec
 
 static StObject subr_current_input_port(StCallInfo *cinfo)
 {
-    return current_x_port_impl(args, "current-input-port", &St_CurrentInputPort);
+    return current_x_port_impl(cinfo, "current-input-port", &St_CurrentInputPort);
 }
 
 static StObject subr_current_output_port(StCallInfo *cinfo)
 {
-    return current_x_port_impl(args, "current-output-port", &St_CurrentOutputPort);
+    return current_x_port_impl(cinfo, "current-output-port", &St_CurrentOutputPort);
 }
 
 static StObject subr_current_error_port(StCallInfo *cinfo)
 {
-    return current_x_port_impl(args, "current-error-port", &St_CurrentErrorPort);
+    return current_x_port_impl(cinfo, "current-error-port", &St_CurrentErrorPort);
 }
 
 void St_InitPrimitives(void)

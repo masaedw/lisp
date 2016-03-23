@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "lisp.h"
+#include "subr.h"
 
 #define FD(o)            ST_FDPORT_FD(o)
 #define SIZE(o)          ST_FDPORT(o)->size
@@ -272,13 +273,11 @@ void St_ClosePort(StObject port)
 
 #define PORT_PROC_BODY(name, body)                          \
     do {                                                    \
-        int len = St_Length(args);                          \
-                                                            \
         StObject port = False;                              \
                                                             \
-        switch (len) {                                      \
+        switch (cinfo->count) {                             \
         case 1: {                                           \
-            port = ST_CAR(args);                            \
+            ARG(port, 0);                                   \
             if (!ST_FDPORTP(port))                          \
             {                                               \
                 St_Error(name "port required");             \
@@ -291,33 +290,30 @@ void St_ClosePort(StObject port)
         }                                                   \
     } while (0)
 
-static StObject subr_read_line(StObject args)
+static StObject subr_read_line(StCallInfo *cinfo)
 {
     PORT_PROC_BODY("read-line", St_ReadLine(port));
 }
 
-static StObject subr_read_char(StObject args)
+static StObject subr_read_char(StCallInfo *cinfo)
 {
     PORT_PROC_BODY("read-char", St_ReadChar(port));
 }
 
-static StObject subr_write_u8(StObject args)
+static StObject subr_write_u8(StCallInfo *cinfo)
 {
-    int len = St_Length(args);
-
     StObject port = False;
-    StObject byte = Unbound;
 
-    switch (len) {
+    switch (cinfo->count) {
     case 2:
-        port = ST_CADR(args);
+        port = St_Arg(cinfo, 1);
         if (!ST_FDPORTP(port))
         {
             St_Error("write-u8: port required");
         }
 
-    case 1:
-        byte = ST_CAR(args);
+    case 1: {
+        ARG(byte, 0);
         if (!ST_INTP(byte) || ST_INT_VALUE(byte) < 0 || 0xff < ST_INT_VALUE(byte))
         {
             St_Error("write-u8: byte required");
@@ -326,57 +322,66 @@ static StObject subr_write_u8(StObject args)
         St_WriteU8((uint8_t)ST_INT_VALUE(byte), port);
 
         return Nil;
-
+    }
     default:
         St_Error("write-u8: wrong number of arguments");
     }
 }
 
-static StObject subr_read_u8(StObject args)
+static StObject subr_read_u8(StCallInfo *cinfo)
 {
     PORT_PROC_BODY("read-u8", St_ReadU8(port));
 }
 
-static StObject subr_peek_u8(StObject args)
+static StObject subr_peek_u8(StCallInfo *cinfo)
 {
     PORT_PROC_BODY("peek-u8", St_PeekU8(port));
 }
 
-static StObject subr_u8_readyp(StObject args)
+static StObject subr_u8_readyp(StCallInfo *cinfo)
 {
     PORT_PROC_BODY("u8-ready?", ST_BOOLEAN(St_U8ReadyP(port)));
 }
 
-static StObject subr_display(StObject args)
+static StObject subr_display(StCallInfo *cinfo)
 {
-    StObject obj = Unbound;
+    StObject port = False;
 
-    if (ST_PAIRP(args))
-    {
-        obj = ST_CAR(args);
-        args = ST_CDR(args);
+    switch (cinfo->count) {
+    case 2:
+        port = St_Arg(cinfo, 1);
+        if (!ST_FDPORTP(port))
+        {
+            St_Error("display: port required");
+        }
+
+    case 1: {
+        ARG(obj, 0);
+        St_Display(obj, port);
+        return Nil;
     }
-
-    PORT_PROC_BODY("display", (St_Display(obj, port), Nil));
+    default:
+        St_Error("display: wrong number of arguments");
+    }
 }
 
-static StObject subr_newline(StObject args)
+static StObject subr_newline(StCallInfo *cinfo)
 {
     PORT_PROC_BODY("newline", (St_Newline(port), Nil));
 }
 
-static StObject subr_close_port(StObject args)
+static StObject subr_close_port(StCallInfo *cinfo)
 {
-    ST_ARGS1("close-port", args, port);
+    ST_ARGS1("close-port", cinfo, port);
 
     St_ClosePort(port);
 
     return Nil;
 }
 
-static StObject subr_open_input_file(StObject args)
+static StObject subr_open_input_file(StCallInfo *cinfo)
 {
-    ST_ARGS1("open-input-file", args, path);
+    ST_ARGS1("open-input-file", cinfo, path);
 
     if (!ST_STRINGP(path))
     {
@@ -386,9 +391,9 @@ static StObject subr_open_input_file(StObject args)
     return St_OpenInputPort(St_StringGetCString(path));
 }
 
-static StObject subr_open_output_file(StObject args)
+static StObject subr_open_output_file(StCallInfo *cinfo)
 {
-    ST_ARGS1("open-output-file", args, path);
+    ST_ARGS1("open-output-file", cinfo, path);
 
     if (!ST_STRINGP(path))
     {

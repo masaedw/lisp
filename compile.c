@@ -331,7 +331,8 @@ static StObject macroexpand(StObject m, StObject x)
                     }
                 }
 
-                StObject nx = St_Apply(ST_MACRO_PROC(o), ST_CDR(x));
+                StObject v = St_MakeVectorFromList(ST_CDR(x));
+                StObject nx = St_Apply(ST_MACRO_PROC(o), &(StCallInfo){ ST_VECTOR(v), St_VectorLength(v), St_VectorLength(v) });
                 return macroexpand(m, nx);
             }
         }

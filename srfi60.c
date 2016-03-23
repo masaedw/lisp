@@ -1,5 +1,5 @@
 #include "lisp.h"
-
+#include "subr.h"
 
 StObject St_LogAnd(StObject lhs, StObject rhs)
 {
@@ -38,51 +38,54 @@ StObject St_Ash(StObject n, StObject count)
     }
 }
 
-static StObject subr_logand(StObject args)
+static StObject subr_logand(StCallInfo *cinfo)
 {
-    StObject a = St_Integer(-1);
+    StObject a = St_Integer(~0);
 
-    ST_FOREACH(p, args) {
-        if (!ST_INTP(ST_CAR(p)))
+    ST_ARG_FOREACH(i, 0) {
+        ARG(o, i);
+        if (!ST_INTP(o))
         {
             St_Error("logand: integer requried");
         }
-        a = St_LogAnd(a, ST_CAR(p));
+        a = St_LogAnd(a, o);
     }
     return a;
 }
 
-static StObject subr_logior(StObject args)
+static StObject subr_logior(StCallInfo *cinfo)
 {
     StObject a = St_Integer(0);
 
-    ST_FOREACH(p, args) {
-        if (!ST_INTP(ST_CAR(p)))
+    ST_ARG_FOREACH(i, 0) {
+        ARG(o, i);
+        if (!ST_INTP(o))
         {
             St_Error("logior: integer requried");
         }
-        a = St_LogIor(a, ST_CAR(p));
+        a = St_LogIor(a, o);
     }
     return a;
 }
 
-static StObject subr_logxor(StObject args)
+static StObject subr_logxor(StCallInfo *cinfo)
 {
     StObject a = St_Integer(0);
 
-    ST_FOREACH(p, args) {
-        if (!ST_INTP(ST_CAR(p)))
+    ST_ARG_FOREACH(i, 0) {
+        ARG(o, i);
+        if (!ST_INTP(o))
         {
             St_Error("logxor: integer requried");
         }
-        a = St_LogXor(a, ST_CAR(p));
+        a = St_LogXor(a, o);
     }
     return a;
 }
 
-static StObject subr_lognot(StObject args)
+static StObject subr_lognot(StCallInfo *cinfo)
 {
-    ST_ARGS1("lognot", args, n);
+    ST_ARGS1("lognot", cinfo, n);
 
     if (!ST_INTP(n))
     {
@@ -92,9 +95,9 @@ static StObject subr_lognot(StObject args)
     return St_LogNot(n);
 }
 
-static StObject subr_logtest(StObject args)
+static StObject subr_logtest(StCallInfo *cinfo)
 {
-    ST_ARGS2("logtest", args, j, k);
+    ST_ARGS2("logtest", cinfo, j, k);
 
     if (!ST_INTP(j) || !ST_INTP(k))
     {
@@ -104,9 +107,9 @@ static StObject subr_logtest(StObject args)
     return St_LogTest(j, k);
 }
 
-static StObject subr_ash(StObject args)
+static StObject subr_ash(StCallInfo *cinfo)
 {
-    ST_ARGS2("ash", args, n, count);
+    ST_ARGS2("ash", cinfo, n, count);
 
     if (!ST_INTP(n) || !ST_INTP(count))
     {

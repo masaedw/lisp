@@ -108,7 +108,7 @@ typedef struct StSyntaxRec *StSyntax;
 struct StCallInfo      //  (list 1 2 3) =>
 {                      //   index of argstack:  0..., n-2, n-1, n, ...
     StVector argstack; //            argstack: [ ...,   3,   2, 1, ...]
-    int offset;        //              offset: n + 1              ^    next of the last elements of argstack
+    int offset;        //              offset: n                ^    index of the last elements of argstack
     int count;         //               count: 3
 };
 typedef struct StCallInfo StCallInfo;
@@ -319,7 +319,7 @@ StObject St_StringToSymbol(StObject str);
 
 #define ST_BOOLEAN(b) ((b) ? True : False)
 // TODO overflow check
-#define St_Integer(value) ST_OBJECT(((intptr_t)(value) << ST_TAG_BITS) | ST_INT_TAG)
+#define St_Integer(value) ST_OBJECT(((uintptr_t)(value) << ST_TAG_BITS) | ST_INT_TAG)
 #define ST_INT_VALUE(x) (((intptr_t)(x) >> ST_TAG_BITS))
 
 // String
@@ -382,7 +382,7 @@ void St_InitModule(void);
 bool St_EqvP(StObject lhs, StObject rhs);
 bool St_EqualP(StObject lhs, StObject rhs);
 StObject St_Gensym(void);
-StObject St_Apply(StObject proc, StObject args);
+StObject St_Apply(StObject proc, StCallInfo *cinfo);
 void St_Load(const char *filename);
 
 // Bitwise operators (srfi-60)
