@@ -1,35 +1,37 @@
 #include <stdio.h>
 
 #include "lisp.h"
+#include "subr.h"
 
-static StObject subr_plus(StObject args)
+static StObject subr_plus(StCallInfo *cinfo)
 {
     int value = 0;
 
-    ST_FOREACH(p, args) {
-        if (!ST_INTP(ST_CAR(p)))
+    ST_ARG_FOREACH(i, 0) {
+        ARG(o, i);
+
+        if (!ST_INTP(o))
         {
             St_Error("+: invalid type");
         }
 
-        value += ST_INT_VALUE(ST_CAR(p));
+        value += ST_INT_VALUE(o);
     }
 
     return St_Integer(value);
 }
 
-static StObject subr_minus(StObject args)
+static StObject subr_minus(StCallInfo *cinfo)
 {
-    int len = St_Length(args);
+    int count = cinfo->count;
 
-    if (len < 1)
-    {
+    switch (cinfo->count) {
+    case 0: {
         St_Error("-: wrong number of arguments");
     }
+    case 1: {
+        ARG(operand, 0);
 
-    if (len == 1)
-    {
-        StObject operand = ST_CAR(args);
         if (!ST_INTP(operand))
         {
             St_Error("-: invalid type");
@@ -37,55 +39,58 @@ static StObject subr_minus(StObject args)
 
         return St_Integer(-ST_INT_VALUE(operand));
     }
+    default:
+        ARG(head, 0);
 
-    // 2 <= len
-    if (!ST_INTP(ST_CAR(args)))
-    {
-        St_Error("-: invalid type");
-    }
-
-    int value = ST_INT_VALUE(ST_CAR(args));
-
-    ST_FOREACH(p, ST_CDR(args)) {
-        if (!ST_INTP(ST_CAR(p)))
+        if (!ST_INTP(head))
         {
             St_Error("-: invalid type");
         }
 
-        value -= ST_INT_VALUE(ST_CAR(p));
-    }
+        int value = ST_INT_VALUE(head);
 
-    return St_Integer(value);
+        ST_ARG_FOREACH(i, 1) {
+            ARG(o, i);
+
+            if (!ST_INTP(o))
+            {
+                St_Error("-: invalid type");
+            }
+
+            value -= ST_INT_VALUE(o);
+        }
+
+        return St_Integer(value);
+    }
 }
 
-static StObject subr_mul(StObject args)
+static StObject subr_mul(StCallInfo *cinfo)
 {
     int value = 1;
 
-    ST_FOREACH(p, args) {
-        if (!ST_INTP(ST_CAR(p)))
+    ST_ARG_FOREACH(i, 0) {
+        ARG(o, i);
+
+        if (!ST_INTP(o))
         {
             St_Error("*: invalid type");
         }
 
-        value *= ST_INT_VALUE(ST_CAR(p));
+        value *= ST_INT_VALUE(o);
     }
 
     return St_Integer(value);
 }
 
-static StObject subr_div(StObject args)
+static StObject subr_div(StCallInfo *cinfo)
 {
-    int len = St_Length(args);
-
-    if (len < 1)
-    {
+    switch (cinfo->count) {
+    case 0: {
         St_Error("/: wrong number of arguments");
     }
+    case 1: {
+        ARG(operand, 0);
 
-    if (len == 1)
-    {
-        StObject operand = ST_CAR(args);
         if (!ST_INTP(operand))
         {
             St_Error("/: invalid type");
@@ -98,42 +103,43 @@ static StObject subr_div(StObject args)
 
         return St_Integer(1 / ST_INT_VALUE(operand));
     }
-
-    // 2 <= len
-    if (!ST_INTP(ST_CAR(args)))
-    {
-        St_Error("/: invalid type");
-    }
-
-    int value = ST_INT_VALUE(ST_CAR(args));
-
-    ST_FOREACH(p, ST_CDR(args)) {
-        if (!ST_INTP(ST_CAR(p)))
+    default:
+        ARG(head, 0);
+        if (!ST_INTP(head))
         {
-            St_Error("-: invalid type");
+            St_Error("/: invalid type");
         }
 
-        if (ST_INT_VALUE(ST_CAR(p)) == 0)
-        {
-            St_Error("division by zero");
+        int value = ST_INT_VALUE(head);
+
+        ST_ARG_FOREACH(i, 1) {
+            ARG(o, i);
+            if (!ST_INTP(o))
+            {
+                St_Error("-: invalid type");
+            }
+
+            if (ST_INT_VALUE(o) == 0)
+            {
+                St_Error("division by zero");
+            }
+
+            value /= ST_INT_VALUE(o);
         }
-
-        value /= ST_INT_VALUE(ST_CAR(p));
+        return St_Integer(value);
     }
-
-    return St_Integer(value);
 }
 
 #define DEFINE_NUMERIC_COMPARISON(fname, op, sym)                       \
-    static StObject subr_##fname(StObject args)                         \
+    static StObject subr_##fname(StCallInfo *cinfo)                     \
     {                                                                   \
-        if (St_Length(args) < 2)                                        \
+        if (cinfo->count < 2)                                           \
         {                                                               \
             St_Error(#sym ": wrong number of arguments");               \
         }                                                               \
                                                                         \
-        StObject fst = ST_CAR(args);                                    \
-        StObject snd = ST_CADR(args);                                   \
+        ARG(fst, 0);                                                    \
+        ARG(snd, 1);                                                    \
                                                                         \
         if (!ST_INTP(fst) || !ST_INTP(snd))                             \
         {                                                               \
@@ -143,14 +149,20 @@ static StObject subr_div(StObject args)
         bool r = ST_INT_VALUE(fst) op ST_INT_VALUE(snd);                \
         int last;                                                       \
         StObject p;                                                     \
+        ST_ARG_FOREACH(i, 2) {                                          \
+            if (!r)                                                     \
+            {                                                           \
+                return False;                                           \
+            }                                                           \
                                                                         \
-        for (p = ST_CDDR(args), last = ST_INT_VALUE(snd); r && !ST_NULLP(p); last = ST_INT_VALUE(ST_CAR(p)), p = ST_CDR(p)) { \
-            if (!ST_INTP(ST_CAR(p)))                                    \
+            ARG(o, i);                                                  \
+                                                                        \
+            if (!ST_INTP(o))                                            \
             {                                                           \
                 St_Error(#sym ": invalid type");                        \
             }                                                           \
                                                                         \
-            r = last op ST_INT_VALUE(ST_CAR(p));                        \
+            r = last op ST_INT_VALUE(o);                                \
         }                                                               \
                                                                         \
         return ST_BOOLEAN(r);                                           \
@@ -162,23 +174,23 @@ DEFINE_NUMERIC_COMPARISON(gt, >, >)
 DEFINE_NUMERIC_COMPARISON(ge, >=, >=)
 DEFINE_NUMERIC_COMPARISON(numeric_eq, ==, =)
 
-static StObject subr_numberp(StObject args)
+static StObject subr_numberp(StCallInfo *cinfo)
 {
-    ST_ARGS1("number?", args, o);
+    ST_ARGS1("number?", cinfo, o);
 
     return ST_BOOLEAN(ST_INTP(o));
 }
 
-static StObject subr_integerp(StObject args)
+static StObject subr_integerp(StCallInfo *cinfo)
 {
-    ST_ARGS1("integer?", args, o);
+    ST_ARGS1("integer?", cinfo, o);
 
     return ST_BOOLEAN(ST_INTP(o));
 }
 
-static StObject subr_zerop(StObject args)
+static StObject subr_zerop(StCallInfo *cinfo)
 {
-    ST_ARGS1("zero?", args, o);
+    ST_ARGS1("zero?", cinfo, o);
 
     if (!ST_INTP(o))
     {
@@ -188,9 +200,9 @@ static StObject subr_zerop(StObject args)
     return ST_BOOLEAN(ST_INT_VALUE(o) == 0);
 }
 
-static StObject subr_positivep(StObject args)
+static StObject subr_positivep(StCallInfo *cinfo)
 {
-    ST_ARGS1("positive?", args, o);
+    ST_ARGS1("positive?", cinfo, o);
 
     if (!ST_INTP(o))
     {
@@ -200,9 +212,9 @@ static StObject subr_positivep(StObject args)
     return ST_BOOLEAN(ST_INT_VALUE(o) > 0);
 }
 
-static StObject subr_negativep(StObject args)
+static StObject subr_negativep(StCallInfo *cinfo)
 {
-    ST_ARGS1("negative?", args, o);
+    ST_ARGS1("negative?", cinfo, o);
 
     if (!ST_INTP(o))
     {
@@ -212,9 +224,9 @@ static StObject subr_negativep(StObject args)
     return ST_BOOLEAN(ST_INT_VALUE(o) < 0);
 }
 
-static StObject subr_oddp(StObject args)
+static StObject subr_oddp(StCallInfo *cinfo)
 {
-    ST_ARGS1("odd?", args, o);
+    ST_ARGS1("odd?", cinfo, o);
 
     if (!ST_INTP(o))
     {
@@ -224,9 +236,9 @@ static StObject subr_oddp(StObject args)
     return ST_BOOLEAN(ST_INT_VALUE(o) % 2 != 0);
 }
 
-static StObject subr_evenp(StObject args)
+static StObject subr_evenp(StCallInfo *cinfo)
 {
-    ST_ARGS1("even?", args, o);
+    ST_ARGS1("even?", cinfo, o);
 
     if (!ST_INTP(o))
     {
@@ -236,10 +248,10 @@ static StObject subr_evenp(StObject args)
     return ST_BOOLEAN(ST_INT_VALUE(o) % 2 == 0);
 }
 
-static StObject subr_print(StObject args)
+static StObject subr_print(StCallInfo *cinfo)
 {
-    ST_FOREACH(p, args) {
-        St_Display(ST_CAR(p), False);
+    ST_ARG_FOREACH(i, 0) {
+        St_Display(St_Arg(cinfo, i), False);
     }
 
     St_Newline(False);
@@ -247,51 +259,51 @@ static StObject subr_print(StObject args)
     return Nil;
 }
 
-static StObject subr_eqp(StObject args)
+static StObject subr_eqp(StCallInfo *cinfo)
 {
-    ST_ARGS2("eq?", args, lhs, rhs);
+    ST_ARGS2("eq?", cinfo, lhs, rhs);
 
     return ST_BOOLEAN(lhs == rhs);
 }
 
-static StObject subr_eqvp(StObject args)
+static StObject subr_eqvp(StCallInfo *cinfo)
 {
-    ST_ARGS2("eqv?", args, lhs, rhs);
+    ST_ARGS2("eqv?", cinfo, lhs, rhs);
 
     return ST_BOOLEAN(St_EqvP(lhs, rhs));
 }
 
-static StObject subr_equalp(StObject args)
+static StObject subr_equalp(StCallInfo *cinfo)
 {
-    ST_ARGS2("equal?", args, lhs, rhs);
+    ST_ARGS2("equal?", cinfo, lhs, rhs);
 
     return ST_BOOLEAN(St_EqualP(lhs, rhs));
 }
 
-static StObject subr_nullp(StObject args)
+static StObject subr_nullp(StCallInfo *cinfo)
 {
-    ST_ARGS1("null?", args, o);
+    ST_ARGS1("null?", cinfo, o);
 
     return ST_BOOLEAN(ST_NULLP(o));
 }
 
-static StObject subr_pairp(StObject args)
+static StObject subr_pairp(StCallInfo *cinfo)
 {
-    ST_ARGS1("pair?", args, o);
+    ST_ARGS1("pair?", cinfo, o);
 
     return ST_BOOLEAN(ST_PAIRP(o));
 }
 
-static StObject subr_symbolp(StObject args)
+static StObject subr_symbolp(StCallInfo *cinfo)
 {
-    ST_ARGS1("symbol?", args, o);
+    ST_ARGS1("symbol?", cinfo, o);
 
     return ST_BOOLEAN(ST_SYMBOLP(o));
 }
 
-static StObject subr_symbol_string(StObject args)
+static StObject subr_symbol_string(StCallInfo *cinfo)
 {
-    ST_ARGS1("symbol->string", args, s);
+    ST_ARGS1("symbol->string", cinfo, s);
 
     if (!ST_SYMBOLP(s))
     {
@@ -301,9 +313,9 @@ static StObject subr_symbol_string(StObject args)
     return St_SymbolToString(s);
 }
 
-static StObject subr_string_symbol(StObject args)
+static StObject subr_string_symbol(StCallInfo *cinfo)
 {
-    ST_ARGS1("string->symbol", args, s);
+    ST_ARGS1("string->symbol", cinfo, s);
 
     if (!ST_STRINGP(s))
     {
@@ -313,7 +325,7 @@ static StObject subr_string_symbol(StObject args)
     return St_StringToSymbol(s);
 }
 
-static StObject subr_symbol_equalp(StObject args)
+static StObject subr_symbol_equalp(StCallInfo *cinfo)
 {
     int len = St_Length(args);
     if (len < 2)
@@ -343,28 +355,28 @@ static StObject subr_symbol_equalp(StObject args)
     return True;
 }
 
-static StObject subr_not(StObject args)
+static StObject subr_not(StCallInfo *cinfo)
 {
-    ST_ARGS1("not", args, o);
+    ST_ARGS1("not", cinfo, o);
 
     return ST_BOOLEAN(ST_FALSEP(o));
 }
 
-static StObject subr_cons(StObject args)
+static StObject subr_cons(StCallInfo *cinfo)
 {
-    ST_ARGS2("cons", args, car, cdr);
+    ST_ARGS2("cons", cinfo, car, cdr);
 
     return St_Cons(car, cdr);
 }
 
-static StObject subr_acons(StObject args)
+static StObject subr_acons(StCallInfo *cinfo)
 {
-    ST_ARGS3("acons", args, s, v, cdr);
+    ST_ARGS3("acons", cinfo, s, v, cdr);
 
     return St_Acons(s, v, cdr);
 }
 
-static StObject subr_append(StObject args)
+static StObject subr_append(StCallInfo *cinfo)
 {
     if (ST_NULLP(args))
     {
@@ -386,9 +398,9 @@ static StObject subr_append(StObject args)
     return r;
 }
 
-static StObject subr_car(StObject args)
+static StObject subr_car(StCallInfo *cinfo)
 {
-    ST_ARGS1("car", args, cell);
+    ST_ARGS1("car", cinfo, cell);
 
     if (!ST_PAIRP(cell))
     {
@@ -398,9 +410,9 @@ static StObject subr_car(StObject args)
     return ST_CAR(cell);
 }
 
-static StObject subr_cdr(StObject args)
+static StObject subr_cdr(StCallInfo *cinfo)
 {
-    ST_ARGS1("cdr", args, cell);
+    ST_ARGS1("cdr", cinfo, cell);
 
     if (!ST_PAIRP(cell))
     {
@@ -410,14 +422,14 @@ static StObject subr_cdr(StObject args)
     return ST_CDR(cell);
 }
 
-static StObject subr_list(StObject args)
+static StObject subr_list(StCallInfo *cinfo)
 {
     return args;
 }
 
-static StObject subr_length(StObject args)
+static StObject subr_length(StCallInfo *cinfo)
 {
-    ST_ARGS1("length", args, list);
+    ST_ARGS1("length", cinfo, list);
 
     if (!St_ListP(list))
     {
@@ -427,23 +439,23 @@ static StObject subr_length(StObject args)
     return St_Integer(St_Length(list));
 }
 
-static StObject subr_listp(StObject args)
+static StObject subr_listp(StCallInfo *cinfo)
 {
-    ST_ARGS1("list?", args, o);
+    ST_ARGS1("list?", cinfo, o);
 
     return ST_BOOLEAN(St_ListP(o));
 }
 
-static StObject subr_dotted_listp(StObject args)
+static StObject subr_dotted_listp(StCallInfo *cinfo)
 {
-    ST_ARGS1("dotted-list?", args, o);
+    ST_ARGS1("dotted-list?", cinfo, o);
 
     return ST_BOOLEAN(St_DottedListP(o));
 }
 
-static StObject subr_set_car(StObject args)
+static StObject subr_set_car(StCallInfo *cinfo)
 {
-    ST_ARGS2("set-car!", args, pair, value);
+    ST_ARGS2("set-car!", cinfo, pair, value);
 
     if (!ST_PAIRP(pair))
     {
@@ -455,9 +467,9 @@ static StObject subr_set_car(StObject args)
     return value;
 }
 
-static StObject subr_set_cdr(StObject args)
+static StObject subr_set_cdr(StCallInfo *cinfo)
 {
-    ST_ARGS2("set-cdr!", args, pair, value);
+    ST_ARGS2("set-cdr!", cinfo, pair, value);
 
     if (!ST_PAIRP(pair))
     {
@@ -469,20 +481,19 @@ static StObject subr_set_cdr(StObject args)
     return value;
 }
 
-static StObject subr_vectorp(StObject args)
+static StObject subr_vectorp(StCallInfo *cinfo)
 {
-    ST_ARGS1("vector?", args, v);
+    ST_ARGS1("vector?", cinfo, v);
 
     return ST_BOOLEAN(ST_VECTORP(v));
 }
 
-static StObject subr_make_vector(StObject args)
+static StObject subr_make_vector(StCallInfo *cinfo)
 {
-    int len = St_Length(args);
     StObject fill = Nil;
     StObject size = Unbound;
 
-    switch (len) {
+    switch (cinfo->count) {
     case 2:
         fill = ST_CADR(args);
     case 1:
@@ -499,9 +510,9 @@ static StObject subr_make_vector(StObject args)
     }
 }
 
-static StObject subr_vector(StObject args)
+static StObject subr_vector(StCallInfo *cinfo)
 {
-    ST_ARGS1("vector", args, list);
+    ST_ARGS1("vector", cinfo, list);
 
     if (!St_ListP(list))
     {
@@ -511,9 +522,9 @@ static StObject subr_vector(StObject args)
     return St_MakeVectorFromList(list);
 }
 
-static StObject subr_vector_ref(StObject args)
+static StObject subr_vector_ref(StCallInfo *cinfo)
 {
-    ST_ARGS2("vector-ref", args, v, idx);
+    ST_ARGS2("vector-ref", cinfo, v, idx);
 
     if (!ST_VECTORP(v))
     {
@@ -528,9 +539,9 @@ static StObject subr_vector_ref(StObject args)
     return St_VectorRef(v, ST_INT_VALUE(idx));
 }
 
-static StObject subr_vector_set(StObject args)
+static StObject subr_vector_set(StCallInfo *cinfo)
 {
-    ST_ARGS3("vector-set!", args, v, idx, obj);
+    ST_ARGS3("vector-set!", cinfo, v, idx, obj);
 
     if (!ST_VECTORP(v))
     {
@@ -547,9 +558,9 @@ static StObject subr_vector_set(StObject args)
     return obj;
 }
 
-static StObject subr_vector_length(StObject args)
+static StObject subr_vector_length(StCallInfo *cinfo)
 {
-    ST_ARGS1("vector-length", args, v);
+    ST_ARGS1("vector-length", cinfo, v);
 
     if (!ST_VECTORP(v))
     {
@@ -559,65 +570,65 @@ static StObject subr_vector_length(StObject args)
     return St_Integer(St_VectorLength(v));
 }
 
-static StObject subr_compile(StObject args)
+static StObject subr_compile(StCallInfo *cinfo)
 {
-    ST_ARGS2("compile", args, expr, next);
+    ST_ARGS2("compile", cinfo, expr, next);
 
     return St_Compile(expr, GlobalModule, next);
 }
 
-static StObject subr_eval_vm(StObject args)
+static StObject subr_eval_vm(StCallInfo *cinfo)
 {
-    ST_ARGS1("eval-vm", args, expr);
+    ST_ARGS1("eval-vm", cinfo, expr);
 
     return St_Eval_VM(GlobalModule, expr);
 }
 
-static StObject subr_set_memberp(StObject args)
+static StObject subr_set_memberp(StCallInfo *cinfo)
 {
-    ST_ARGS2("set-member?", args, obj, set);
+    ST_ARGS2("set-member?", cinfo, obj, set);
 
     return ST_BOOLEAN(St_SetMemberP(obj, set));
 }
 
-static StObject subr_set_cons(StObject args)
+static StObject subr_set_cons(StCallInfo *cinfo)
 {
-    ST_ARGS2("set-cons", args, obj, set);
+    ST_ARGS2("set-cons", cinfo, obj, set);
 
     return St_SetCons(obj, set);
 }
 
-static StObject subr_set_union(StObject args)
+static StObject subr_set_union(StCallInfo *cinfo)
 {
-    ST_ARGS2("set-union", args, s1, s2);
+    ST_ARGS2("set-union", cinfo, s1, s2);
 
     return St_SetUnion(s1, s2);
 }
 
-static StObject subr_set_minus(StObject args)
+static StObject subr_set_minus(StCallInfo *cinfo)
 {
-    ST_ARGS2("set-minus", args, s1, s2);
+    ST_ARGS2("set-minus", cinfo, s1, s2);
 
     return St_SetMinus(s1, s2);
 }
 
-static StObject subr_set_intersect(StObject args)
+static StObject subr_set_intersect(StCallInfo *cinfo)
 {
-    ST_ARGS2("set-intersect", args, s1, s2);
+    ST_ARGS2("set-intersect", cinfo, s1, s2);
 
     return St_SetIntersect(s1, s2);
 }
 
-static StObject subr_stringp(StObject args)
+static StObject subr_stringp(StCallInfo *cinfo)
 {
-    ST_ARGS1("string?", args, o);
+    ST_ARGS1("string?", cinfo, o);
 
     return ST_BOOLEAN(ST_STRINGP(o));
 }
 
-static StObject subr_make_string(StObject args)
+static StObject subr_make_string(StCallInfo *cinfo)
 {
-    ST_ARGS1("make-string", args, len);
+    ST_ARGS1("make-string", cinfo, len);
 
     if (!ST_INTP(len))
     {
@@ -627,9 +638,9 @@ static StObject subr_make_string(StObject args)
     return St_MakeEmptyString(ST_INT_VALUE(len));
 }
 
-static StObject subr_string_length(StObject args)
+static StObject subr_string_length(StCallInfo *cinfo)
 {
-    ST_ARGS1("string-length", args, s);
+    ST_ARGS1("string-length", cinfo, s);
 
     if (!ST_STRINGP(s))
     {
@@ -639,7 +650,7 @@ static StObject subr_string_length(StObject args)
     return St_Integer(St_StringLength(s));
 }
 
-static StObject subr_string_append(StObject args)
+static StObject subr_string_append(StCallInfo *cinfo)
 {
     ST_FOREACH(p, args) {
         if (!ST_STRINGP(ST_CAR(p)))
@@ -651,7 +662,7 @@ static StObject subr_string_append(StObject args)
     return St_StringAppend(args);
 }
 
-static StObject subr_string_equalp(StObject args)
+static StObject subr_string_equalp(StCallInfo *cinfo)
 {
     int len = 0;
 
@@ -680,15 +691,14 @@ static StObject subr_string_equalp(StObject args)
     return True;
 }
 
-static StObject subr_apply(StObject args)
+static StObject subr_apply(StCallInfo *cinfo)
 {
-    int len = St_Length(args);
-    if (len < 2)
+    if (cinfo->count < 2)
     {
         St_Error("apply: wrong number of arguments");
     }
 
-    StObject proc = ST_CAR(args);
+    ARG(proc, 0);
 
     if (!ST_PROCEDUREP(proc))
     {
@@ -697,32 +707,33 @@ static StObject subr_apply(StObject args)
 
     args = St_Reverse(ST_CDR(args));
 
-    if (!St_ListP(ST_CAR(args)))
+    ARG(x, cinfo->count - 1);
+
+    if (!St_ListP(x))
     {
         St_Error("required proper list");
     }
 
-    StObject x = Nil;
-    if (!ST_NULLP(args)) {
-        x = ST_CAR(args);
-        ST_FOREACH(p, ST_CDR(args)) {
-            x = St_Cons(ST_CAR(p), x);
-        }
+    for (i = cinfo->count - 2; i > 0; i--)
+    {
+        x = St_Cons(St_Arg(cinfo, i), x);
     }
 
-    return St_Apply(proc, x);
+    StObject v = St_MakeVectorFromList(x);
+
+    return St_Apply(proc, &(StCallInfo){ v, St_VectorLength(v) + 1, St_VectorLength(v) });
 }
 
-static StObject subr_macroexpand(StObject args)
+static StObject subr_macroexpand(StCallInfo *cinfo)
 {
-    ST_ARGS1("macroexpand", args, expr);
+    ST_ARGS1("macroexpand", cinfo, expr);
 
     return St_MacroExpand(GlobalModule, expr);
 }
 
-static StObject subr_load(StObject args)
+static StObject subr_load(StCallInfo *cinfo)
 {
-    ST_ARGS1("load", args, file);
+    ST_ARGS1("load", cinfo, file);
 
     if (!ST_STRINGP(file))
     {
@@ -734,62 +745,61 @@ static StObject subr_load(StObject args)
     return True;
 }
 
-static StObject subr_eof_object(StObject args)
+static StObject subr_eof_object(StCallInfo *cinfo)
 {
     ST_ARGS0("eof-object", args);
 
     return Eof;
 }
 
-static StObject subr_eof_objectp(StObject args)
+static StObject subr_eof_objectp(StCallInfo *cinfo)
 {
-    ST_ARGS1("eof-object?", args, o);
+    ST_ARGS1("eof-object?", cinfo, o);
 
     return ST_BOOLEAN(ST_EOFP(o));
 }
 
-static StObject subr_assq(StObject args)
+static StObject subr_assq(StCallInfo *cinfo)
 {
-    ST_ARGS2("assq", args, obj, alist);
+    ST_ARGS2("assq", cinfo, obj, alist);
 
     return St_Assq(obj, alist);
 }
 
-static StObject subr_assv(StObject args)
+static StObject subr_assv(StCallInfo *cinfo)
 {
-    ST_ARGS2("assv", args, obj, alist);
+    ST_ARGS2("assv", cinfo, obj, alist);
 
     return St_Assv(obj, alist);
 }
 
-static StObject subr_memq(StObject args)
+static StObject subr_memq(StCallInfo *cinfo)
 {
-    ST_ARGS2("memq", args, obj, list);
+    ST_ARGS2("memq", cinfo, obj, list);
 
     return St_Memq(obj, list);
 }
 
-static StObject subr_memv(StObject args)
+static StObject subr_memv(StCallInfo *cinfo)
 {
-    ST_ARGS2("memv", args, obj, list);
+    ST_ARGS2("memv", cinfo, obj, list);
 
     return St_Memv(obj, list);
 }
 
-static StObject subr_bytevectorp(StObject args)
+static StObject subr_bytevectorp(StCallInfo *cinfo)
 {
-    ST_ARGS1("bytevector?", args, o);
+    ST_ARGS1("bytevector?", cinfo, o);
 
     return ST_BOOLEAN(ST_BYTEVECTORP(o));
 }
 
-static StObject subr_make_bytevector(StObject args)
+static StObject subr_make_bytevector(StCallInfo *cinfo)
 {
-    int len = St_Length(args);
     int byte = -1;
-    switch (len) {
+    switch (cinfo->count) {
     case 2: {
-        StObject b = ST_CADR(args);
+        ATG(b, 1);
         if (!ST_INTP(b))
         {
             St_Error("make-bytevector: integer requried");
@@ -797,7 +807,7 @@ static StObject subr_make_bytevector(StObject args)
         byte = ST_INT_VALUE(b);
     }
     case 1: {
-        StObject k = ST_CAR(args);
+        ARG(k, 0);
         if (!ST_INTP(k))
         {
             St_Error("make-bytevector: integer requried");
@@ -809,20 +819,28 @@ static StObject subr_make_bytevector(StObject args)
     }
 }
 
-static StObject subr_bytevector(StObject args)
+static StObject subr_bytevector(StCallInfo *cinfo)
 {
-    ST_FOREACH(p, args) {
-        if (!ST_INTP(ST_CAR(p)))
+    StObject b = St_MakeBytevector(cinfo->count);
+
+    ST_ARG_FOREACH(i, 0) {
+        ST_ARG(o, i);
+
+        if (!ST_INTP(o))
         {
             St_Error("bytevector: integer required");
         }
+
+        St_BytevectorU8Set(b, ST_INT_VALUE(o));
     }
-    return St_MakeBytevectorFromList(args);
+
+    return b;
 }
 
-static StObject subr_bytevector_length(StObject args)
+static StObject subr_bytevector_length(StCallInfo *cinfo)
 {
-    ST_ARGS1("bytevector-length", args, o);
+    ST_ARGS1("bytevector-length", cinfo, o);
+
     if (!ST_BYTEVECTORP(o))
     {
         St_Error("bytevector-length: bytevector requried");
@@ -831,9 +849,9 @@ static StObject subr_bytevector_length(StObject args)
     return St_Integer(St_BytevectorLength(o));
 }
 
-static StObject subr_bytevector_u8_ref(StObject args)
+static StObject subr_bytevector_u8_ref(StCallInfo *cinfo)
 {
-    ST_ARGS2("bytevector-u8-ref", args, o, k);
+    ST_ARGS2("bytevector-u8-ref", cinfo, o, k);
 
     if (!ST_BYTEVECTORP(o))
     {
@@ -848,9 +866,9 @@ static StObject subr_bytevector_u8_ref(StObject args)
     return St_Integer(St_BytevectorU8Ref(o, ST_INT_VALUE(k)));
 }
 
-static StObject subr_bytevector_u8_set(StObject args)
+static StObject subr_bytevector_u8_set(StCallInfo *cinfo)
 {
-    ST_ARGS3("bytevector-u8-set!", args, o, k, v);
+    ST_ARGS3("bytevector-u8-set!", cinfo, o, k, v);
 
     if (!ST_BYTEVECTORP(o))
     {
@@ -872,47 +890,46 @@ static StObject subr_bytevector_u8_set(StObject args)
     return Nil;
 }
 
-static StObject subr_bytevector_copy(StObject args)
+static StObject subr_bytevector_copy(StCallInfo *cinfo)
 {
-    int len = St_Length(args);
-
     int start = -1;
     int end = -1;
 
-    switch (len) {
+    switch (cinfo->count) {
     case 3:
-        if (!ST_INTP(ST_CADDR(args)))
+        ARG(oEnd, 2);
+        if (!ST_INTP(oEnd))
         {
             St_Error("bytevector-copy: integer required");
         }
-        end = ST_INT_VALUE(ST_CADDR(args));
+        end = ST_INT_VALUE(oEnd);
     case 2:
-        if (!ST_INTP(ST_CADR(args)))
+        ARG(oStart, 1);
+        if (!ST_INTP(oStart))
         {
             St_Error("bytevector-copy: integer required");
         }
-        start = ST_INT_VALUE(ST_CADR(args));
+        start = ST_INT_VALUE(oStart);
     case 1:
-        if (!ST_BYTEVECTORP(ST_CAR(args)))
+        ARG(b, 0);
+        if (!ST_BYTEVECTORP(b))
         {
             St_Error("bytevector-copy: bytevector required");
         }
-        return St_MakeBytevectorFrom(ST_CAR(args), start, end);
+        return St_MakeBytevectorFrom(b, start, end);
     default:
         St_Error("bytevector-copy: wrong number of arguments");
     }
 }
 
-static StObject subr_bytevector_copyx(StObject args)
+static StObject subr_bytevector_copyx(StCallInfo *cinfo)
 {
-    int len = St_Length(args);
-
     int start = -1;
     int end = -1;
 
-    switch (len) {
+    switch (cinfo->count) {
     case 5: {
-        StObject e = ST_CADDR(ST_CDDR(args));
+        ARG(e, 4);
         if (!ST_INTP(e))
         {
             St_Error("bytevector-copy!: integer required 'end'");
@@ -920,7 +937,7 @@ static StObject subr_bytevector_copyx(StObject args)
         end = ST_INT_VALUE(e);
     }
     case 4: {
-        StObject s = ST_CADR(ST_CDDR(args));
+        ARG(s, 3);
         if (!ST_INTP(s))
         {
             St_Error("bytevector-copy!: integer required 'start'");
@@ -928,18 +945,18 @@ static StObject subr_bytevector_copyx(StObject args)
         start = ST_INT_VALUE(s);
     }
     case 3: {
-        StObject from = ST_CAR(ST_CDDR(args));
+        ARG(from, 2);
         if (!ST_BYTEVECTORP(from))
         {
             St_Error("bytevector-copy!: bytevector required 'from'");
         }
-        StObject a = ST_CADR(args);
+        ARG(a, 1);
         if (!ST_INTP(a))
         {
             St_Error("bytevector-copy!: integer required 'at'");
         }
         int at = ST_INT_VALUE(a);
-        StObject to = ST_CAR(args);
+        ARG(to, 0);
         if (!ST_BYTEVECTORP(to))
         {
             St_Error("bytevector-copy!: bytevector required 'to'");
@@ -952,22 +969,25 @@ static StObject subr_bytevector_copyx(StObject args)
     }
 }
 
-static StObject subr_bytevector_append(StObject args)
+static StObject subr_bytevector_append(StCallInfo *cinfo)
 {
-    ST_FOREACH(p, args) {
-        if (!ST_BYTEVECTORP(ST_CAR(p)))
+    StObject x = Nil;
+    for (int i = cinfo->count - 1; i >= 0; i--) {
+        ARG(o, i);
+        if (!ST_BYTEVECTORP(o))
         {
             St_Error("bytevector-append: bytevector required");
         }
+        x = St_Cons(o, x);
     }
-    return St_BytevectorAppend(args);
+    return St_BytevectorAppend(x);
 }
 
-static StObject current_x_port_impl(StObject args, const char* name, StObject *port)
+static StObject current_x_port_impl(StCallInfo *cinfo, const char* name, StObject *port)
 {
-    switch (St_Length(args)) {
+    switch (cinfo->count) {
     case 1: {
-        StObject np = ST_CAR(args);
+        ARG(np, 0);
         if (!ST_FDPORTP(np))
         {
             St_Error("%s: port required", name);
@@ -983,17 +1003,17 @@ static StObject current_x_port_impl(StObject args, const char* name, StObject *p
     }
 }
 
-static StObject subr_current_input_port(StObject args)
+static StObject subr_current_input_port(StCallInfo *cinfo)
 {
     return current_x_port_impl(args, "current-input-port", &St_CurrentInputPort);
 }
 
-static StObject subr_current_output_port(StObject args)
+static StObject subr_current_output_port(StCallInfo *cinfo)
 {
     return current_x_port_impl(args, "current-output-port", &St_CurrentOutputPort);
 }
 
-static StObject subr_current_error_port(StObject args)
+static StObject subr_current_error_port(StCallInfo *cinfo)
 {
     return current_x_port_impl(args, "current-error-port", &St_CurrentErrorPort);
 }
