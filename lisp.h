@@ -105,7 +105,15 @@ typedef struct StSyntaxRec *StSyntax;
 #define ST_SYNTAX_BODY(x) (ST_SYNTAX(x)->body)
 #define ST_SYNTAX_NAME(x) (ST_SYNTAX(x)->name)
 
-typedef StObject (*StSubrFunction)(StObject args);
+struct StCallInfo      //  (list 1 2 3) =>
+{                      //   index of argstack:  0..., n-2, n-1, n, ...
+    StVector argstack; //            argstack: [ ...,   3,   2, 1, ...]
+    int offset;        //              offset: n + 1              ^    next of the last elements of argstack
+    int count;         //               count: 3
+};
+typedef struct StCallInfo StCallInfo;
+
+typedef StObject (*StSubrFunction)(StCallInfo *cinfo);
 struct StSubrRec
 {
     ST_OBJECT_HEADER;
@@ -272,9 +280,9 @@ StObject St_StringToSymbol(StObject str);
 
 // Primitive utilities
 
-#define ST_CHECK_ARG_LEN(name, args, len)                   \
+#define ST_CHECK_LIST_LEN(name, list, len)                  \
     do {                                                    \
-        int _len = St_Length(args);                         \
+        int _len = St_Length(list);                         \
                                                             \
         if (_len != (len))                                  \
         {                                                   \
@@ -282,31 +290,30 @@ StObject St_StringToSymbol(StObject str);
         }                                                   \
     } while (0)
 
-#define ST_ARGS0(name, args)                    \
-    ST_CHECK_ARG_LEN(name, args, 0)
+#define ST_BIND0(name, list)                    \
+    ST_CHECK_LIST_LEN(name, list, 0)
 
+#define ST_BIND1(name, list, a1)                \
+    ST_CHECK_LIST_LEN(name, list, 1);           \
+    StObject (a1) = ST_CAR(list)
 
-#define ST_ARGS1(name, args, a1)                \
-    ST_CHECK_ARG_LEN(name, args, 1);            \
-    StObject (a1) = ST_CAR(args)
+#define ST_BIND2(name, list, a1, a2)            \
+    ST_CHECK_LIST_LEN(name, list, 2);           \
+    StObject (a1) = ST_CAR(list);               \
+    StObject (a2) = ST_CADR(list)
 
-#define ST_ARGS2(name, args, a1, a2)            \
-    ST_CHECK_ARG_LEN(name, args, 2);            \
-    StObject (a1) = ST_CAR(args);               \
-    StObject (a2) = ST_CADR(args)
+#define ST_BIND3(name, list, a1, a2, a3)        \
+    ST_CHECK_LIST_LEN(name, list, 3);           \
+    StObject (a1) = ST_CAR(list);               \
+    StObject (a2) = ST_CADR(list);              \
+    StObject (a3) = ST_CADDR(list)
 
-#define ST_ARGS3(name, args, a1, a2, a3)        \
-    ST_CHECK_ARG_LEN(name, args, 3);            \
-    StObject (a1) = ST_CAR(args);               \
-    StObject (a2) = ST_CADR(args);              \
-    StObject (a3) = ST_CADDR(args)
-
-#define ST_ARGS4(name, args, a1, a2, a3, a4)    \
-    ST_CHECK_ARG_LEN(name, args, 4);            \
-    StObject (a1) = ST_CAR(args);               \
-    StObject (a2) = ST_CADR(args);              \
-    StObject (a3) = ST_CADDR(args);             \
-    StObject (a4) = ST_CADDDR(args)
+#define ST_BIND4(name, list, a1, a2, a3, a4)    \
+    ST_CHECK_LIST_LEN(name, list, 4);           \
+    StObject (a1) = ST_CAR(list);               \
+    StObject (a2) = ST_CADR(list);              \
+    StObject (a3) = ST_CADDR(list);             \
+    StObject (a4) = ST_CADDDR(list)
 
 // Coercers
 
