@@ -6,10 +6,7 @@
         #f)
       #f)))
 
-(define pn
-  (lambda (x)
-    (print x)
-    (newline)))
+(define pn print)
 
 (define fizzbuzz-sub
   (lambda (s max f b)
