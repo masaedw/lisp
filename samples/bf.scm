@@ -50,6 +50,7 @@
       (iter (cons (car xs) x) (cdr xs))))
   (iter () xs))
 
+;; [bf-char] -> [bf-char . count]
 (define (bf-rle xs)
   (define (iter a c x xs)
     (cond
@@ -66,8 +67,27 @@
     ()
     (iter (car xs) 1 () (cdr xs))))
 
+(define count-forward ())
+(define count-backward ())
+
+(define (bf-add-jump-offset prog)
+  (define (iter n)
+    (if (= n (vector-length prog))
+      prog
+      (let1 c (car (vector-ref prog n))
+        (cond
+         ((= c bfc-beg)
+          (vector-set! prog n (cons c (count-forward prog n 1))))
+         ((= c bfc-end)
+          (vector-set! prog n (cons c (count-backward prog n 1)))))
+        (iter (+ n 1)))))
+  (iter 0))
+
 (define (bf-compile xs)
-  (vector (bf-rle (bf-parse xs))))
+  (bf-add-jump-offset
+   (vector
+    (bf-rle
+     (bf-parse xs)))))
 
 (define pc 0)
 (define p 0)
@@ -91,9 +111,6 @@
                       ((= i bfc-end) (- n 1))
                       (else n))))))
 
-(define (jump-forward prog)
-  (set! pc (count-forward prog pc 1)))
-
 (define (count-backward prog j n)
   (if (= n 0)
     (- j 1)
@@ -103,9 +120,6 @@
                        ((= i bfc-end) (+ n 1))
                        ((= i bfc-beg) (- n 1))
                        (else n))))))
-
-(define (jump-backward prog)
-  (set! pc (count-backward prog pc 1)))
 
 
 (define (iterate n x)
@@ -140,9 +154,9 @@
                                            (if (eof-object? c) 0 c)))))
          ((= i bfc-beg)
           (if (= (current-memory) 0)
-            (jump-forward prog)))
+            (set! pc c)))
          ((= i bfc-end)
-          (jump-backward prog)))
+          (set! pc c)))
         (inc-pc)
         (iter))))
   (iter))
