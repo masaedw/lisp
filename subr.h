@@ -45,7 +45,7 @@
 
 static inline StObject St_Arg(StCallInfo *cinfo, int i)
 {
-    return St_VectorRef(ST_OBJECT(cinfo->argstack), cinfo->offset + ~i);
+    return ST_VECTOR_DATA(cinfo->argstack)[cinfo->offset + ~i];
 }
 
 #endif
