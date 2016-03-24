@@ -277,7 +277,7 @@ void St_ClosePort(StObject port)
                                                             \
         switch (cinfo->count) {                             \
         case 1: {                                           \
-            ARG(port, 0);                                   \
+            port = St_Arg(cinfo, 0);                        \
             if (!ST_FDPORTP(port))                          \
             {                                               \
                 St_Error(name "port required");             \
