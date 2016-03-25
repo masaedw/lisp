@@ -16,6 +16,32 @@ static bool tailP(StObject next)
     return ST_CAR(next) == I("return");
 }
 
+static StObject primitiveSyntaxes()
+{
+    static char *syntaxes[] = {
+        "or",
+        "and",
+        "define-macro",
+        NULL,
+    };
+
+    static StObject ss = Nil;
+
+    if (!ST_NULLP(ss))
+    {
+        return ss;
+    }
+
+    StObject x = Nil;
+    for (char **p = syntaxes; *p != NULL; p++) {
+        x = St_Cons(I(*p), x);
+    }
+
+    ss = x;
+
+    return ss;
+}
+
 static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject next);
 
 static StObject compile_body(StObject body, StObject m, StObject e, StObject s, StObject next)
@@ -444,7 +470,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
         {
             StObject params = ST_CADR(x);
             StObject body = ST_CDDR(x);
-            StObject known_vars = St_SetUnion(ST_LIST3(I("or"), I("and"), I("define-macro")), St_ModuleSymbols(m));
+            StObject known_vars = St_SetUnion(primitiveSyntaxes(), St_ModuleSymbols(m));
 
             StObject p;
             int arity = 0;
