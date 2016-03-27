@@ -491,6 +491,12 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
 
             StObject defs = find_define(body);
             StObject extended_vars = St_SetAppend(defs, vars);
+            // TODO: Make find_free to take a flag top-level or inner function.
+            // Top-level defined functions must have no free variables and
+            // free variables must point to stack allocated variable.
+            // To define lambdas that refer undefined module functions is valid.
+            // So if free variables contains module functions,
+            // creating internal functions refers module functions are sometimes failed.
             StObject free = find_free(body, St_SetUnion(extended_vars, known_vars));
             StObject sets = find_sets(body, vars);
 
