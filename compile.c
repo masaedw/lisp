@@ -42,26 +42,36 @@ static StObject primitiveSyntaxes()
     return ss;
 }
 
-static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject next, bool toplevel);
+struct StCompileContext
+{
+    StObject module;
+    StObject env;
+    StObject sets;
+    bool toplevel;
+};
+typedef struct StCompileContext StCompileContext;
 
-static StObject compile_body(StObject body, StObject m, StObject e, StObject s, StObject next, bool toplevel)
+
+static StObject compile(StCompileContext *ctx, StObject expr, StObject next);
+
+static StObject compile_body(StCompileContext *ctx, StObject body, StObject next)
 {
     if (ST_NULLP(body))
     {
         return next;
     }
 
-    return compile(ST_CAR(body), m, e, s, compile_body(ST_CDR(body), m, e, s, next, toplevel), toplevel);
+    return compile(ctx, ST_CAR(body), compile_body(ctx, ST_CDR(body), next));
 }
 
-static StObject compile_lookup(StObject module, StObject env, StObject x, StObject next, const char* insn)
+static StObject compile_lookup(StCompileContext *ctx, StObject x, StObject next, const char* insn)
 {
     char buf[strlen(insn) + 9];
     strcpy(buf, insn);
     char *bp = buf + strlen(insn);
 
     int nl = 0;
-    ST_FOREACH(locals, ST_CAR(env)) {
+    ST_FOREACH(locals, ST_CAR(ctx->env)) {
         if (ST_CAR(locals) == x)
         {
             strcpy(bp, "-local");
@@ -71,7 +81,7 @@ static StObject compile_lookup(StObject module, StObject env, StObject x, StObje
     }
 
     int nf = 0;
-    ST_FOREACH(free, ST_CDR(env)) {
+    ST_FOREACH(free, ST_CDR(ctx->env)) {
         if (ST_CAR(free) == x)
         {
             strcpy(bp, "-free");
@@ -81,24 +91,24 @@ static StObject compile_lookup(StObject module, StObject env, StObject x, StObje
     }
 
     strcpy(bp, "-module");
-    int nm = module_add(module, x);
+    int nm = module_add(ctx->module, x);
     return ST_LIST3(I(buf), St_Integer(nm), next);
 }
 
-static StObject compile_refer(StObject module, StObject env, StObject x, StObject next)
+static StObject compile_refer(StCompileContext *ctx, StObject x, StObject next)
 {
-    return compile_lookup(module, env, x, next, "refer");
+    return compile_lookup(ctx, x, next, "refer");
 }
 
-static StObject compile_assign(StObject module, StObject env, StObject x, StObject next)
+static StObject compile_assign(StCompileContext *ctx, StObject x, StObject next)
 {
-    return compile_lookup(module, env, x, next, "assign");
+    return compile_lookup(ctx, x, next, "assign");
 }
 
-static StObject collect_free(StObject module, StObject env, StObject vars, StObject next)
+static StObject collect_free(StCompileContext *ctx, StObject vars, StObject next)
 {
     ST_FOREACH(p, vars) {
-        next = compile_refer(module, env, ST_CAR(p), ST_LIST2(I("argument"), next));
+        next = compile_refer(ctx, ST_CAR(p), ST_LIST2(I("argument"), next));
     }
     return next;
 }
@@ -418,7 +428,7 @@ static StObject syntaxexpand(StObject m, StObject x)
     return x;
 }
 
-static StObject compile_and(StObject xs, StObject m, StObject e, StObject s, StObject next, bool toplevel)
+static StObject compile_and(StCompileContext *ctx, StObject xs, StObject next)
 {
     if (ST_NULLP(xs))
     {
@@ -427,13 +437,13 @@ static StObject compile_and(StObject xs, StObject m, StObject e, StObject s, StO
 
     if (ST_NULLP(ST_CDR(xs)))
     {
-        return compile(ST_CAR(xs), m, e, s, next, toplevel);
+        return compile(ctx, ST_CAR(xs), next);
     }
 
-    return compile(ST_CAR(xs), m, e, s, ST_LIST3(I("test"), compile_and(ST_CDR(xs), m, e, s, next, toplevel), next), toplevel);
+    return compile(ctx, ST_CAR(xs), ST_LIST3(I("test"), compile_and(ctx, ST_CDR(xs), next), next));
 }
 
-static StObject compile_or(StObject xs, StObject m, StObject e, StObject s, StObject next, bool toplevel)
+static StObject compile_or(StCompileContext *ctx, StObject xs, StObject next)
 {
     if (ST_NULLP(xs))
     {
@@ -442,17 +452,17 @@ static StObject compile_or(StObject xs, StObject m, StObject e, StObject s, StOb
 
     if (ST_NULLP(ST_CDR(xs)))
     {
-        return compile(ST_CAR(xs), m, e, s, next, toplevel);
+        return compile(ctx, ST_CAR(xs), next);
     }
 
-    return compile(ST_CAR(xs), m, e, s, ST_LIST3(I("test"), next, compile_or(ST_CDR(xs), m, e, s, next, toplevel)), toplevel);
+    return compile(ctx, ST_CAR(xs), ST_LIST3(I("test"), next, compile_or(ctx, ST_CDR(xs), next)));
 }
 
-static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject next, bool toplevel)
+static StObject compile(StCompileContext *ctx, StObject x, StObject next)
 {
     if (ST_SYMBOLP(x))
     {
-        return compile_refer(m, e, x, St_SetMemberP(x, s) ? ST_LIST2(I("indirect"), next) : next);
+        return compile_refer(ctx, x, St_SetMemberP(x, ctx->sets) ? ST_LIST2(I("indirect"), next) : next);
     }
 
     if (ST_PAIRP(x))
@@ -470,7 +480,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
         {
             StObject params = ST_CADR(x);
             StObject body = ST_CDDR(x);
-            StObject known_vars = St_SetUnion(primitiveSyntaxes(), St_ModuleSymbols(m));
+            StObject known_vars = St_SetUnion(primitiveSyntaxes(), St_ModuleSymbols(ctx->module));
 
             StObject p;
             int arity = 0;
@@ -496,10 +506,10 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
             // Top-level defined functions must have no free variables because
             // free variables point to stack allocated variable.
             // Otherwise lambdas capture module functions.
-            if (toplevel)
+            if (ctx->toplevel)
             {
                 ST_FOREACH(p, free) {
-                    module_add(m, ST_CAR(p));
+                    module_add(ctx->module, ST_CAR(p));
                 }
                 free = Nil;
             }
@@ -508,11 +518,15 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
 
             int len_vars = St_Length(extended_vars);
 
-            StObject nsets = St_SetUnion(sets,
-                                         St_SetUnion(defs,
-                                                     St_SetIntersect(s, free)));
-            StObject body_c = compile_body(body, m, St_Cons(extended_vars, free), nsets,
-                                           ST_LIST2(I("return"), St_Integer(len_vars)), false);
+            StCompileContext nctx = *ctx;
+
+            nctx.env = St_Cons(extended_vars, free);
+            nctx.sets = St_SetUnion(sets,
+                                    St_SetUnion(defs,
+                                                St_SetIntersect(ctx->sets, free)));
+            nctx.toplevel = false;
+
+            StObject body_c = compile_body(&nctx, body, ST_LIST2(I("return"), St_Integer(len_vars)));
 
             if (abs(arity) != len_vars)
             {
@@ -520,9 +534,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
                 body_c = ST_LIST3(I("extend"), St_Integer(to_extend), body_c);
             }
 
-            return collect_free(m,
-                                e,
-                                free,
+            return collect_free(ctx, free,
                                 ST_LIST5(I("close"),
                                          St_Integer(arity),
                                          St_Integer(St_Length(free)),
@@ -532,7 +544,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
 
         if (car == I("begin"))
         {
-            return compile_body(ST_CDR(x), m, e, s, next, toplevel);
+            return compile_body(ctx, ST_CDR(x), next);
         }
 
         if (car == I("if"))
@@ -541,15 +553,15 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
             StObject thenE = ST_CADDR(x);
             StObject elseE = ST_CDR(ST_CDDR(x));
 
-            StObject thenC = compile(thenE, m, e, s, next, toplevel);
+            StObject thenC = compile(ctx, thenE, next);
             StObject elseC = next;
 
             if (!ST_NULLP(elseE))
             {
-                elseC = compile(ST_CAR(elseE), m, e, s, next, toplevel);
+                elseC = compile(ctx, ST_CAR(elseE), next);
             }
 
-            return compile(testE, m, e, s, ST_LIST3(I("test"), thenC, elseC), toplevel);
+            return compile(ctx, testE, ST_LIST3(I("test"), thenC, elseC));
         }
 
         if (car == I("set!"))
@@ -557,7 +569,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
             StObject var = ST_CADR(x);
             StObject x2 = ST_CADDR(x);
 
-            return compile(x2, m, e, s, compile_assign(m, e, var, next), toplevel);
+            return compile(ctx, x2, compile_assign(ctx, var, next));
         }
 
         if (car == I("call/cc"))
@@ -567,9 +579,9 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
                             next,
                             ST_LIST2(I("conti"),
                                      ST_LIST2(I("argument"),
-                                              compile(x2, m, e, s, tailP(next)
+                                              compile(ctx, x2, tailP(next)
                                                       ? ST_LIST4(I("shift"), St_Integer(1), ST_CADR(next), ST_LIST1(I("apply")))
-                                                      : ST_LIST1(I("apply")), toplevel))));
+                                                      : ST_LIST1(I("apply"))))));
         }
 
         if (car == I("define"))
@@ -583,7 +595,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
             StObject var = ST_CADR(x);
             StObject v = ST_CADDR(x);
 
-            return compile(v, m, e, s, compile_assign(m, e, var, next), toplevel);
+            return compile(ctx, v, compile_assign(ctx, var, next));
         }
 
         if (car == I("define-macro"))
@@ -591,23 +603,23 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
             StObject var = ST_CADR(x);
             StObject v = ST_CADDR(x);
 
-            return compile(v, m, e, s, ST_LIST3(I("macro"), var, compile_assign(m, e, var, next)), toplevel);
+            return compile(ctx, v, ST_LIST3(I("macro"), var, compile_assign(ctx, var, next)));
         }
 
         if (car == I("and"))
         {
-            return compile_and(ST_CDR(x), m, e, s, next, toplevel);
+            return compile_and(ctx, ST_CDR(x), next);
         }
 
         if (car == I("or"))
         {
-            return compile_or(ST_CDR(x), m, e, s, next, toplevel);
+            return compile_or(ctx, ST_CDR(x), next);
         }
 
         // else clause
-        for (StObject args = ST_CDR(x), c = compile(ST_CAR(x), m, e, s, tailP(next) ? ST_LIST4(I("shift"), St_Integer(St_Length(ST_CDR(x))), ST_CADR(next), ST_LIST1(I("apply"))) : ST_LIST1(I("apply")), toplevel);
+        for (StObject args = ST_CDR(x), c = compile(ctx, ST_CAR(x), tailP(next) ? ST_LIST4(I("shift"), St_Integer(St_Length(ST_CDR(x))), ST_CADR(next), ST_LIST1(I("apply"))) : ST_LIST1(I("apply")));
              ;
-             c = compile(ST_CAR(args), m, e, s, ST_LIST2(I("argument"), c), toplevel), args = ST_CDR(args))
+             c = compile(ctx, ST_CAR(args), ST_LIST2(I("argument"), c)), args = ST_CDR(args))
         {
             if (ST_NULLP(args))
             {
@@ -621,7 +633,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
 
 StObject St_Compile(StObject expr, StObject module, StObject next)
 {
-    return compile(syntaxexpand(module, macroexpand(module, expr)), module, St_Cons(Nil, Nil), Nil, next, true);
+    return compile(&(StCompileContext){ module, St_Cons(Nil, Nil), Nil, true }, syntaxexpand(module, macroexpand(module, expr)), next);
 }
 
 StObject St_MacroExpand(StObject module, StObject expr)
