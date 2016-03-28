@@ -42,16 +42,16 @@ static StObject primitiveSyntaxes()
     return ss;
 }
 
-static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject next);
+static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject next, bool toplevel);
 
-static StObject compile_body(StObject body, StObject m, StObject e, StObject s, StObject next)
+static StObject compile_body(StObject body, StObject m, StObject e, StObject s, StObject next, bool toplevel)
 {
     if (ST_NULLP(body))
     {
         return next;
     }
 
-    return compile(ST_CAR(body), m, e, s, compile_body(ST_CDR(body), m, e, s, next));
+    return compile(ST_CAR(body), m, e, s, compile_body(ST_CDR(body), m, e, s, next, toplevel), toplevel);
 }
 
 static StObject compile_lookup(StObject module, StObject env, StObject x, StObject next, const char* insn)
@@ -418,7 +418,7 @@ static StObject syntaxexpand(StObject m, StObject x)
     return x;
 }
 
-static StObject compile_and(StObject xs, StObject m, StObject e, StObject s, StObject next)
+static StObject compile_and(StObject xs, StObject m, StObject e, StObject s, StObject next, bool toplevel)
 {
     if (ST_NULLP(xs))
     {
@@ -427,13 +427,13 @@ static StObject compile_and(StObject xs, StObject m, StObject e, StObject s, StO
 
     if (ST_NULLP(ST_CDR(xs)))
     {
-        return compile(ST_CAR(xs), m, e, s, next);
+        return compile(ST_CAR(xs), m, e, s, next, toplevel);
     }
 
-    return compile(ST_CAR(xs), m, e, s, ST_LIST3(I("test"), compile_and(ST_CDR(xs), m, e, s, next), next));
+    return compile(ST_CAR(xs), m, e, s, ST_LIST3(I("test"), compile_and(ST_CDR(xs), m, e, s, next, toplevel), next), toplevel);
 }
 
-static StObject compile_or(StObject xs, StObject m, StObject e, StObject s, StObject next)
+static StObject compile_or(StObject xs, StObject m, StObject e, StObject s, StObject next, bool toplevel)
 {
     if (ST_NULLP(xs))
     {
@@ -442,13 +442,13 @@ static StObject compile_or(StObject xs, StObject m, StObject e, StObject s, StOb
 
     if (ST_NULLP(ST_CDR(xs)))
     {
-        return compile(ST_CAR(xs), m, e, s, next);
+        return compile(ST_CAR(xs), m, e, s, next, toplevel);
     }
 
-    return compile(ST_CAR(xs), m, e, s, ST_LIST3(I("test"), next, compile_or(ST_CDR(xs), m, e, s, next)));
+    return compile(ST_CAR(xs), m, e, s, ST_LIST3(I("test"), next, compile_or(ST_CDR(xs), m, e, s, next, toplevel)), toplevel);
 }
 
-static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject next)
+static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject next, bool toplevel)
 {
     if (ST_SYMBOLP(x))
     {
@@ -491,13 +491,19 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
 
             StObject defs = find_define(body);
             StObject extended_vars = St_SetAppend(defs, vars);
-            // TODO: Make find_free to take a flag top-level or inner function.
-            // Top-level defined functions must have no free variables and
-            // free variables must point to stack allocated variable.
-            // To define lambdas that refer undefined module functions is valid.
-            // So if free variables contains module functions,
-            // creating internal functions refers module functions are sometimes failed.
             StObject free = find_free(body, St_SetUnion(extended_vars, known_vars));
+
+            // Top-level defined functions must have no free variables because
+            // free variables point to stack allocated variable.
+            // Otherwise lambdas capture module functions.
+            if (toplevel)
+            {
+                ST_FOREACH(p, free) {
+                    module_add(m, ST_CAR(p));
+                }
+                free = Nil;
+            }
+
             StObject sets = find_sets(body, vars);
 
             int len_vars = St_Length(extended_vars);
@@ -506,7 +512,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
                                          St_SetUnion(defs,
                                                      St_SetIntersect(s, free)));
             StObject body_c = compile_body(body, m, St_Cons(extended_vars, free), nsets,
-                                           ST_LIST2(I("return"), St_Integer(len_vars)));
+                                           ST_LIST2(I("return"), St_Integer(len_vars)), false);
 
             if (abs(arity) != len_vars)
             {
@@ -526,7 +532,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
 
         if (car == I("begin"))
         {
-            return compile_body(ST_CDR(x), m, e, s, next);
+            return compile_body(ST_CDR(x), m, e, s, next, toplevel);
         }
 
         if (car == I("if"))
@@ -535,15 +541,15 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
             StObject thenE = ST_CADDR(x);
             StObject elseE = ST_CDR(ST_CDDR(x));
 
-            StObject thenC = compile(thenE, m, e, s, next);
+            StObject thenC = compile(thenE, m, e, s, next, toplevel);
             StObject elseC = next;
 
             if (!ST_NULLP(elseE))
             {
-                elseC = compile(ST_CAR(elseE), m, e, s, next);
+                elseC = compile(ST_CAR(elseE), m, e, s, next, toplevel);
             }
 
-            return compile(testE, m, e, s, ST_LIST3(I("test"), thenC, elseC));
+            return compile(testE, m, e, s, ST_LIST3(I("test"), thenC, elseC), toplevel);
         }
 
         if (car == I("set!"))
@@ -551,7 +557,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
             StObject var = ST_CADR(x);
             StObject x2 = ST_CADDR(x);
 
-            return compile(x2, m, e, s, compile_assign(m, e, var, next));
+            return compile(x2, m, e, s, compile_assign(m, e, var, next), toplevel);
         }
 
         if (car == I("call/cc"))
@@ -563,7 +569,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
                                      ST_LIST2(I("argument"),
                                               compile(x2, m, e, s, tailP(next)
                                                       ? ST_LIST4(I("shift"), St_Integer(1), ST_CADR(next), ST_LIST1(I("apply")))
-                                                      : ST_LIST1(I("apply"))))));
+                                                      : ST_LIST1(I("apply")), toplevel))));
         }
 
         if (car == I("define"))
@@ -577,7 +583,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
             StObject var = ST_CADR(x);
             StObject v = ST_CADDR(x);
 
-            return compile(v, m, e, s, compile_assign(m, e, var, next));
+            return compile(v, m, e, s, compile_assign(m, e, var, next), toplevel);
         }
 
         if (car == I("define-macro"))
@@ -585,23 +591,23 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
             StObject var = ST_CADR(x);
             StObject v = ST_CADDR(x);
 
-            return compile(v, m, e, s, ST_LIST3(I("macro"), var, compile_assign(m, e, var, next)));
+            return compile(v, m, e, s, ST_LIST3(I("macro"), var, compile_assign(m, e, var, next)), toplevel);
         }
 
         if (car == I("and"))
         {
-            return compile_and(ST_CDR(x), m, e, s, next);
+            return compile_and(ST_CDR(x), m, e, s, next, toplevel);
         }
 
         if (car == I("or"))
         {
-            return compile_or(ST_CDR(x), m, e, s, next);
+            return compile_or(ST_CDR(x), m, e, s, next, toplevel);
         }
 
         // else clause
-        for (StObject args = ST_CDR(x), c = compile(ST_CAR(x), m, e, s, tailP(next) ? ST_LIST4(I("shift"), St_Integer(St_Length(ST_CDR(x))), ST_CADR(next), ST_LIST1(I("apply"))) : ST_LIST1(I("apply")));
+        for (StObject args = ST_CDR(x), c = compile(ST_CAR(x), m, e, s, tailP(next) ? ST_LIST4(I("shift"), St_Integer(St_Length(ST_CDR(x))), ST_CADR(next), ST_LIST1(I("apply"))) : ST_LIST1(I("apply")), toplevel);
              ;
-             c = compile(ST_CAR(args), m, e, s, ST_LIST2(I("argument"), c)), args = ST_CDR(args))
+             c = compile(ST_CAR(args), m, e, s, ST_LIST2(I("argument"), c), toplevel), args = ST_CDR(args))
         {
             if (ST_NULLP(args))
             {
@@ -615,7 +621,7 @@ static StObject compile(StObject x, StObject m, StObject e, StObject s, StObject
 
 StObject St_Compile(StObject expr, StObject module, StObject next)
 {
-    return compile(syntaxexpand(module, macroexpand(module, expr)), module, St_Cons(Nil, Nil), Nil, next);
+    return compile(syntaxexpand(module, macroexpand(module, expr)), module, St_Cons(Nil, Nil), Nil, next, true);
 }
 
 StObject St_MacroExpand(StObject module, StObject expr)

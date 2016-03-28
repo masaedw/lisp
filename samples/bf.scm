@@ -67,9 +67,6 @@
     ()
     (iter (car xs) 1 () (cdr xs))))
 
-(define count-forward ())
-(define count-backward ())
-
 (define (bf-add-jump-offset prog)
   (define (iter n)
     (if (= n (vector-length prog))
