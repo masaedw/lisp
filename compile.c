@@ -42,14 +42,14 @@ static StObject primitiveSyntaxes()
     return ss;
 }
 
-struct StCompileContext
+typedef struct
 {
     StObject module;
     StObject env;
     StObject sets;
     bool toplevel;
-};
-typedef struct StCompileContext StCompileContext;
+    int stackoffset;
+} StCompileContext;
 
 
 static StObject compile(StCompileContext *ctx, StObject expr, StObject next);
@@ -75,7 +75,7 @@ static StObject compile_lookup(StCompileContext *ctx, StObject x, StObject next,
         if (ST_CAR(locals) == x)
         {
             strcpy(bp, "-local");
-            return ST_LIST3(I(buf), St_Integer(nl), next);
+            return ST_LIST3(I(buf), St_Integer(nl - ctx->stackoffset), next);
         }
         nl++;
     }
@@ -258,6 +258,7 @@ static StObject find_sets(StObject x, StObject v)
     {
         StObject car = ST_CAR(x);
 
+        // TODO: let
 #define CASE(sym) if (car == I(#sym))
 
         CASE(quote) {
@@ -476,6 +477,66 @@ static StObject compile(StCompileContext *ctx, StObject x, StObject next)
             return ST_LIST3(I("constant"), obj, next);
         }
 
+        if (car == I("---let---") ||
+            car == I("---let*---"))
+        {
+            int len = St_Length(x);
+            if (len < 2)
+            {
+                St_Error("compile: malformed let");
+            }
+
+            // Design decision: Set refer-local's offset negative values to point variables made by let.
+            // Because f register keeps its value when executing let body and binding expressions.
+            //
+            // (let ((s1 x1) (s2 x2)) body)
+            // => (x1 (argument (x2 (argument (body (shift 0 2 next))))))
+            //
+            //  s2 <-    refer-local -2
+            //  s1 <- f  refer-local -1
+            //  a1 <-    refer-local 0
+            //  a2 <-    refer-local 1
+            //  a3 <-    refer-local 2
+            //  frame
+            //  ------
+
+            StObject bindings = ST_CADR(x);
+            StObject body = ST_CDDR(x);
+
+            StObject vars = Nil, vt = Nil;
+            StObject exprs = Nil;
+
+            ST_FOREACH(p, bindings) {
+                ST_BIND2("let binding", ST_CAR(p), s, exp);
+
+                if (!ST_SYMBOLP(s))
+                {
+                    St_Error("let bining: symbol reuqired");
+                }
+
+                if (St_SetMemberP(s, vars))
+                {
+                    St_Error("let binding: multiple symbol: %s", ST_SYMBOL_VALUE(s));
+                }
+
+                ST_APPEND1(vars, vt, s);
+                exprs = St_Cons(exp, exprs);
+            }
+
+            StCompileContext nctx = *ctx;
+            nctx.env = St_Cons(St_SetAppend(vars, ST_CAR(ctx->env)), ST_CDR(ctx->env));
+            nctx.sets = find_sets(body, vars);
+            nctx.stackoffset = St_Length(vars);
+            StObject nnext = ST_LIST4(I("shift"), St_Integer(0), St_Integer(St_Length(vars)), next);
+            StObject c = make_boxes(nctx.sets, vars, compile_body(&nctx, body, nnext), 0);
+
+            ST_FOREACH(p, exprs) {
+                c = compile(ctx, ST_CAR(p), ST_LIST2(I("argument"), c));
+            }
+
+            return c;
+        }
+
         if (car == I("lambda"))
         {
             StObject params = ST_CADR(x);
@@ -525,6 +586,7 @@ static StObject compile(StCompileContext *ctx, StObject x, StObject next)
                                     St_SetUnion(defs,
                                                 St_SetIntersect(ctx->sets, free)));
             nctx.toplevel = false;
+            nctx.stackoffset = 0;
 
             StObject body_c = compile_body(&nctx, body, ST_LIST2(I("return"), St_Integer(len_vars)));
 
@@ -633,7 +695,7 @@ static StObject compile(StCompileContext *ctx, StObject x, StObject next)
 
 StObject St_Compile(StObject expr, StObject module, StObject next)
 {
-    return compile(&(StCompileContext){ module, St_Cons(Nil, Nil), Nil, true }, syntaxexpand(module, macroexpand(module, expr)), next);
+    return compile(&(StCompileContext){ module, St_Cons(Nil, Nil), Nil, true, 0 }, syntaxexpand(module, macroexpand(module, expr)), next);
 }
 
 StObject St_MacroExpand(StObject module, StObject expr)
