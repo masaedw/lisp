@@ -68,6 +68,17 @@ void finalizer()
     //fclose(input);
 }
 
+static StObject MakeListFromArgv(char **argv)
+{
+    StObject h = Nil, t = Nil;
+
+    for (char **p = argv; *p != NULL; p++) {
+        ST_APPEND1(h, t, St_MakeStringFromCString(*p));
+    }
+
+    return h;
+}
+
 int main(int argc, char** argv)
 {
     GC_INIT();
@@ -86,22 +97,30 @@ int main(int argc, char** argv)
     bool interactive_mode = false;
     int pargs = 1;
 
-    if (argc >= 2 && strcmp(argv[1], "-i") == 0)
+    StObject args = MakeListFromArgv(argv);
+
+    if (ST_TRUTHYP(St_Member(St_MakeStringFromCString("-i"), args)))
     {
         interactive_mode = true;
         pargs++;
     }
 
-    if (argc >= 2 && strcmp(argv[1], "-p") == 0)
+    if (ST_TRUTHYP(St_Member(St_MakeStringFromCString("-p"), args)))
     {
         test_print();
         return 0;
     }
 
-    if (argc >= 2 && strcmp(argv[1], "-t") == 0)
+    if (ST_TRUTHYP(St_Member(St_MakeStringFromCString("-t"), args)))
     {
         test_port();
         return 0;
+    }
+
+    if (ST_TRUTHYP(St_Member(St_MakeStringFromCString("-d"), args)))
+    {
+        St_DebugVM = True;
+        pargs++;
     }
 
     atexit(finalizer);
