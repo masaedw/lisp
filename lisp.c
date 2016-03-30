@@ -188,6 +188,17 @@ StObject St_Memv(StObject obj, StObject list)
     return False;
 }
 
+StObject St_Member(StObject obj, StObject s)
+{
+    ST_FOREACH(p, s) {
+        if (St_EqualP(obj, ST_CAR(p)))
+        {
+            return p;
+        }
+    }
+    return False;
+}
+
 bool St_SetMemberP(StObject obj, StObject s)
 {
     ST_FOREACH(p, s) {

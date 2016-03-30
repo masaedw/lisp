@@ -229,6 +229,7 @@ StObject St_Assq(StObject obj, StObject alist);
 StObject St_Assv(StObject obj, StObject alist);
 StObject St_Memq(StObject obj, StObject list);
 StObject St_Memv(StObject obj, StObject list);
+StObject St_Member(StObject obj, StObject list);
 
 #define ST_LIST1(a0)                 St_Cons((a0), Nil)
 #define ST_LIST2(a0, a1)             St_Cons((a0), ST_LIST1((a1)))
