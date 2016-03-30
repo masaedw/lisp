@@ -200,6 +200,7 @@ void *St_Alloc2(int type, size_t size);
 #define ST_NULLP(obj)       ((obj) == Nil)
 #define ST_TRUEP(obj)       ((obj) == True)
 #define ST_FALSEP(obj)      ((obj) == False)
+#define ST_TRUTHYP(obj)     (!ST_FALSEP(obj))
 #define ST_UNBOUNDP(obj)    ((obj) == Unbound)
 #define ST_EOFP(obj)        ((obj) == Eof)
 #define ST_PAIRP(obj)       ST_TAGP(obj, TCELL)
