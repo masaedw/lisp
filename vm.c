@@ -2,6 +2,8 @@
 #include "lisp.h"
 #include "subr.h"
 
+StObject St_DebugVM = False;
+
 typedef struct STVm
 {
     StObject stack;
@@ -178,21 +180,22 @@ static StObject vm(StObject m, StObject insn)
 
     while (true) {
 
-        /*
-        St_Display(ST_CAR(Vm->x), False);
-        if (St_Length(Vm->x) > 1)
+        if (ST_TRUEP(St_DebugVM))
         {
-            printf(" [");fflush(stdout);
-            St_Display(ST_CADR(Vm->x), False);
-            printf("]");fflush(stdout);
+            St_Display(ST_CAR(Vm->x), False);
+            if (St_Length(Vm->x) > 1)
+            {
+                printf(" [");fflush(stdout);
+                St_Display(ST_CADR(Vm->x), False);
+                printf("]");fflush(stdout);
+            }
+            else
+            {
+                printf(" []");fflush(stdout);
+            }
+            printf(" (f:%d fp:%d s:%d) ", Vm->f, Vm->fp, Vm->s);fflush(stdout);
+            St_Print(Vm->a, False);
         }
-        else
-        {
-            printf(" []");fflush(stdout);
-        }
-        printf(" (f:%d fp:%d s:%d) ", Vm->f, Vm->fp, Vm->s);fflush(stdout);
-        St_Print(Vm->a, False);
-        //*/
 
         CASE(halt) {
             Vm->x = xo;

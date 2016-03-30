@@ -466,6 +466,7 @@ void St_Print(StObject obj, StObject port);
 
 // Evaluator
 
+extern StObject St_DebugVM; // if true vm prints internal state.
 StObject St_Eval_VM(StObject module, StObject obj);
 StObject St__Eval_INSN(StObject module, StObject insn);
 
