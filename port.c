@@ -269,7 +269,7 @@ void St_WriteU8(uint8_t byte, StObject port)
 
 void St_ClosePort(StObject port)
 {
-    if (CLOSEDP(port))
+    if (CLOSEDP(port) || !NEED_TO_CLOSE(port))
     {
         return;
     }
