@@ -28,6 +28,11 @@
 
  */
 
+static void FinalizePort(GC_PTR obj, GC_PTR client_data __attribute__((unused)))
+{
+    St_ClosePort(ST_OBJECT(obj));
+}
+
 StObject St_MakeFdPort(int fd, bool need_to_close)
 {
     StObject o = St_Alloc2(TFDPORT, sizeof(struct StFdPortRec));
@@ -38,6 +43,8 @@ StObject St_MakeFdPort(int fd, bool need_to_close)
     NEED_TO_CLOSE(o) = need_to_close;
     EOFP(o) = false;
     CLOSEDP(o) = false;
+
+    GC_register_finalizer(o, FinalizePort, NULL, NULL, NULL);
 
     return o;
 }
