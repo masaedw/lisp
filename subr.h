@@ -1,5 +1,4 @@
-#ifndef SUBR_H
-#define SUBR_H
+#pragma once
 
 #include "lisp.h"
 
@@ -47,5 +46,3 @@ static inline StObject St_Arg(StCallInfo *cinfo, int i)
 {
     return ST_VECTOR_DATA(cinfo->argstack)[cinfo->offset + ~i];
 }
-
-#endif

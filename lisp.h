@@ -1,5 +1,4 @@
-#ifndef LISP_H
-#define LISP_H
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -475,5 +474,3 @@ StObject St__Eval_INSN(StObject module, StObject insn);
 StObject St_MacroExpand(StObject module, StObject expr);
 StObject St_SyntaxExpand(StObject module, StObject expr);
 StObject St_Compile(StObject expr, StObject module, StObject next);
-
-#endif
