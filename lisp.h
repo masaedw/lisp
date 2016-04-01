@@ -19,6 +19,7 @@ enum {
     TLAMBDA,
     TMACRO,
     TFDPORT,
+    TEXTERNAL,
 };
 
 struct StObjectHeader;
@@ -31,6 +32,28 @@ struct StObjectHeader
 {
     ST_OBJECT_HEADER;
 };
+
+typedef void (*StPrintFunction)(StObject obj, StObject port);
+typedef bool (*StEqualFunction)(StObject lhs, StObject rhs);
+
+struct StExternalTypeInfo // is not enough generalized as called 'class' for now
+{
+    char *type_name;
+    StPrintFunction print;
+    StEqualFunction equalp;
+};
+typedef struct StExternalTypeInfo StExternalTypeInfo;
+
+#define ST_EXTERNAL_OBJECT_HEADER               \
+    ST_OBJECT_HEADER;                           \
+    StExternalTypeInfo *type_info
+
+struct StExternalObjectHeader
+{
+    ST_EXTERNAL_OBJECT_HEADER;;
+};
+typedef struct StExternalObjectHeader *StExternalObject;
+#define ST_EXTERNAL_OBJECT(x) ((StExternalObject)(x))
 
 struct StCellRec
 {
@@ -215,6 +238,7 @@ void *St_Alloc2(int type, size_t size);
 #define ST_MACROP(obj)      ST_TAGP(obj, TMACRO)
 #define ST_PROCEDUREP(obj)  (ST_SUBRP(obj) || ST_LAMBDAP(obj))
 #define ST_FDPORTP(obj)     ST_TAGP(obj, TFDPORT)
+#define ST_EXTERNALP(obj)   ST_TAGP(obj, TEXTERNAL)
 
 // List and Pair
 
