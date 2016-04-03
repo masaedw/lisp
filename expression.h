@@ -16,7 +16,6 @@ typedef enum {
     XSET,
     XCALLCC,
     XDEFINE,
-    XINTDEFINE,
     XDEFINEMACRO,
     XAND,
     XOR,
@@ -25,7 +24,7 @@ typedef enum {
 
 extern StExternalTypeInfo StExpressionTypeInfo;
 
-struct StExpression
+struct StExpressionRec
 {
     ST_EXTERNAL_OBJECT_HEADER;
     StExpressionType xtype;
@@ -91,7 +90,7 @@ struct StExpression
         {
             StObject symbol;
             StObject value; // expr
-        } define, int_define;
+        } define;
 
         struct StXDefineMacro
         {
@@ -105,3 +104,6 @@ struct StExpression
         } and, or, list;
     };
 };
+typedef struct StExpressionRec *StExpression;
+
+StExpression St_MakeExpression(StExpressionType type);
