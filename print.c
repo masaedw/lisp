@@ -145,6 +145,12 @@ static void print(StObject obj, StObject port)
         break;
     }
 
+    case TEXTERNAL: {
+        ST_EXTERNAL_TYPE_INFO(obj)->print(obj, port);
+
+        break;
+    }
+
     default:
         St_Error("unknown type %d", obj->type);
     }

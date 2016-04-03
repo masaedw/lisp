@@ -295,6 +295,12 @@ bool St_EqualP(StObject lhs, StObject rhs)
         return St_VectorEqualP(lhs, rhs);
     }
 
+    if (ST_EXTERNALP(lhs) && ST_EXTERNALP(rhs) &&
+        ST_EXTERNAL_TYPE_INFO(lhs) == ST_EXTERNAL_TYPE_INFO(rhs))
+    {
+        return ST_EXTERNAL_TYPE_INFO(lhs)->equalp(lhs, rhs);
+    }
+
     return St_EqvP(lhs, rhs);
 }
 

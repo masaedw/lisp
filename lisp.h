@@ -54,6 +54,7 @@ struct StExternalObjectHeader
 };
 typedef struct StExternalObjectHeader *StExternalObject;
 #define ST_EXTERNAL_OBJECT(x) ((StExternalObject)(x))
+#define ST_EXTERNAL_TYPE_INFO(x) (ST_EXTERNAL_OBJECT(x)->type_info)
 
 struct StCellRec
 {
