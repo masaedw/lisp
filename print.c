@@ -146,7 +146,7 @@ static void print(StObject obj, StObject port)
     }
 
     case TEXTERNAL: {
-        ST_EXTERNAL_TYPE_INFO(obj)->print(obj, port);
+        ST_EXTERNAL_TYPE_INFO(obj)->display(obj, port);
 
         break;
     }

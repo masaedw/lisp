@@ -33,13 +33,13 @@ struct StObjectHeader
     ST_OBJECT_HEADER;
 };
 
-typedef void (*StPrintFunction)(StObject obj, StObject port);
+typedef void (*StDisplayFunction)(StObject obj, StObject port);
 typedef bool (*StEqualFunction)(StObject lhs, StObject rhs);
 
 struct StExternalTypeInfo // is not enough generalized as called 'class' for now
 {
     char *type_name;
-    StPrintFunction print;
+    StDisplayFunction display;
     StEqualFunction equalp;
 };
 typedef struct StExternalTypeInfo StExternalTypeInfo;
