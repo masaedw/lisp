@@ -71,6 +71,7 @@ struct StExpressionRec
         struct StXIf
         {
             StObject xpred; // expr
+
             StObject xthen; // expr
             StObject xelse; // expr or Nil
         } xif;
@@ -105,5 +106,6 @@ struct StExpressionRec
     };
 };
 typedef struct StExpressionRec *StExpression;
+#define ST_EXPRESSION(obj) ((StExpression)(obj))
 
 StExpression St_MakeExpression(StExpressionType type);
