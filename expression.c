@@ -277,9 +277,15 @@ StExpression St_MakeExpression(StExpressionType xtype)
 
 typedef struct
 {
-    StObject obj;
+    void *obj;
     StObject rest;
 } StXCont;
+
+static inline StXCont cont(void *obj, StObject rest)
+{
+    return (StXCont) { obj, rest };
+}
+
 
 // parse
 
@@ -291,6 +297,7 @@ static StXCont parse_bindings(StObject expr)
     return (StXCont) { };
 }
 
+// returns obj as (vars vals exprs)
 static StXCont parse_body(StObject expr)
 {
     // TODO: Implement
@@ -298,7 +305,24 @@ static StXCont parse_body(StObject expr)
     return (StXCont) { };
 }
 
-static StObject parse(StObject expr)
+// retutns obj as struct StXLet*
+static StXCont parse_let(StObject expr)
+{
+    StXCont bindings = parse_bindings(ST_CDR(expr));
+    StXCont body = parse_body(bindings.rest);
+
+    struct StXLet *let = St_Malloc(sizeof(struct StXLet));
+    let->bindings = bindings.obj;
+
+    ST_BIND3("", body.obj, vars, vals, exprs);
+
+    let->defvars = vars;
+    let->defvals = vals;
+    let->body = exprs;
+    return (StXCont) { let, body.rest };
+}
+
+static StXCont parse(StObject expr)
 {
     if (!ST_PAIRP(expr))
     {
@@ -306,13 +330,13 @@ static StObject parse(StObject expr)
         {
             StExpression e = St_MakeExpression(XSYMBOL);
             e->symbol.symbol = expr;
-            return ST_OBJECT(e);
+            return cont(ST_OBJECT(e), Nil);
         }
         else
         {
             StExpression e = St_MakeExpression(XVALUE);
             e->value.value = expr;
-            return ST_OBJECT(e);
+            return cont(ST_OBJECT(e), Nil);
         }
     }
 
@@ -326,15 +350,22 @@ static StObject parse(StObject expr)
         ST_BIND1("quote", cdr, expr);
         StExpression e = St_MakeExpression(XQUOTE);
         e->quote.expr = expr;
-        return ST_OBJECT(e);
+        return cont(ST_OBJECT(e), Nil);
     }
 
     CASE("let") {
-        StXCont bindings = parse_bindings(cdr);
-        StXCont body = parse_body(bindings.rest);
+        return parse_let(expr);
+    }
+    CASE("let*") {
+        return parse_let(expr);
+    }
+    CASE("letrec") {
+        return parse_let(expr);
+    }
+    CASE("letrec*") {
+        return parse_let(expr);
     }
     /*
-    case XLET:         return AllocX(xtype, sizeof(struct StXLet));
     case XLETSTAR:     return AllocX(xtype, sizeof(struct StXLet));
     case XLETREC:      return AllocX(xtype, sizeof(struct StXLet));
     case XLETRECSTAR:  return AllocX(xtype, sizeof(struct StXLet));
@@ -349,7 +380,7 @@ static StObject parse(StObject expr)
     case XOR:          return AllocX(xtype, sizeof(struct StXList));
     case XLIST:        return AllocX(xtype, sizeof(struct StXList));
     */
-    return Nil;
+    return cont(NULL, Nil);
 }
 
 StObject St_Parse(StObject module, StObject expr)
