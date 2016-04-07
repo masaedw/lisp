@@ -289,12 +289,27 @@ static inline StXCont cont(void *obj, StObject rest)
 
 // parse
 
+static StXCont parse(StObject expr);
+
 // returns obj as vector of (sym . expr)
 static StXCont parse_bindings(StObject expr)
 {
-    // TODO: Implement
-    (void)expr;
-    return (StXCont) { };
+    StObject h = Nil, t = Nil;
+
+    ST_FOREACH(p, expr) {
+        ST_BIND2("parse", ST_CAR(p), s, v);
+        if (!ST_SYMBOLP(s))
+        {
+            St_Error("parse: require symbol");
+        }
+
+        StXCont sc = parse(s);
+        StXCont vc = parse(v);
+
+        ST_APPEND1(h, t, St_Cons(sc.obj, vc.obj));
+    }
+
+    return (StXCont) { St_MakeVectorFromList(h), Nil };
 }
 
 // returns obj as (vars vals exprs)
@@ -366,9 +381,6 @@ static StXCont parse(StObject expr)
         return parse_let(expr);
     }
     /*
-    case XLETSTAR:     return AllocX(xtype, sizeof(struct StXLet));
-    case XLETREC:      return AllocX(xtype, sizeof(struct StXLet));
-    case XLETRECSTAR:  return AllocX(xtype, sizeof(struct StXLet));
     case XLAMBDA:      return AllocX(xtype, sizeof(struct StXLambda));
     case XBEGIN:       return AllocX(xtype, sizeof(struct StXBegin));
     case XIF:          return AllocX(xtype, sizeof(struct StXIf));
