@@ -312,11 +312,60 @@ static StXCont parse_bindings(StObject expr)
     return (StXCont) { St_MakeVectorFromList(h), Nil };
 }
 
+// returns obj as (vars . vals)
+// vars :: vector of symbol
+// vals :: vector of expr
+static StXCont find_defines(StObject expr)
+{
+    StObject vars = Nil, vart = Nil;
+    StObject vals = Nil, valt = Nil;
+
+    if (!ST_PAIRP(expr))
+    {
+        goto end;
+    }
+
+    ST_FOREACH(p, expr) {
+        StObject e = ST_CAR(p);
+        if (!ST_PAIRP(e))
+        {
+            goto end;
+        }
+
+        if (ST_CAR(e) != St_Intern("define"))
+        {
+            goto end;
+        }
+
+        ST_BIND2("syntax error: malformed define", ST_CDR(e), s, v);
+
+        if (!ST_SYMBOLP(s))
+        {
+            St_Error("syntax error: malformed define, symbol required");
+        }
+
+        StXCont sc = parse(s);
+        StXCont vc = parse(v);
+        ST_APPEND1(vars, vart, sc.obj);
+        ST_APPEND1(vals, valt, vc.obj);
+    }
+end:
+    return (StXCont) { St_Cons(St_MakeVectorFromList(vars), St_MakeVectorFromList(vals)), expr };
+}
+
+static StObject expand_begin(StObject expr)
+{
+    // TODO: implement
+    return Nil;
+}
+
 // returns obj as (vars vals exprs)
 static StXCont parse_body(StObject expr)
 {
-    // TODO: Implement
-    (void)expr;
+    StXCont ds = find_defines(expr);
+    StObject vars = ST_CAR(ds.obj);
+    StObject vals = ST_CDR(ds.obj);
+
     return (StXCont) { };
 }
 
