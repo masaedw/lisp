@@ -353,10 +353,32 @@ end:
     return (StXCont) { St_Cons(St_MakeVectorFromList(vars), St_MakeVectorFromList(vals)), expr };
 }
 
+static void expand_begin_sub(StObject expr, StObject *head, StObject *tail)
+{
+    if (!ST_PAIRP(expr))
+    {
+        ST_APPEND1(*head, *tail, expr);
+        return;
+    }
+
+    ST_FOREACH(p, expr) {
+        StObject e = ST_CAR(p);
+        if (ST_PAIRP(e) && ST_CAR(p) == St_Intern("begin"))
+        {
+            expand_begin_sub(ST_CDR(expr), head, tail);
+        }
+        else
+        {
+            ST_APPEND1(*head, *tail, expr);
+        }
+    }
+}
+
 static StObject expand_begin(StObject expr)
 {
-    // TODO: implement
-    return Nil;
+    StObject h = Nil, t = Nil;
+    expand_begin_sub(expr, &h, &t);
+    return h;
 }
 
 // returns obj as (vars vals exprs)
