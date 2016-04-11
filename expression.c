@@ -469,4 +469,6 @@ static StXCont parse(StObject expr)
 StObject St_Parse(StObject module, StObject expr)
 {
     StObject expanded = St_SyntaxExpand(module, expr);
+    StXCont c = parse(expanded);
+    return c.obj;
 }
