@@ -388,24 +388,80 @@ static StXCont parse_body(StObject expr)
     StObject vars = ST_CAR(ds.obj);
     StObject vals = ST_CDR(ds.obj);
 
+    // TODO: implement
+
     return (StXCont) { };
 }
 
 // retutns obj as struct StXLet*
 static StXCont parse_let(StObject expr)
 {
-    StXCont bindings = parse_bindings(ST_CDR(expr));
+    StXCont bindings = parse_bindings(expr);
     StXCont body = parse_body(bindings.rest);
+    ST_BIND3("", body.obj, vars, vals, exprs);
 
     struct StXLet *let = St_Malloc(sizeof(struct StXLet));
     let->bindings = bindings.obj;
-
-    ST_BIND3("", body.obj, vars, vals, exprs);
-
     let->defvars = vars;
     let->defvals = vals;
     let->body = exprs;
+
     return (StXCont) { let, body.rest };
+}
+
+// returns obj as (params . dotted)
+static StXCont parse_params(StObject expr)
+{
+    StObject h = Nil, t = Nil;
+    StObject dotted = False;
+
+    if (!ST_PAIRP(expr))
+    {
+        St_Error("parse: parameter reuqired in lambda expression");
+    }
+
+    StObject p;
+    for (p = ST_CAR(expr); !ST_PAIRP(p); p = ST_CDR(p)) {
+        if (!ST_SYMBOLP(ST_CAR(p)))
+        {
+            St_Error("parse: symbol required as parameter of lambda");
+        }
+        StXCont c = parse(ST_CAR(p));
+        ST_APPEND1(h, t, c.obj);
+    }
+
+    if (ST_NULLP(p))
+    {
+        // do nothing
+    }
+    else if (ST_SYMBOLP(p))
+    {
+        StXCont c = parse(p);
+        ST_APPEND1(h, t, c.obj);
+        dotted = True;
+    }
+    else
+    {
+        St_Error("parse: symbol required as parameter of lambda");
+    }
+
+    return (StXCont) { St_Cons(h, dotted), ST_CDR(expr) };
+}
+
+static StXCont parse_lambda(StObject expr)
+{
+    StXCont pc = parse_params(expr);
+    StXCont bc = parse_body(pc.rest);
+    ST_BIND3("", bc.obj, vars, vals, exprs);
+
+    struct StXLambda *lambda = St_Malloc(sizeof(struct StXLambda));
+    lambda->vars = ST_CAR(pc.obj);
+    lambda->dotted = ST_TRUTHYP(ST_CDR(pc.obj));
+    lambda->defvars = vars;
+    lambda->defvals = vals;
+    lambda->body = exprs;
+
+    return (StXCont) { lambda, bc.rest };
 }
 
 static StXCont parse(StObject expr)
@@ -440,16 +496,19 @@ static StXCont parse(StObject expr)
     }
 
     CASE("let") {
-        return parse_let(expr);
+        return parse_let(cdr);
     }
     CASE("let*") {
-        return parse_let(expr);
+        return parse_let(cdr);
     }
     CASE("letrec") {
-        return parse_let(expr);
+        return parse_let(cdr);
     }
     CASE("letrec*") {
-        return parse_let(expr);
+        return parse_let(cdr);
+    }
+    CASE("lambda") {
+        return parse_lambda(cdr);
     }
     /*
     case XLAMBDA:      return AllocX(xtype, sizeof(struct StXLambda));
