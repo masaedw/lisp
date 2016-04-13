@@ -34,17 +34,7 @@ struct StExpressionRec
         struct StXValue
         {
             StObject value;
-        } value;
-
-        struct StXSymbol
-        {
-            StObject symbol;
-        } symbol;
-
-        struct StXQuote
-        {
-            StObject expr;
-        } quote;
+        } value, symbol, quote;
 
         struct StXLet
         {

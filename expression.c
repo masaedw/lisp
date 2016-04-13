@@ -137,12 +137,12 @@ static void display(StObject obj, StObject port)
         break;
 
     case XSYMBOL:
-        St_Display(xobj->symbol.symbol, port);
+        St_Display(xobj->symbol.value, port);
         break;
 
     case XQUOTE:
         St_WriteCString("(quote ", port);
-        St_Display(xobj->quote.expr, port);
+        St_Display(xobj->quote.value, port);
         St_WriteCString(")", port);
         break;
 
@@ -256,8 +256,8 @@ StExpression St_MakeExpression(StExpressionType xtype)
 {
     switch (xtype) {
     case XVALUE:       return AllocX(xtype, sizeof(struct StXValue));
-    case XSYMBOL:      return AllocX(xtype, sizeof(struct StXSymbol));
-    case XQUOTE:       return AllocX(xtype, sizeof(struct StXQuote));
+    case XSYMBOL:      return AllocX(xtype, sizeof(struct StXValue));
+    case XQUOTE:       return AllocX(xtype, sizeof(struct StXValue));
     case XLET:         return AllocX(xtype, sizeof(struct StXLet));
     case XLETSTAR:     return AllocX(xtype, sizeof(struct StXLet));
     case XLETREC:      return AllocX(xtype, sizeof(struct StXLet));
@@ -309,7 +309,7 @@ static StXCont parse_bindings(StObject expr)
         ST_APPEND1(h, t, St_Cons(sc.obj, vc.obj));
     }
 
-    return (StXCont) { St_MakeVectorFromList(h), Nil };
+    return cont(St_MakeVectorFromList(h), Nil);
 }
 
 // returns obj as (vars . vals)
@@ -350,7 +350,7 @@ static StXCont find_defines(StObject expr)
         ST_APPEND1(vals, valt, vc.obj);
     }
 end:
-    return (StXCont) { St_Cons(St_MakeVectorFromList(vars), St_MakeVectorFromList(vals)), expr };
+    return cont(St_Cons(St_MakeVectorFromList(vars), St_MakeVectorFromList(vals)), expr);
 }
 
 static void expand_begin_sub(StObject expr, StObject *head, StObject *tail)
@@ -384,13 +384,20 @@ static StObject expand_begin(StObject expr)
 // returns obj as (vars vals exprs)
 static StXCont parse_body(StObject expr)
 {
-    StXCont ds = find_defines(expr);
+    StXCont ds = find_defines(expand_begin(expr));
     StObject vars = ST_CAR(ds.obj);
     StObject vals = ST_CDR(ds.obj);
 
-    // TODO: implement
+    StObject h = Nil, t = Nil;
 
-    return (StXCont) { };
+    ST_FOREACH(p, ds.rest) {
+        StXCont c = parse(ST_CAR(p));
+        ST_APPEND1(h, t, c.obj);
+    }
+
+    StObject body = St_MakeVectorFromList(h);
+
+    return cont(ST_LIST3(vars, vals, body), Nil);
 }
 
 // retutns obj as struct StXLet*
@@ -406,7 +413,7 @@ static StXCont parse_let(StObject expr)
     let->defvals = vals;
     let->body = exprs;
 
-    return (StXCont) { let, body.rest };
+    return cont(let, body.rest);
 }
 
 // returns obj as (params . dotted)
@@ -445,7 +452,7 @@ static StXCont parse_params(StObject expr)
         St_Error("parse: symbol required as parameter of lambda");
     }
 
-    return (StXCont) { St_Cons(h, dotted), ST_CDR(expr) };
+    return cont(St_Cons(h, dotted), ST_CDR(expr));
 }
 
 static StXCont parse_lambda(StObject expr)
@@ -461,7 +468,7 @@ static StXCont parse_lambda(StObject expr)
     lambda->defvals = vals;
     lambda->body = exprs;
 
-    return (StXCont) { lambda, bc.rest };
+    return cont(lambda, bc.rest);
 }
 
 static StXCont parse(StObject expr)
@@ -471,7 +478,7 @@ static StXCont parse(StObject expr)
         if (ST_SYMBOLP(expr))
         {
             StExpression e = St_MakeExpression(XSYMBOL);
-            e->symbol.symbol = expr;
+            e->symbol.value = expr;
             return cont(ST_OBJECT(e), Nil);
         }
         else
@@ -491,28 +498,54 @@ static StXCont parse(StObject expr)
     CASE("quote") {
         ST_BIND1("quote", cdr, expr);
         StExpression e = St_MakeExpression(XQUOTE);
-        e->quote.expr = expr;
+        e->quote.value = expr;
         return cont(ST_OBJECT(e), Nil);
     }
 
     CASE("let") {
-        return parse_let(cdr);
+        StXCont c = parse_let(cdr);
+        StExpression e = St_MakeExpression(XLET);
+        e->let = *(struct StXLet*)c.obj;
+        return cont(ST_OBJECT(e), Nil);
     }
     CASE("let*") {
-        return parse_let(cdr);
+        StXCont c = parse_let(cdr);
+        StExpression e = St_MakeExpression(XLETSTAR);
+        e->letstar = *(struct StXLet*)c.obj;
+        return cont(ST_OBJECT(e), Nil);
     }
     CASE("letrec") {
-        return parse_let(cdr);
+        StXCont c = parse_let(cdr);
+        StExpression e = St_MakeExpression(XLETREC);
+        e->letrec = *(struct StXLet*)c.obj;
+        return cont(ST_OBJECT(e), Nil);
     }
     CASE("letrec*") {
-        return parse_let(cdr);
+        StXCont c = parse_let(cdr);
+        StExpression e = St_MakeExpression(XLETRECSTAR);
+        e->letrecstar = *(struct StXLet*)c.obj;
+        return cont(ST_OBJECT(e), Nil);
     }
     CASE("lambda") {
-        return parse_lambda(cdr);
+        StXCont c = parse_lambda(cdr);
+        StExpression e = St_MakeExpression(XLAMBDA);
+        e->lambda = *(struct StXLambda*)c.obj;
+        return cont(ST_OBJECT(e), Nil);
+    }
+    CASE("bgin") {
+        StObject h = Nil, t = Nil;
+
+        ST_FOREACH(p, expand_begin(cdr)) {
+            StXCont c = parse(ST_CAR(p));
+            ST_APPEND1(h, t, c.obj);
+        }
+
+        StObject body = St_MakeVectorFromList(h);
+        StExpression e = St_MakeExpression(XBEGIN);
+        e->begin.body = body;
+        return cont(ST_OBJECT(e), Nil);
     }
     /*
-    case XLAMBDA:      return AllocX(xtype, sizeof(struct StXLambda));
-    case XBEGIN:       return AllocX(xtype, sizeof(struct StXBegin));
     case XIF:          return AllocX(xtype, sizeof(struct StXIf));
     case XSET:         return AllocX(xtype, sizeof(struct StXSet));
     case XCALLCC:      return AllocX(xtype, sizeof(struct StXCallCC));
