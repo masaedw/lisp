@@ -61,7 +61,6 @@ struct StExpressionRec
         struct StXIf
         {
             StObject xpred; // expr
-
             StObject xthen; // expr
             StObject xelse; // expr or Nil
         } xif;

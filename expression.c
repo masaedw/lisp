@@ -530,6 +530,33 @@ static StXCont parse(StObject expr)
         e->begin.body = body;
         return cont(ST_OBJECT(e), Nil);
     }
+    CASE("if") {
+        int len = St_Length(cdr);
+        StObject xpred = Nil;
+        StObject xthen = Nil;
+        StObject xelse = Nil;
+        switch (len) {
+        case 3: {
+            StXCont c = parse(ST_CADDR(cdr));
+            xelse = c.obj;
+        }
+        case 2: {
+            StXCont tc = parse(ST_CADR(cdr));
+            xthen = tc.obj;
+            StXCont cc = parse(ST_CAR(cdr));
+            xpred = cc.obj;
+            break;
+        }
+        default:
+            St_Error("parse: if: wrong number of arguments");
+        }
+
+        StExpression e = St_MakeExpression(XIF);
+        e->xif.xpred = xpred;
+        e->xif.xthen = xthen;
+        e->xif.xelse = xelse;
+        return cont(ST_OBJECT(e), Nil);
+    }
     /*
     case XIF:          return AllocX(xtype, sizeof(struct StXIf));
     case XSET:         return AllocX(xtype, sizeof(struct StXSet));
