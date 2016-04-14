@@ -558,7 +558,6 @@ static StXCont parse(StObject expr)
         return cont(ST_OBJECT(e), Nil);
     }
     /*
-    case XIF:          return AllocX(xtype, sizeof(struct StXIf));
     case XSET:         return AllocX(xtype, sizeof(struct StXSet));
     case XCALLCC:      return AllocX(xtype, sizeof(struct StXCallCC));
     case XDEFINE:      return AllocX(xtype, sizeof(struct StXDefine));
@@ -567,7 +566,7 @@ static StXCont parse(StObject expr)
     case XOR:          return AllocX(xtype, sizeof(struct StXList));
     case XLIST:        return AllocX(xtype, sizeof(struct StXList));
     */
-    return cont(NULL, Nil);
+    return cont(Nil, Nil);
 }
 
 StObject St_Parse(StObject module, StObject expr)
