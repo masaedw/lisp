@@ -151,15 +151,15 @@ static void display(StObject obj, StObject port)
         break;
 
     case XLETSTAR:
-        display_let("let*", &xobj->letstar, port);
+        display_let("let*", &xobj->let, port);
         break;
 
     case XLETREC:
-        display_let("letrec", &xobj->letrec, port);
+        display_let("letrec", &xobj->let, port);
         break;
 
     case XLETRECSTAR:
-        display_let("letrec*", &xobj->letrecstar, port);
+        display_let("letrec*", &xobj->let, port);
         break;
 
     case XLAMBDA:
@@ -400,20 +400,21 @@ static StXCont parse_body(StObject expr)
     return cont(ST_LIST3(vars, vals, body), Nil);
 }
 
-// retutns obj as struct StXLet*
-static StXCont parse_let(StObject expr)
+// retutns obj as StExpression
+static StXCont parse_let(StExpressionType xtype, StObject expr)
 {
     StXCont bindings = parse_bindings(expr);
     StXCont body = parse_body(bindings.rest);
     ST_BIND3("", body.obj, vars, vals, exprs);
 
-    struct StXLet *let = St_Malloc(sizeof(struct StXLet));
-    let->bindings = bindings.obj;
-    let->defvars = vars;
-    let->defvals = vals;
-    let->body = exprs;
+    StExpression e = St_MakeExpression(xtype);
 
-    return cont(let, body.rest);
+    e->let.bindings = bindings.obj;
+    e->let.defvars = vars;
+    e->let.defvals = vals;
+    e->let.body = exprs;
+
+    return cont(ST_OBJECT(e), Nil);
 }
 
 // returns obj as (params . dotted)
@@ -461,14 +462,14 @@ static StXCont parse_lambda(StObject expr)
     StXCont bc = parse_body(pc.rest);
     ST_BIND3("", bc.obj, vars, vals, exprs);
 
-    struct StXLambda *lambda = St_Malloc(sizeof(struct StXLambda));
-    lambda->vars = ST_CAR(pc.obj);
-    lambda->dotted = ST_TRUTHYP(ST_CDR(pc.obj));
-    lambda->defvars = vars;
-    lambda->defvals = vals;
-    lambda->body = exprs;
+    StExpression e = St_MakeExpression(XLAMBDA);
+    e->lambda.vars = ST_CAR(pc.obj);
+    e->lambda.dotted = ST_TRUTHYP(ST_CDR(pc.obj));
+    e->lambda.defvars = vars;
+    e->lambda.defvals = vals;
+    e->lambda.body = exprs;
 
-    return cont(lambda, bc.rest);
+    return cont(e, Nil);
 }
 
 static StXCont parse(StObject expr)
@@ -501,36 +502,20 @@ static StXCont parse(StObject expr)
         e->quote.value = expr;
         return cont(ST_OBJECT(e), Nil);
     }
-
     CASE("let") {
-        StXCont c = parse_let(cdr);
-        StExpression e = St_MakeExpression(XLET);
-        e->let = *(struct StXLet*)c.obj;
-        return cont(ST_OBJECT(e), Nil);
+        return parse_let(XLET, cdr);
     }
     CASE("let*") {
-        StXCont c = parse_let(cdr);
-        StExpression e = St_MakeExpression(XLETSTAR);
-        e->letstar = *(struct StXLet*)c.obj;
-        return cont(ST_OBJECT(e), Nil);
+        return parse_let(XLETSTAR, cdr);
     }
     CASE("letrec") {
-        StXCont c = parse_let(cdr);
-        StExpression e = St_MakeExpression(XLETREC);
-        e->letrec = *(struct StXLet*)c.obj;
-        return cont(ST_OBJECT(e), Nil);
+        return parse_let(XLETREC, cdr);
     }
     CASE("letrec*") {
-        StXCont c = parse_let(cdr);
-        StExpression e = St_MakeExpression(XLETRECSTAR);
-        e->letrecstar = *(struct StXLet*)c.obj;
-        return cont(ST_OBJECT(e), Nil);
+        return parse_let(XLETRECSTAR, cdr);
     }
     CASE("lambda") {
-        StXCont c = parse_lambda(cdr);
-        StExpression e = St_MakeExpression(XLAMBDA);
-        e->lambda = *(struct StXLambda*)c.obj;
-        return cont(ST_OBJECT(e), Nil);
+        return parse_lambda(cdr);
     }
     CASE("bgin") {
         StObject h = Nil, t = Nil;

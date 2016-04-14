@@ -42,7 +42,7 @@ struct StExpressionRec
             StObject defvars; // internal define symbols. vector of symbol
             StObject defvals; // internal define values. vector of expr
             StObject body; // vector of expr except begin expr
-        } let, letstar, letrec, letrecstar;
+        } let; // let, letstar, letrec, letrecstar;
 
         struct StXLambda
         {
