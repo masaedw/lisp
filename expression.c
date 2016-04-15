@@ -275,24 +275,12 @@ StExpression St_MakeExpression(StExpressionType xtype)
     }
 }
 
-typedef struct
-{
-    void *obj;
-    StObject rest;
-} StXCont;
-
-static inline StXCont cont(void *obj, StObject rest)
-{
-    return (StXCont) { obj, rest };
-}
-
-
 // parse
 
-static StXCont parse(StObject expr);
+static StObject parse(StObject expr);
 
-// returns obj as vector of (sym . expr)
-static StXCont parse_bindings(StObject expr)
+// returns a vector of (sym . expr)
+static StObject parse_bindings(StObject expr)
 {
     StObject h = Nil, t = Nil;
 
@@ -303,19 +291,16 @@ static StXCont parse_bindings(StObject expr)
             St_Error("parse: require symbol");
         }
 
-        StXCont sc = parse(s);
-        StXCont vc = parse(v);
-
-        ST_APPEND1(h, t, St_Cons(sc.obj, vc.obj));
+        ST_APPEND1(h, t, St_Cons(parse(s), parse(v)));
     }
 
-    return cont(St_MakeVectorFromList(h), Nil);
+    return St_MakeVectorFromList(h);
 }
 
-// returns obj as (vars . vals)
+// returns (vars vals rest)
 // vars :: vector of symbol
 // vals :: vector of expr
-static StXCont find_defines(StObject expr)
+static StObject find_defines(StObject expr)
 {
     StObject vars = Nil, vart = Nil;
     StObject vals = Nil, valt = Nil;
@@ -344,13 +329,11 @@ static StXCont find_defines(StObject expr)
             St_Error("syntax error: malformed define, symbol required");
         }
 
-        StXCont sc = parse(s);
-        StXCont vc = parse(v);
-        ST_APPEND1(vars, vart, sc.obj);
-        ST_APPEND1(vals, valt, vc.obj);
+        ST_APPEND1(vars, vart, parse(s));
+        ST_APPEND1(vals, valt, parse(v));
     }
 end:
-    return cont(St_Cons(St_MakeVectorFromList(vars), St_MakeVectorFromList(vals)), expr);
+    return ST_LIST3(St_MakeVectorFromList(vars), St_MakeVectorFromList(vals), expr);
 }
 
 static void expand_begin_sub(StObject expr, StObject *head, StObject *tail)
@@ -381,44 +364,46 @@ static StObject expand_begin(StObject expr)
     return h;
 }
 
-// returns obj as (vars vals exprs)
-static StXCont parse_body(StObject expr)
+// returns (vars vals exprs)
+static StObject parse_body(StObject expr)
 {
-    StXCont ds = find_defines(expand_begin(expr));
-    StObject vars = ST_CAR(ds.obj);
-    StObject vals = ST_CDR(ds.obj);
+    StObject ds = find_defines(expand_begin(expr));
+    ST_BIND3("", ds, vars, vals, rest);
 
     StObject h = Nil, t = Nil;
 
-    ST_FOREACH(p, ds.rest) {
-        StXCont c = parse(ST_CAR(p));
-        ST_APPEND1(h, t, c.obj);
+    ST_FOREACH(p, rest) {
+        ST_APPEND1(h, t, parse(ST_CAR(p)));
     }
 
     StObject body = St_MakeVectorFromList(h);
 
-    return cont(ST_LIST3(vars, vals, body), Nil);
+    return ST_LIST3(vars, vals, body);
 }
 
-// retutns obj as StExpression
-static StXCont parse_let(StExpressionType xtype, StObject expr)
+// retutns StExpression
+static StObject parse_let(StExpressionType xtype, StObject expr)
 {
-    StXCont bindings = parse_bindings(expr);
-    StXCont body = parse_body(bindings.rest);
-    ST_BIND3("", body.obj, vars, vals, exprs);
+    if (!ST_PAIRP(expr))
+    {
+        St_Error("let family: malformed let");
+    }
+    StObject bindings = parse_bindings(ST_CAR(expr));
+    StObject body = parse_body(ST_CDR(expr));
+    ST_BIND3("", body, vars, vals, exprs);
 
     StExpression e = St_MakeExpression(xtype);
 
-    e->let.bindings = bindings.obj;
+    e->let.bindings = bindings;
     e->let.defvars = vars;
     e->let.defvals = vals;
     e->let.body = exprs;
 
-    return cont(ST_OBJECT(e), Nil);
+    return ST_OBJECT(e);
 }
 
-// returns obj as (params . dotted)
-static StXCont parse_params(StObject expr)
+// returns (params . dotted)
+static StObject parse_params(StObject expr)
 {
     StObject h = Nil, t = Nil;
     StObject dotted = False;
@@ -429,13 +414,12 @@ static StXCont parse_params(StObject expr)
     }
 
     StObject p;
-    for (p = ST_CAR(expr); !ST_PAIRP(p); p = ST_CDR(p)) {
+    for (p = expr; !ST_PAIRP(p); p = ST_CDR(p)) {
         if (!ST_SYMBOLP(ST_CAR(p)))
         {
             St_Error("parse: symbol required as parameter of lambda");
         }
-        StXCont c = parse(ST_CAR(p));
-        ST_APPEND1(h, t, c.obj);
+        ST_APPEND1(h, t, parse(ST_CAR(p)));
     }
 
     if (ST_NULLP(p))
@@ -444,8 +428,7 @@ static StXCont parse_params(StObject expr)
     }
     else if (ST_SYMBOLP(p))
     {
-        StXCont c = parse(p);
-        ST_APPEND1(h, t, c.obj);
+        ST_APPEND1(h, t, parse(p));
         dotted = True;
     }
     else
@@ -453,32 +436,36 @@ static StXCont parse_params(StObject expr)
         St_Error("parse: symbol required as parameter of lambda");
     }
 
-    return cont(St_Cons(h, dotted), ST_CDR(expr));
+    return St_Cons(h, dotted);
 }
 
-static StXCont parse_lambda(StObject expr)
+static StObject parse_lambda(StObject expr)
 {
-    StXCont pc = parse_params(expr);
-    StXCont bc = parse_body(pc.rest);
-    ST_BIND3("", bc.obj, vars, vals, exprs);
+    if (!ST_PAIRP(expr))
+    {
+        St_Error("lambda: malformed lambda.");
+    }
+
+    StObject params = parse_params(ST_CAR(expr));
+    StObject body = parse_body(ST_CDR(expr));
+    ST_BIND3("", body, vars, vals, exprs);
 
     StExpression e = St_MakeExpression(XLAMBDA);
-    e->lambda.vars = ST_CAR(pc.obj);
-    e->lambda.dotted = ST_TRUTHYP(ST_CDR(pc.obj));
+    e->lambda.vars = ST_CAR(params);
+    e->lambda.dotted = ST_TRUTHYP(ST_CDR(params));
     e->lambda.defvars = vars;
     e->lambda.defvals = vals;
     e->lambda.body = exprs;
 
-    return cont(e, Nil);
+    return ST_OBJECT(e);
 }
 
-static StXCont parse_list(StExpressionType xtype, StObject expr)
+static StObject parse_list(StExpressionType xtype, StObject expr)
 {
     StObject h = Nil, t = Nil;
 
     ST_FOREACH(p, expr) {
-        StXCont c = parse(ST_CAR(p));
-        ST_APPEND1(h, t, c.obj);
+        ST_APPEND1(h, t, parse(ST_CAR(p)));
     }
 
     StObject exprs = St_MakeVectorFromList(h);
@@ -486,10 +473,10 @@ static StXCont parse_list(StExpressionType xtype, StObject expr)
     StExpression e = St_MakeExpression(xtype);
     e->list.exprs = exprs;
 
-    return cont(e, Nil);
+    return ST_OBJECT(e);
 }
 
-static StXCont parse(StObject expr)
+static StObject parse(StObject expr)
 {
     if (!ST_PAIRP(expr))
     {
@@ -497,13 +484,13 @@ static StXCont parse(StObject expr)
         {
             StExpression e = St_MakeExpression(XSYMBOL);
             e->symbol.value = expr;
-            return cont(ST_OBJECT(e), Nil);
+            return ST_OBJECT(e);
         }
         else
         {
             StExpression e = St_MakeExpression(XVALUE);
             e->value.value = expr;
-            return cont(ST_OBJECT(e), Nil);
+            return ST_OBJECT(e);
         }
     }
 
@@ -517,7 +504,7 @@ static StXCont parse(StObject expr)
         ST_BIND1("quote", cdr, expr);
         StExpression e = St_MakeExpression(XQUOTE);
         e->quote.value = expr;
-        return cont(ST_OBJECT(e), Nil);
+        return ST_OBJECT(e);
     }
     CASE("let") {
         return parse_let(XLET, cdr);
@@ -538,14 +525,13 @@ static StXCont parse(StObject expr)
         StObject h = Nil, t = Nil;
 
         ST_FOREACH(p, expand_begin(cdr)) {
-            StXCont c = parse(ST_CAR(p));
-            ST_APPEND1(h, t, c.obj);
+            ST_APPEND1(h, t, parse(ST_CAR(p)));
         }
 
         StObject body = St_MakeVectorFromList(h);
         StExpression e = St_MakeExpression(XBEGIN);
         e->begin.body = body;
-        return cont(ST_OBJECT(e), Nil);
+        return ST_OBJECT(e);
     }
     CASE("if") {
         int len = St_Length(cdr);
@@ -554,14 +540,11 @@ static StXCont parse(StObject expr)
         StObject xelse = Nil;
         switch (len) {
         case 3: {
-            StXCont c = parse(ST_CADDR(cdr));
-            xelse = c.obj;
+            xelse = parse(ST_CADDR(cdr));
         }
         case 2: {
-            StXCont tc = parse(ST_CADR(cdr));
-            xthen = tc.obj;
-            StXCont cc = parse(ST_CAR(cdr));
-            xpred = cc.obj;
+            xthen = parse(ST_CADR(cdr));
+            xpred = parse(ST_CAR(cdr));
             break;
         }
         default:
@@ -572,57 +555,53 @@ static StXCont parse(StObject expr)
         e->xif.xpred = xpred;
         e->xif.xthen = xthen;
         e->xif.xelse = xelse;
-        return cont(ST_OBJECT(e), Nil);
+        return ST_OBJECT(e);
     }
     CASE("set!") {
         ST_BIND2("set", cdr, sym, expr);
+
         if (!ST_SYMBOLP(sym))
         {
             St_Error("set!: symbol required");
         }
-        StXCont sc = parse(sym);
-        StXCont ec = parse(expr);
 
         StExpression e = St_MakeExpression(XSET);
-        e->set.symbol = sc.obj;
-        e->set.value = ec.obj;
-        return cont(ST_OBJECT(e), Nil);
+        e->set.symbol = parse(sym);
+        e->set.value = parse(expr);
+        return ST_OBJECT(e);
     }
     CASE("call/cc") {
         ST_BIND1("call/cc", cdr, lambda);
-        StXCont l = parse(lambda);
 
         StExpression e = St_MakeExpression(XCALLCC);
-        e->callcc.lambda = l.obj;
-        return cont(ST_OBJECT(e), Nil);
+        e->callcc.lambda = parse(lambda);
+        return ST_OBJECT(e);
     }
     CASE("define") {
         ST_BIND2("define", cdr, sym, expr);
+
         if (!ST_SYMBOLP(sym))
         {
             St_Error("define: symbol required");
         }
-        StXCont sc = parse(sym);
-        StXCont ec = parse(expr);
 
         StExpression e = St_MakeExpression(XDEFINE);
-        e->define.symbol = sc.obj;
-        e->define.value = ec.obj;
-        return cont(ST_OBJECT(e), Nil);
+        e->define.symbol = parse(sym);
+        e->define.value = parse(expr);
+        return ST_OBJECT(e);
     }
     CASE("define-macro") {
         ST_BIND2("define-macro", cdr, sym, lambda);
+
         if (!ST_SYMBOLP(sym))
         {
             St_Error("define: symbol required");
         }
-        StXCont sc = parse(sym);
-        StXCont lc = parse(lambda);
 
         StExpression e = St_MakeExpression(XDEFINE);
-        e->define_macro.symbol = sc.obj;
-        e->define_macro.lambda = lc.obj;
-        return cont(ST_OBJECT(e), Nil);
+        e->define_macro.symbol = parse(sym);
+        e->define_macro.lambda = parse(lambda);
+        return ST_OBJECT(e);
     }
     CASE("and") {
         return parse_list(XAND, cdr);
@@ -638,6 +617,5 @@ static StXCont parse(StObject expr)
 StObject St_Parse(StObject module, StObject expr)
 {
     StObject expanded = St_SyntaxExpand(module, expr);
-    StXCont c = parse(expanded);
-    return c.obj;
+    return parse(expanded);
 }
