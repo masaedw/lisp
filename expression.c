@@ -217,13 +217,13 @@ static void display(StObject obj, StObject port)
 
     case XAND:
         St_WriteCString("(and ", port);
-        display_body(xobj->and.exprs, port);
+        display_body(xobj->list.exprs, port);
         St_WriteCString(")", port);
         break;
 
     case XOR:
         St_WriteCString("(or ", port);
-        display_body(xobj->or.exprs, port);
+        display_body(xobj->list.exprs, port);
         St_WriteCString(")", port);
         break;
 
@@ -472,6 +472,23 @@ static StXCont parse_lambda(StObject expr)
     return cont(e, Nil);
 }
 
+static StXCont parse_list(StExpressionType xtype, StObject expr)
+{
+    StObject h = Nil, t = Nil;
+
+    ST_FOREACH(p, expr) {
+        StXCont c = parse(ST_CAR(p));
+        ST_APPEND1(h, t, c.obj);
+    }
+
+    StObject exprs = St_MakeVectorFromList(h);
+
+    StExpression e = St_MakeExpression(xtype);
+    e->list.exprs = exprs;
+
+    return cont(e, Nil);
+}
+
 static StXCont parse(StObject expr)
 {
     if (!ST_PAIRP(expr))
@@ -557,16 +574,65 @@ static StXCont parse(StObject expr)
         e->xif.xelse = xelse;
         return cont(ST_OBJECT(e), Nil);
     }
-    /*
-    case XSET:         return AllocX(xtype, sizeof(struct StXSet));
-    case XCALLCC:      return AllocX(xtype, sizeof(struct StXCallCC));
-    case XDEFINE:      return AllocX(xtype, sizeof(struct StXDefine));
-    case XDEFINEMACRO: return AllocX(xtype, sizeof(struct StXDefineMacro));
-    case XAND:         return AllocX(xtype, sizeof(struct StXList));
-    case XOR:          return AllocX(xtype, sizeof(struct StXList));
-    case XLIST:        return AllocX(xtype, sizeof(struct StXList));
-    */
-    return cont(Nil, Nil);
+    CASE("set!") {
+        ST_BIND2("set", cdr, sym, expr);
+        if (!ST_SYMBOLP(sym))
+        {
+            St_Error("set!: symbol required");
+        }
+        StXCont sc = parse(sym);
+        StXCont ec = parse(expr);
+
+        StExpression e = St_MakeExpression(XSET);
+        e->set.symbol = sc.obj;
+        e->set.value = ec.obj;
+        return cont(ST_OBJECT(e), Nil);
+    }
+    CASE("call/cc") {
+        ST_BIND1("call/cc", cdr, lambda);
+        StXCont l = parse(lambda);
+
+        StExpression e = St_MakeExpression(XCALLCC);
+        e->callcc.lambda = l.obj;
+        return cont(ST_OBJECT(e), Nil);
+    }
+    CASE("define") {
+        ST_BIND2("define", cdr, sym, expr);
+        if (!ST_SYMBOLP(sym))
+        {
+            St_Error("define: symbol required");
+        }
+        StXCont sc = parse(sym);
+        StXCont ec = parse(expr);
+
+        StExpression e = St_MakeExpression(XDEFINE);
+        e->define.symbol = sc.obj;
+        e->define.value = ec.obj;
+        return cont(ST_OBJECT(e), Nil);
+    }
+    CASE("define-macro") {
+        ST_BIND2("define-macro", cdr, sym, lambda);
+        if (!ST_SYMBOLP(sym))
+        {
+            St_Error("define: symbol required");
+        }
+        StXCont sc = parse(sym);
+        StXCont lc = parse(lambda);
+
+        StExpression e = St_MakeExpression(XDEFINE);
+        e->define_macro.symbol = sc.obj;
+        e->define_macro.lambda = lc.obj;
+        return cont(ST_OBJECT(e), Nil);
+    }
+    CASE("and") {
+        return parse_list(XAND, cdr);
+    }
+    CASE("or") {
+        return parse_list(XOR, cdr);
+    }
+    else {
+        return parse_list(XLIST, expr);
+    }
 }
 
 StObject St_Parse(StObject module, StObject expr)

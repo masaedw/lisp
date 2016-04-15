@@ -91,7 +91,7 @@ struct StExpressionRec
         struct StXList
         {
             StObject exprs; // vector of expr
-        } and, or, list;
+        } list; // list, and, or
     };
 };
 typedef struct StExpressionRec *StExpression;
