@@ -480,7 +480,7 @@ void St_InitVm(void);
 
 // Parser
 
-
+StObject St_Parse(StObject module, StObject expr);
 StObject St_Read(StObject port);
 
 // Printer

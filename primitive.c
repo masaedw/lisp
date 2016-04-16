@@ -1027,6 +1027,12 @@ static StObject subr_current_error_port(StCallInfo *cinfo)
     return current_x_port_impl(cinfo, "current-error-port", &St_CurrentErrorPort);
 }
 
+static StObject subr_to_expr(StCallInfo *cinfo)
+{
+    ST_ARGS1("to-expr", cinfo, e);
+    return St_Parse(GlobalModule, e);
+}
+
 void St_InitPrimitives(void)
 {
     StObject m = GlobalModule;
@@ -1108,4 +1114,5 @@ void St_InitPrimitives(void)
     St_AddSubr(m, "current-input-port", subr_current_input_port);
     St_AddSubr(m, "current-output-port", subr_current_output_port);
     St_AddSubr(m, "current-error-port", subr_current_error_port);
+    St_AddSubr(m, "to-expr", subr_to_expr);
 }
